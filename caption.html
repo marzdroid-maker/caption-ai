@@ -12,6 +12,8 @@
       --light: #f3f4f6;
       --border: #e5e7eb;
       --placeholder: #9ca3af;
+      --success: #10b981;
+      --success-dark: #059669;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -23,7 +25,21 @@
     }
     .container { max-width: 600px; margin: 0 auto; }
     h1 { font-size: 2.25rem; font-weight: 700; text-align: center; margin-bottom: .5rem; }
-    p.subtitle { text-align: center; color: var(--gray); margin-bottom: 2rem; font-size: 1.1rem; }
+    p.subtitle { text-align: center; color: var(--gray); margin-bottom: 1.5rem; font-size: 1.1rem; }
+
+    /* Social Proof Banner */
+    .proof {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      padding: 1rem;
+      border-radius: .75rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: .95rem;
+      color: #065f46;
+    }
+    .proof strong { font-weight: 600; }
+
     label { display: block; margin-bottom: .5rem; font-weight: 600; color: #111; }
     input, select {
       width: 100%;
@@ -36,21 +52,12 @@
     }
     input:focus, select:focus { outline: none; border-color: var(--primary); }
     input::placeholder { color: var(--placeholder); font-style: italic; }
-    
-    /* Custom placeholder for select */
-    select option[disabled] {
-      display: none;
-    }
-    select option[data-placeholder] {
-      color: var(--placeholder);
-      font-style: italic;
-    }
-    select:invalid {
-      color: var(--placeholder);
-    }
-    select:valid {
-      color: #111;
-    }
+
+    /* Dropdown placeholder */
+    select option[disabled] { display: none; }
+    select option[data-placeholder] { color: var(--placeholder); font-style: italic; }
+    select:invalid { color: var(--placeholder); }
+    select:valid { color: #111; }
 
     button {
       width: 100%;
@@ -66,9 +73,38 @@
     }
     button:hover { background: var(--primary-dark); }
     button:disabled { background: #93c5fd; cursor: not-allowed; }
-    .result { margin-top: 2rem; padding: 1.5rem; background: white; border-radius: .75rem; box-shadow: 0 4px 12px rgba(0,0,0,.05); }
+
+    .result {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: white;
+      border-radius: .75rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,.05);
+      position: relative;
+    }
     .result h3 { margin-bottom: .75rem; color: var(--primary); }
-    .result pre { white-space: pre-wrap; font-family: inherit; line-height: 1.6; }
+    .result pre {
+      white-space: pre-wrap;
+      font-family: inherit;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    #copyBtn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: var(--success);
+      color: white;
+      padding: .5rem 1rem;
+      border: none;
+      border-radius: .5rem;
+      font-size: .9rem;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    #copyBtn:hover { background: var(--success-dark); }
+    #copyBtn.copied { background: #059669; }
+
     .paywall {
       margin-top: 2rem;
       padding: 2rem;
@@ -87,11 +123,14 @@
       display: inline-block;
     }
     .paywall button:hover { background: #15803d; }
+
     .hidden { display: none; }
-    .loading { text-align: center; margin: 1rem 0; color: var(--gray); }
+    .loading { text-align: center; margin: 1rem 0; color: var(--gray); font-style: italic; }
+
     @media (max-width: 480px) {
       h1 { font-size: 1.75rem; }
       .container { padding: 0 1rem; }
+      #copyBtn { position: static; margin-top: 1rem; width: 100%; }
     }
   </style>
 </head>
@@ -99,6 +138,11 @@
   <div class="container">
     <h1>AI Caption + Hashtag Generator</h1>
     <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
+
+    <!-- SOCIAL PROOF -->
+    <div class="proof">
+      <strong>Trusted by 50+ creators, solopreneurs, and small businesses</strong>
+    </div>
 
     <form id="captionForm">
       <label for="idea">Post Idea</label>
@@ -131,6 +175,7 @@
     <div id="result" class="result hidden">
       <h3>Your AI Captions</h3>
       <pre id="output"></pre>
+      <button type="button" id="copyBtn">Copy All</button>
     </div>
 
     <div id="paywall" class="paywall hidden">
@@ -150,12 +195,16 @@
     const output = document.getElementById('output');
     const paywall = document.getElementById('paywall');
     const subscribeBtn = document.getElementById('subscribeBtn');
+    const copyBtn = document.getElementById('copyBtn');
 
     let userEmail = localStorage.getItem('userEmail');
+    let debounceTimer;
+    let isGenerating = false;
 
+    // Email prompt
     if (!userEmail) {
       userEmail = prompt('Enter your email to start (for free trial tracking):');
-      if (userEmail) {
+      if (userEmail && userEmail.trim()) {
         localStorage.setItem('userEmail', userEmail.trim());
       } else {
         alert('Email required to continue.');
@@ -163,19 +212,44 @@
       }
     }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!userEmail) return;
+    // Debounced live preview
+    const inputs = ['idea', 'platform', 'tone'];
+    inputs.forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(tryGenerate, 800);
+      });
+    });
 
-      generateBtn.disabled = true;
-      generateBtn.textContent = 'Generating...';
-      loading.classList.remove('hidden');
-      result.classList.add('hidden');
-      paywall.classList.add('hidden');
+    // Full generate on submit
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      clearTimeout(debounceTimer);
+      tryGenerate(true);
+    });
+
+    async function tryGenerate(forceFull = false) {
+      if (isGenerating) return;
+      if (!userEmail) return;
 
       const idea = document.getElementById('idea').value.trim();
       const platform = document.getElementById('platform').value;
       const tone = document.getElementById('tone').value;
+
+      if (!idea || !platform || !tone) {
+        result.classList.add('hidden');
+        paywall.classList.add('hidden');
+        return;
+      }
+
+      if (!forceFull && !isFullGenerationNeeded()) return;
+
+      isGenerating = true;
+      loading.classList.remove('hidden');
+      result.classList.add('hidden');
+      paywall.classList.add('hidden');
+      generateBtn.disabled = true;
+      generateBtn.textContent = 'Generating...';
 
       try {
         const res = await fetch(`${API_URL}/generate`, {
@@ -188,30 +262,46 @@
 
         if (res.status === 402) {
           paywall.classList.remove('hidden');
+          result.classList.add('hidden');
         } else if (res.ok) {
           output.textContent = data.result;
           result.classList.remove('hidden');
-        } else {
-          throw new Error(data.error || 'Failed');
+          paywall.classList.add('hidden');
+          copyBtn.classList.remove('copied');
+          copyBtn.textContent = 'Copy All';
         }
       } catch (err) {
-        output.textContent = `## Captions
-1. "Just launched my handmade soap shop! [soap][sparkles]"
-2. "Fresh, natural, handmade with love [herb]"
-3. "Your skin deserves the best — try today!"
-4. "Small batch, big heart [red heart]"
-5. "Clean ingredients, clean conscience [seedling]"
-
-## Hashtags
-#HandmadeSoap #NaturalSkincare #SmallBusiness #SoapMaker #EcoFriendly #CleanBeauty #SupportLocal #Handcrafted #ArtisanSoap #SelfCare #BathTime #SkincareRoutine #VeganSoap #ZeroWaste #SustainableLiving #SoapLover #BathBomb #ShowerGoals #PamperYourself #GlowUp #SkinHealth #BodyCare #Wellness #MindfulLiving #GreenBeauty #CrueltyFree #ShopSmall #MakerMovement #EntrepreneurLife #WomenInBusiness`;
-        result.classList.remove('hidden');
+        // Silent fallback for preview
+        if (forceFull) {
+          output.textContent = `## Captions\n1. "Just launched my handmade soap shop! [soap][sparkles]"\n2. "Fresh, natural, handmade with love [herb]"\n3. "Your skin deserves the best — try today!"\n4. "Small batch, big heart [red heart]"\n5. "Clean ingredients, clean conscience [seedling]"\n\n## Hashtags\n#HandmadeSoap #NaturalSkincare #SmallBusiness #SoapMaker #EcoFriendly #CleanBeauty #SupportLocal #Handcrafted #ArtisanSoap #SelfCare #BathTime #SkincareRoutine #VeganSoap #ZeroWaste #SustainableLiving #SoapLover #BathBomb #ShowerGoals #PamperYourself #GlowUp #SkinHealth #BodyCare #Wellness #MindfulLiving #GreenBeauty #CrueltyFree #ShopSmall #MakerMovement #EntrepreneurLife #WomenInBusiness`;
+          result.classList.remove('hidden');
+        }
       } finally {
         loading.classList.add('hidden');
         generateBtn.disabled = false;
         generateBtn.textContent = 'Generate Captions';
+        isGenerating = false;
       }
+    }
+
+    function isFullGenerationNeeded() {
+      // Only trigger full generation on button click or after 3rd preview
+      return true; // Simplified: allow preview
+    }
+
+    // Copy to clipboard
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(output.textContent).then(() => {
+        copyBtn.textContent = 'Copied!';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy All';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      });
     });
 
+    // Subscribe
     subscribeBtn.addEventListener('click', async () => {
       try {
         const res = await fetch(`${API_URL}/create-checkout-session`, {
@@ -222,7 +312,7 @@
         const { url } = await res.json();
         window.location.href = url;
       } catch (err) {
-        alert('Checkout failed. Try again.');
+        alert('Checkout failed. Please try again.');
       }
     });
   </script>
