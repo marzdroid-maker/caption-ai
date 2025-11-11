@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Caption + Hashtag Generator</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f9f9fb; }
+    h1 { color: #333; text-align: center; }
+    label { display: block; margin: 15px 0 5px; font-weight: 600; }
+    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+    button { margin-top: 20px; padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .result { margin-top: 30px; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .copy { float: right; background: #28a745; color: white; padding: 6px 12px; font-size: 14px; border: none; border-radius: 6px; cursor: pointer; }
+    pre { white-space: pre-wrap; background: #f4f4f4; padding: 15px; border-radius: 8px; }
+    #paywall { display: none; margin-top: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; text-align: center; }
+    #paywall button { background: #28a745; }
+  </style>
+</head>
+<body>
+  <h1>AI Caption + Hashtag Generator</h1>
+  <p style="text-align:center; color:#666;">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
+
+  <label>Post Idea</label>
+  <textarea id="idea" rows="3" placeholder="e.g. Just launched my handmade soap shop!">Just launched my handmade soap shop!</textarea>
+
+  <label>Platform</label>
+  <select id="platform">
+    <option>Instagram</option>
+    <option>TikTok</option>
+    <option>LinkedIn</option>
+  </select>
+
+  <label>Tone</label>
+  <select id="tone">
+    <option>Fun & Playful</option>
+    <option>Professional</option>
+    <option>Warm & Cozy</option>
+    <option>Bold & Confident</option>
+  </select>
+
+  <button onclick="generate()">Generate Captions</button>
+
+  <!-- PAYWALL -->
+  <div id="paywall">
+    <h3>Upgrade to Pro!</h3>
+    <p>Unlimited generations for <strong>$7/month</strong>.</p>
+    <button onclick="checkout()">Subscribe Now</button>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="output" class="result" style="display:none;">
+    <button class="copy" onclick="copyAll()">Copy All</button>
+    <h3>5 Viral Captions</h3>
+    <pre id="captions"></pre>
+    <h3>30 Hashtags</h3>
+    <pre id="hashtags"></pre>
+  </div>
+
+  <!-- STRIPE + JS -->
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    // ←←← YOUR STRIPE TEST KEY ←←←
+    const stripe = Stripe('pk_test_51SRccGFrRDBGUN6XnygDrObyWljszYf7QrJtRXZExsCBt5jF7t4BrU8W7gyZQsa0XJ5oikF3An8RORedIAfjNUdC00gnJAYJhA');
+
+    // ←←← API_URL — UPDATE THIS WHEN YOU DEPLOY BACKEND ←←←
+    const API_URL = 'http://localhost:3000'; // ← FOR LOCAL TESTING
+    // const API_URL = 'https://your-app.onrender.com'; // ← FOR LIVE
+
+    // SAFE LOCAL STORAGE
+    function getStorage(key, fallback) {
+      try {
+        const val = localStorage.getItem(key);
+        return val !== null ? val : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    function setStorage(key, value) {
+      try {
+        localStorage.setItem(key, value);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    async function generate() {
+      const idea = document.getElementById('idea').value.trim();
+      const platform = document.getElementById('platform').value;
+      const tone = document.getElementById('tone').value;
+      let email = getStorage('userEmail', '');
+
+      if (!idea) {
+        alert("Please enter a post idea!");
+        return;
+      }
+
+      if (!email) {
+        email = prompt("Enter your email (for free tier tracking):");
+        if (!email) return;
+        setStorage('userEmail', email);
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idea, platform, tone, email }),
+        });
+
+        const data = await response.json();
+
+        if (response.status === 402) {
+          document.getElementById('paywall').style.display = 'block';
+          return;
+        }
+
+        if (!response.ok) throw new Error(data.error || 'Generation failed');
+
+        const sections = data.result.split('##').slice(1);
+        const captions = sections[0]?.trim().split('\n\n') || [];
+        const hashtags = sections[1]?.trim() || '';
+
+        document.getElementById('captions').textContent = captions.map((c, i) => `${i+1}. ${c}`).join('\n\n');
+        document.getElementById('hashtags').textContent = hashtags;
+        document.getElementById('output').style.display = 'block';
+        document.getElementById('paywall').style.display = 'none';
+      } catch (error) {
+        // FOR QUICK TEST: FALLBACK TO FAKE AI
+        let count = parseInt(getStorage('genCount', '0'));
+        if (count >= 3) {
+          document.getElementById('paywall').style.display = 'block';
+          return;
+        }
+        count++;
+        setStorage('genCount', count);
+
+        const captions = [
+          `Professional launch: Introducing our new handmade soap collection. Crafted with care. Available now.`,
+          `Elevate your skincare routine with premium, all-natural soaps. Shop the collection.`,
+          `Small-batch excellence. Sustainable ingredients. Exceptional results.`,
+          `Handmade with intention. Designed for discerning customers.`,
+          `Now available: Limited-edition soap bars. Secure yours today.`
+        ];
+        const hashtags = "#HandmadeSoap #Skincare #SmallBusiness #NaturalBeauty #CleanBeauty #SoapMaker #ArtisanSoap #EcoFriendly #SelfCare #LuxurySoap #BathRoutine #SustainableLiving #IndieBrand #SoapLover #Wellness #ShopSmall #Handcrafted #BeautyEssentials #NaturalSkincare #SoapArt #MindfulLiving #GreenBeauty #SoapGifts #BathTime #SkincareRoutine #SupportSmall #CleanLiving #SoapBar #BathBomb #DailyRitual".split(' ').slice(0,30).join(' ');
+
+        document.getElementById('captions').textContent = captions.map((c,i) => `${i+1}. ${c}`).join('\n\n');
+        document.getElementById('hashtags').textContent = hashtags;
+        document.getElementById('output').style.display = 'block';
+      }
+    }
+
+    async function checkout() {
+      const email = getStorage('userEmail', 'test@example.com');
+      try {
+        const response = await fetch(`${API_URL}/create-checkout-session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const { url } = await response.json();
+        window.location.href = url;
+      } catch (error) {
+        alert("Checkout not available in test mode. Use real backend for Stripe.");
+      }
+    }
+
+    function copyAll() {
+      const text = document.getElementById('captions').textContent + "\n\n" + document.getElementById('hashtags').textContent;
+      navigator.clipboard.writeText(text).then(() => alert("Copied to clipboard!"));
+    }
+  </script>
+</body>
+</html>
