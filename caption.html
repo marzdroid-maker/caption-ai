@@ -14,6 +14,7 @@
       --placeholder: #9ca3af;
       --success: #10b981;
       --success-dark: #059669;
+      --error: #ef4444;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -27,7 +28,7 @@
     h1 { font-size: 2.25rem; font-weight: 700; text-align: center; margin-bottom: .5rem; }
     p.subtitle { text-align: center; color: var(--gray); margin-bottom: 1.5rem; font-size: 1.1rem; }
 
-    /* Social Proof Banner */
+    /* Social Proof */
     .proof {
       background: #ecfdf5;
       border: 1px solid #a7f3d0;
@@ -40,14 +41,34 @@
     }
     .proof strong { font-weight: 600; }
 
+    /* Email Modal */
+    #emailModal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7); display: flex; align-items: center;
+      justify-content: center; z-index: 9999;
+    }
+    .modal-content {
+      background: white; padding: 2rem; border-radius: 1rem;
+      width: 90%; max-width: 400px; text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .modal-content h2 { margin-bottom: 1rem; font-size: 1.5rem; }
+    .modal-content p { margin-bottom: 1.5rem; color: #555; }
+    .modal-content input {
+      width: 100%; padding: .75rem; border: 2px solid #e5e7eb;
+      border-radius: .5rem; font-size: 1rem; margin-bottom: 1rem;
+    }
+    .modal-content button {
+      background: var(--primary); color: white; border: none;
+      padding: .75rem 1.5rem; border-radius: .5rem; font-weight: 600;
+      cursor: pointer; width: 100%;
+    }
+
+    /* Form */
     label { display: block; margin-bottom: .5rem; font-weight: 600; color: #111; }
     input, select {
-      width: 100%;
-      padding: .75rem 1rem;
-      border: 2px solid var(--border);
-      border-radius: .5rem;
-      font-size: 1rem;
-      margin-bottom: 1rem;
+      width: 100%; padding: .75rem 1rem; border: 2px solid var(--border);
+      border-radius: .5rem; font-size: 1rem; margin-bottom: 1rem;
       transition: border .2s;
     }
     input:focus, select:focus { outline: none; border-color: var(--primary); }
@@ -60,67 +81,38 @@
     select:valid { color: #111; }
 
     button {
-      width: 100%;
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 1rem;
-      font-size: 1.1rem;
-      font-weight: 600;
-      border-radius: .5rem;
-      cursor: pointer;
-      transition: background .2s;
+      width: 100%; background: var(--primary); color: white; border: none;
+      padding: 1rem; font-size: 1.1rem; font-weight: 600; border-radius: .5rem;
+      cursor: pointer; transition: background .2s;
     }
     button:hover { background: var(--primary-dark); }
     button:disabled { background: #93c5fd; cursor: not-allowed; }
 
     .result {
-      margin-top: 2rem;
-      padding: 1.5rem;
-      background: white;
-      border-radius: .75rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,.05);
-      position: relative;
+      margin-top: 2rem; padding: 1.5rem; background: white; border-radius: .75rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,.05); position: relative;
     }
     .result h3 { margin-bottom: .75rem; color: var(--primary); }
     .result pre {
-      white-space: pre-wrap;
-      font-family: inherit;
-      line-height: 1.6;
-      margin-bottom: 1rem;
+      white-space: pre-wrap; font-family: inherit; line-height: 1.6; margin-bottom: 1rem;
     }
     #copyBtn {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      background: var(--success);
-      color: white;
-      padding: .5rem 1rem;
-      border: none;
-      border-radius: .5rem;
-      font-size: .9rem;
-      cursor: pointer;
-      transition: background .2s;
+      position: absolute; top: 1rem; right: 1rem; background: var(--success);
+      color: white; padding: .5rem 1rem; border: none; border-radius: .5rem;
+      font-size: .9rem; cursor: pointer; transition: background .2s;
     }
     #copyBtn:hover { background: var(--success-dark); }
     #copyBtn.copied { background: #059669; }
 
     .paywall {
-      margin-top: 2rem;
-      padding: 2rem;
-      background: #fefce8;
-      border-radius: .75rem;
-      text-align: center;
-      border: 2px solid #fde68a;
+      margin-top: 2rem; padding: 2rem; background: #fefce8; border-radius: .75rem;
+      text-align: center; border: 2px solid #fde68a;
     }
     .paywall h3 { margin-bottom: .5rem; font-size: 1.5rem; }
     .paywall p { color: #92400e; margin-bottom: 1rem; }
     .paywall button {
-      background: #16a34a;
-      padding: .75rem 1.5rem;
-      font-size: 1rem;
-      width: auto;
-      display: inline-block;
+      background: #16a34a; padding: .75rem 1.5rem; font-size: 1rem;
+      width: auto; display: inline-block;
     }
     .paywall button:hover { background: #15803d; }
 
@@ -135,11 +127,22 @@
   </style>
 </head>
 <body>
-  <div class="container">
+
+  <!-- EMAIL MODAL -->
+  <div id="emailModal">
+    <div class="modal-content">
+      <h2>Welcome!</h2>
+      <p>Enter your email to get <strong>3 free generations</strong>.</p>
+      <input type="email" id="emailInput" placeholder="you@example.com" required />
+      <button id="emailSubmit">Start Generating</button>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div class="container" id="mainApp" style="display: none;">
     <h1>AI Caption + Hashtag Generator</h1>
     <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
 
-    <!-- SOCIAL PROOF -->
     <div class="proof">
       <strong>Trusted by 50+ creators, solopreneurs, and small businesses</strong>
     </div>
@@ -187,134 +190,138 @@
 
   <script>
     const API_URL = 'https://caption-ai-ze13.onrender.com';
-
-    const form = document.getElementById('captionForm');
-    const generateBtn = document.getElementById('generateBtn');
-    const loading = document.getElementById('loading');
-    const result = document.getElementById('result');
-    const output = document.getElementById('output');
-    const paywall = document.getElementById('paywall');
-    const subscribeBtn = document.getElementById('subscribeBtn');
-    const copyBtn = document.getElementById('copyBtn');
+    const modal = document.getElementById('emailModal');
+    const mainApp = document.getElementById('mainApp');
+    const emailInput = document.getElementById('emailInput');
+    const emailSubmit = document.getElementById('emailSubmit');
 
     let userEmail = localStorage.getItem('userEmail');
-    let debounceTimer;
-    let isGenerating = false;
 
-    // Email prompt
+    // Show modal if no email
     if (!userEmail) {
-      userEmail = prompt('Enter your email to start (for free trial tracking):');
-      if (userEmail && userEmail.trim()) {
-        localStorage.setItem('userEmail', userEmail.trim());
-      } else {
-        alert('Email required to continue.');
-        generateBtn.disabled = true;
-      }
+      emailSubmit.addEventListener('click', () => {
+        const email = emailInput.value.trim();
+        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          localStorage.setItem('userEmail', email);
+          modal.style.display = 'none';
+          mainApp.style.display = 'block';
+          userEmail = email;
+          initApp();
+        } else {
+          emailInput.style.borderColor = '#ef4444';
+          emailInput.focus();
+        }
+      });
+    } else {
+      modal.style.display = 'none';
+      mainApp.style.display = 'block';
+      initApp();
     }
 
-    // Debounced live preview
-    const inputs = ['idea', 'platform', 'tone'];
-    inputs.forEach(id => {
-      document.getElementById(id).addEventListener('input', () => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(tryGenerate, 800);
+    function initApp() {
+      const form = document.getElementById('captionForm');
+      const generateBtn = document.getElementById('generateBtn');
+      const loading = document.getElementById('loading');
+      const result = document.getElementById('result');
+      const output = document.getElementById('output');
+      const paywall = document.getElementById('paywall');
+      const subscribeBtn = document.getElementById('subscribeBtn');
+      const copyBtn = document.getElementById('copyBtn');
+
+      let debounceTimer;
+      let isGenerating = false;
+
+      const inputs = ['idea', 'platform', 'tone'];
+      inputs.forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(tryGenerate, 800);
+        });
       });
-    });
 
-    // Full generate on submit
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      clearTimeout(debounceTimer);
-      tryGenerate(true);
-    });
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        clearTimeout(debounceTimer);
+        tryGenerate(true);
+      });
 
-    async function tryGenerate(forceFull = false) {
-      if (isGenerating) return;
-      if (!userEmail) return;
+      async function tryGenerate(forceFull = false) {
+        if (isGenerating || !userEmail) return;
 
-      const idea = document.getElementById('idea').value.trim();
-      const platform = document.getElementById('platform').value;
-      const tone = document.getElementById('tone').value;
+        const idea = document.getElementById('idea').value.trim();
+        const platform = document.getElementById('platform').value;
+        const tone = document.getElementById('tone').value;
 
-      if (!idea || !platform || !tone) {
+        if (!idea || !platform || !tone) {
+          result.classList.add('hidden');
+          paywall.classList.add('hidden');
+          return;
+        }
+
+        isGenerating = true;
+        loading.classList.remove('hidden');
         result.classList.add('hidden');
         paywall.classList.add('hidden');
-        return;
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'Generating...';
+
+        try {
+          const res = await fetch(`${API_URL}/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idea, platform, tone, email: userEmail })
+          });
+
+          const data = await res.json();
+
+          if (res.status === 402) {
+            paywall.classList.remove('hidden');
+            result.classList.add('hidden');
+          } else if (res.ok) {
+            output.textContent = data.result;
+            result.classList.remove('hidden');
+            paywall.classList.add('hidden');
+            copyBtn.classList.remove('copied');
+            copyBtn.textContent = 'Copy All';
+          }
+        } catch (err) {
+          if (forceFull) {
+            output.textContent = `## Captions\n1. "Just launched my coffee shop! ☕✨"\n2. "Fresh brews, cozy vibes ☕❤️"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love 🌱"\n5. "Come say hi! 👋"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
+            result.classList.remove('hidden');
+          }
+        } finally {
+          loading.classList.add('hidden');
+          generateBtn.disabled = false;
+          generateBtn.textContent = 'Generate Captions';
+          isGenerating = false;
+        }
       }
 
-      if (!forceFull && !isFullGenerationNeeded()) return;
-
-      isGenerating = true;
-      loading.classList.remove('hidden');
-      result.classList.add('hidden');
-      paywall.classList.add('hidden');
-      generateBtn.disabled = true;
-      generateBtn.textContent = 'Generating...';
-
-      try {
-        const res = await fetch(`${API_URL}/generate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idea, platform, tone, email: userEmail })
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(output.textContent).then(() => {
+          copyBtn.textContent = 'Copied!';
+          copyBtn.classList.add('copied');
+          setTimeout(() => {
+            copyBtn.textContent = 'Copy All';
+            copyBtn.classList.remove('copied');
+          }, 2000);
         });
-
-        const data = await res.json();
-
-        if (res.status === 402) {
-          paywall.classList.remove('hidden');
-          result.classList.add('hidden');
-        } else if (res.ok) {
-          output.textContent = data.result;
-          result.classList.remove('hidden');
-          paywall.classList.add('hidden');
-          copyBtn.classList.remove('copied');
-          copyBtn.textContent = 'Copy All';
-        }
-      } catch (err) {
-        // Silent fallback for preview
-        if (forceFull) {
-          output.textContent = `## Captions\n1. "Just launched my handmade soap shop! [soap][sparkles]"\n2. "Fresh, natural, handmade with love [herb]"\n3. "Your skin deserves the best — try today!"\n4. "Small batch, big heart [red heart]"\n5. "Clean ingredients, clean conscience [seedling]"\n\n## Hashtags\n#HandmadeSoap #NaturalSkincare #SmallBusiness #SoapMaker #EcoFriendly #CleanBeauty #SupportLocal #Handcrafted #ArtisanSoap #SelfCare #BathTime #SkincareRoutine #VeganSoap #ZeroWaste #SustainableLiving #SoapLover #BathBomb #ShowerGoals #PamperYourself #GlowUp #SkinHealth #BodyCare #Wellness #MindfulLiving #GreenBeauty #CrueltyFree #ShopSmall #MakerMovement #EntrepreneurLife #WomenInBusiness`;
-          result.classList.remove('hidden');
-        }
-      } finally {
-        loading.classList.add('hidden');
-        generateBtn.disabled = false;
-        generateBtn.textContent = 'Generate Captions';
-        isGenerating = false;
-      }
-    }
-
-    function isFullGenerationNeeded() {
-      // Only trigger full generation on button click or after 3rd preview
-      return true; // Simplified: allow preview
-    }
-
-    // Copy to clipboard
-    copyBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(output.textContent).then(() => {
-        copyBtn.textContent = 'Copied!';
-        copyBtn.classList.add('copied');
-        setTimeout(() => {
-          copyBtn.textContent = 'Copy All';
-          copyBtn.classList.remove('copied');
-        }, 2000);
       });
-    });
 
-    // Subscribe
-    subscribeBtn.addEventListener('click', async () => {
-      try {
-        const res = await fetch(`${API_URL}/create-checkout-session`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: userEmail })
-        });
-        const { url } = await res.json();
-        window.location.href = url;
-      } catch (err) {
-        alert('Checkout failed. Please try again.');
-      }
-    });
+      subscribeBtn.addEventListener('click', async () => {
+        try {
+          const res = await fetch(`${API_URL}/create-checkout-session`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userEmail })
+          });
+          const { url } = await res.json();
+          window.location.href = url;
+        } catch (err) {
+          alert('Checkout failed. Please try again.');
+        }
+      });
+    }
   </script>
 </body>
 </html>
