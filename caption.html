@@ -11,6 +11,7 @@
       --gray: #6b7280;
       --light: #f3f4f6;
       --border: #e5e7eb;
+      --placeholder: #9ca3af;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -32,11 +33,25 @@
       font-size: 1rem;
       margin-bottom: 1rem;
       transition: border .2s;
-      color: #111;
     }
     input:focus, select:focus { outline: none; border-color: var(--primary); }
-    input::placeholder, select option[disabled] { color: #9ca3af; font-style: italic; }
-    select option { color: #111; }
+    input::placeholder { color: var(--placeholder); font-style: italic; }
+    
+    /* Custom placeholder for select */
+    select option[disabled] {
+      display: none;
+    }
+    select option[data-placeholder] {
+      color: var(--placeholder);
+      font-style: italic;
+    }
+    select:invalid {
+      color: var(--placeholder);
+    }
+    select:valid {
+      color: #111;
+    }
+
     button {
       width: 100%;
       background: var(--primary);
@@ -91,7 +106,7 @@
 
       <label for="platform">Platform</label>
       <select id="platform" required>
-        <option value="" disabled selected>Choose platform</option>
+        <option value="" disabled selected data-placeholder>Choose platform</option>
         <option value="Instagram">Instagram</option>
         <option value="Twitter">Twitter</option>
         <option value="LinkedIn">LinkedIn</option>
@@ -100,7 +115,7 @@
 
       <label for="tone">Tone</label>
       <select id="tone" required>
-        <option value="" disabled selected>Choose tone</option>
+        <option value="" disabled selected data-placeholder>Choose tone</option>
         <option value="Professional">Professional</option>
         <option value="Fun & Playful">Fun & Playful</option>
         <option value="Inspirational">Inspirational</option>
@@ -125,9 +140,8 @@
     </div>
   </div>
 
-  <!-- ←←← API_URL — UPDATE THIS WHEN YOU DEPLOY BACKEND ←←← -->
   <script>
-    const API_URL = 'https://caption-ai-ze13.onrender.com'; // ← LIVE
+    const API_URL = 'https://caption-ai-ze13.onrender.com';
 
     const form = document.getElementById('captionForm');
     const generateBtn = document.getElementById('generateBtn');
