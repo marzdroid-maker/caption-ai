@@ -7,22 +7,32 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// === MIDDLEWARE ===
 app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.static('.')); // Serve caption.html
 
-// In-memory usage tracking (email → { generations, subscribed })
+// Serve static files (caption.html)
+app.use(express.static('.'));
+
+// Parse JSON for all routes EXCEPT /webhook
+app.use((req, res, next) => {
+  if (req.originalUrl === '/webhook') {
+    next();
+  } else {
+    express.json()(req, res, next);
+  }
+});
+
+// === IN-MEMORY USAGE TRACKING ===
 const usage = {};
 
-// Groq AI Setup
+// === GROQ AI SETUP ===
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
 // === ROUTES ===
 
-// Serve homepage
+// Homepage
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/caption.html');
 });
@@ -36,17 +46,32 @@ app.post('/generate', async (req, res) => {
   }
 
   const key = email.toLowerCase().trim();
-  const user = usage[key] || { generations: 0, subscribed: false };
+  let user = usage[key] || { generations: 0, subscribed: false };
 
-  // Check subscription or free tier
+  // === CHECK SUBSCRIPTION STATUS FROM STRIPE (FALLBACK) ===
+  try {
+    const customers = await stripe.customers.list({ email });
+    if (customers.data.length > 0) {
+      const customer = customers.data[0];
+      const subs = await stripe.subscriptions.list({ customer: customer.id });
+      if (subs.data.length > 0 && subs.data[0].status === 'active') {
+        user.subscribed = true;
+        console.log(`${email} is subscribed (Stripe check)`);
+      }
+    }
+  } catch (err) {
+    console.error('Stripe subscription check failed:', err.message);
+  }
+
+  // === ENFORCE FREE TIER LIMIT ===
   if (!user.subscribed && user.generations >= 3) {
     return res.status(402).json({ error: 'Upgrade required' });
   }
 
-  // Increment usage
   user.generations++;
   usage[key] = user;
 
+  // === AI PROMPT ===
   const prompt = `
 You are a viral social media copywriter.
 Platform: ${platform}
@@ -83,7 +108,7 @@ Format:
   }
 });
 
-// Create Stripe checkout session
+// Create checkout session
 app.post('/create-checkout-session', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
@@ -126,11 +151,9 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Handle successful checkout
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
     const email = session.customer_email;
-
     if (email) {
       const key = email.toLowerCase().trim();
       usage[key] = { generations: 0, subscribed: true };
@@ -146,8 +169,9 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-// Start server
+// === START SERVER ===
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Live URL: https://caption-ai-ze13.onrender.com`);
+  console.log(`Webhook URL: https://caption-ai-ze13.onrender.com/webhook`);
 });
