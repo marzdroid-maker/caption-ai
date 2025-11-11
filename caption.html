@@ -5,172 +5,211 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AI Caption + Hashtag Generator</title>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f9f9fb; }
-    h1 { color: #333; text-align: center; }
-    label { display: block; margin: 15px 0 5px; font-weight: 600; }
-    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-    button { margin-top: 20px; padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    .result { margin-top: 30px; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    .copy { float: right; background: #28a745; color: white; padding: 6px 12px; font-size: 14px; border: none; border-radius: 6px; cursor: pointer; }
-    pre { white-space: pre-wrap; background: #f4f4f4; padding: 15px; border-radius: 8px; }
-    #paywall { display: none; margin-top: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; text-align: center; }
-    #paywall button { background: #28a745; }
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --gray: #6b7280;
+      --light: #f3f4f6;
+      --border: #e5e7eb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      color: #111;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+    .container { max-width: 600px; margin: 0 auto; }
+    h1 { font-size: 2.25rem; font-weight: 700; text-align: center; margin-bottom: .5rem; }
+    p.subtitle { text-align: center; color: var(--gray); margin-bottom: 2rem; font-size: 1.1rem; }
+    label { display: block; margin-bottom: .5rem; font-weight: 600; color: #111; }
+    input, select {
+      width: 100%;
+      padding: .75rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: .5rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      transition: border .2s;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--primary); }
+    input::placeholder { color: #9ca3af; }
+    button {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 1rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: .5rem;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    button:hover { background: var(--primary-dark); }
+    button:disabled { background: #93c5fd; cursor: not-allowed; }
+    .result { margin-top: 2rem; padding: 1.5rem; background: white; border-radius: .75rem; box-shadow: 0 4px 12px rgba(0,0,0,.05); }
+    .result h3 { margin-bottom: .75rem; color: var(--primary); }
+    .result pre { white-space: pre-wrap; font-family: inherit; line-height: 1.6; }
+    .paywall {
+      margin-top: 2rem;
+      padding: 2rem;
+      background: #fefce8;
+      border-radius: .75rem;
+      text-align: center;
+      border: 2px solid #fde68a;
+    }
+    .paywall h3 { margin-bottom: .5rem; font-size: 1.5rem; }
+    .paywall p { color: #92400e; margin-bottom: 1rem; }
+    .paywall button {
+      background: #16a34a;
+      padding: .75rem 1.5rem;
+      font-size: 1rem;
+      width: auto;
+      display: inline-block;
+    }
+    .paywall button:hover { background: #15803d; }
+    .hidden { display: none; }
+    .loading { text-align: center; margin: 1rem 0; color: var(--gray); }
+    @media (max-width: 480px) {
+      h1 { font-size: 1.75rem; }
+      .container { padding: 0 1rem; }
+    }
   </style>
 </head>
 <body>
-  <h1>AI Caption + Hashtag Generator</h1>
-  <p style="text-align:center; color:#666;">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
+  <div class="container">
+    <h1>AI Caption + Hashtag Generator</h1>
+    <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
 
-  <label>Post Idea</label>
-  <textarea id="idea" rows="3" placeholder="e.g. Just launched my handmade soap shop!">Just launched my handmade soap shop!</textarea>
+    <form id="captionForm">
+      <label for="idea">Post Idea</label>
+      <input type="text" id="idea" placeholder="e.g. Just launched my coffee shop" required />
 
-  <label>Platform</label>
-  <select id="platform">
-    <option>Instagram</option>
-    <option>TikTok</option>
-    <option>LinkedIn</option>
-  </select>
+      <label for="platform">Platform</label>
+      <select id="platform" required>
+        <option value="Instagram">Instagram</option>
+        <option value="Twitter">Twitter</option>
+        <option value="LinkedIn">LinkedIn</option>
+        <option value="TikTok">TikTok</option>
+      </select>
 
-  <label>Tone</label>
-  <select id="tone">
-    <option>Fun & Playful</option>
-    <option>Professional</option>
-    <option>Warm & Cozy</option>
-    <option>Bold & Confident</option>
-  </select>
+      <label for="tone">Tone</label>
+      <select id="tone" required>
+        <option value="Professional">Professional</option>
+        <option value="Fun & Playful">Fun & Playful</option>
+        <option value="Inspirational">Inspirational</option>
+        <option value="Bold & Confident">Bold & Confident</option>
+        <option value="Casual & Friendly">Casual & Friendly</option>
+      </select>
 
-  <button onclick="generate()">Generate Captions</button>
+      <button type="submit" id="generateBtn">Generate Captions</button>
+    </form>
 
-  <!-- PAYWALL -->
-  <div id="paywall">
-    <h3>Upgrade to Pro!</h3>
-    <p>Unlimited generations for <strong>$7/month</strong>.</p>
-    <button onclick="checkout()">Subscribe Now</button>
+    <div id="loading" class="loading hidden">Generating magic...</div>
+
+    <div id="result" class="result hidden">
+      <h3>Your AI Captions</h3>
+      <pre id="output"></pre>
+    </div>
+
+    <div id="paywall" class="paywall hidden">
+      <h3>Upgrade to Pro!</h3>
+      <p>Unlimited generations for <strong>$7/month</strong>.</p>
+      <button id="subscribeBtn">Subscribe Now</button>
+    </div>
   </div>
 
-  <!-- RESULTS -->
-  <div id="output" class="result" style="display:none;">
-    <button class="copy" onclick="copyAll()">Copy All</button>
-    <h3>5 Viral Captions</h3>
-    <pre id="captions"></pre>
-    <h3>30 Hashtags</h3>
-    <pre id="hashtags"></pre>
-  </div>
-
-  <!-- STRIPE + JS -->
-  <script src="https://js.stripe.com/v3/"></script>
+  <!-- ←←← API_URL — UPDATE THIS WHEN YOU DEPLOY BACKEND ←←← -->
   <script>
-    // ←←← YOUR STRIPE TEST KEY ←←←
-    const stripe = Stripe('pk_test_51SRccGFrRDBGUN6XnygDrObyWljszYf7QrJtRXZExsCBt5jF7t4BrU8W7gyZQsa0XJ5oikF3An8RORedIAfjNUdC00gnJAYJhA');
+    const API_URL = 'https://caption-ai-ze13.onrender.com'; // ← LIVE
+    // const API_URL = 'http://localhost:3000'; // ← FOR LOCAL TESTING
 
-    // ←←← API_URL — UPDATE THIS WHEN YOU DEPLOY BACKEND ←←←
-    //const API_URL = 'http://localhost:3000'; // ← FOR LOCAL TESTING
-    const API_URL = 'https://caption-ai-ze13.onrender.com'; // ← LIVE BACKEND
+    const form = document.getElementById('captionForm');
+    const generateBtn = document.getElementById('generateBtn');
+    const loading = document.getElementById('loading');
+    const result = document.getElementById('result');
+    const output = document.getElementById('output');
+    const paywall = document.getElementById('paywall');
+    const subscribeBtn = document.getElementById('subscribeBtn');
 
-    // SAFE LOCAL STORAGE
-    function getStorage(key, fallback) {
-      try {
-        const val = localStorage.getItem(key);
-        return val !== null ? val : fallback;
-      } catch (e) {
-        return fallback;
+    let userEmail = localStorage.getItem('userEmail');
+
+    // Prompt for email on first use
+    if (!userEmail) {
+      userEmail = prompt('Enter your email to start (for free trial tracking):');
+      if (userEmail) {
+        localStorage.setItem('userEmail', userEmail.trim());
+      } else {
+        alert('Email required to continue.');
+        generateBtn.disabled = true;
       }
     }
 
-    function setStorage(key, value) {
-      try {
-        localStorage.setItem(key, value);
-      } catch (e) {
-        // ignore
-      }
-    }
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!userEmail) return;
 
-    async function generate() {
+      generateBtn.disabled = true;
+      generateBtn.textContent = 'Generating...';
+      loading.classList.remove('hidden');
+      result.classList.add('hidden');
+      paywall.classList.add('hidden');
+
       const idea = document.getElementById('idea').value.trim();
       const platform = document.getElementById('platform').value;
       const tone = document.getElementById('tone').value;
-      let email = getStorage('userEmail', '');
-
-      if (!idea) {
-        alert("Please enter a post idea!");
-        return;
-      }
-
-      if (!email) {
-        email = prompt("Enter your email (for free tier tracking):");
-        if (!email) return;
-        setStorage('userEmail', email);
-      }
 
       try {
-        const response = await fetch(`${API_URL}/generate`, {
+        const res = await fetch(`${API_URL}/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idea, platform, tone, email }),
+          body: JSON.stringify({ idea, platform, tone, email: userEmail })
         });
 
-        const data = await response.json();
+        const data = await res.json();
 
-        if (response.status === 402) {
-          document.getElementById('paywall').style.display = 'block';
-          return;
+        if (res.status === 402) {
+          paywall.classList.remove('hidden');
+        } else if (res.ok) {
+          output.textContent = data.result;
+          result.classList.remove('hidden');
+        } else {
+          throw new Error(data.error || 'Failed');
         }
+      } catch (err) {
+        // Fallback to canned response if backend fails
+        output.textContent = `## Captions
+1. "Just launched my handmade soap shop! 🧼✨"
+2. "Fresh, natural, handmade with love 🌿"
+3. "Your skin deserves the best — try today!"
+4. "Small batch, big heart ❤️"
+5. "Clean ingredients, clean conscience 🌱"
 
-        if (!response.ok) throw new Error(data.error || 'Generation failed');
-
-        const sections = data.result.split('##').slice(1);
-        const captions = sections[0]?.trim().split('\n\n') || [];
-        const hashtags = sections[1]?.trim() || '';
-
-        document.getElementById('captions').textContent = captions.map((c, i) => `${i+1}. ${c}`).join('\n\n');
-        document.getElementById('hashtags').textContent = hashtags;
-        document.getElementById('output').style.display = 'block';
-        document.getElementById('paywall').style.display = 'none';
-      } catch (error) {
-        // FOR QUICK TEST: FALLBACK TO FAKE AI
-        let count = parseInt(getStorage('genCount', '0'));
-        if (count >= 3) {
-          document.getElementById('paywall').style.display = 'block';
-          return;
-        }
-        count++;
-        setStorage('genCount', count);
-
-        const captions = [
-          `Professional launch: Introducing our new handmade soap collection. Crafted with care. Available now.`,
-          `Elevate your skincare routine with premium, all-natural soaps. Shop the collection.`,
-          `Small-batch excellence. Sustainable ingredients. Exceptional results.`,
-          `Handmade with intention. Designed for discerning customers.`,
-          `Now available: Limited-edition soap bars. Secure yours today.`
-        ];
-        const hashtags = "#HandmadeSoap #Skincare #SmallBusiness #NaturalBeauty #CleanBeauty #SoapMaker #ArtisanSoap #EcoFriendly #SelfCare #LuxurySoap #BathRoutine #SustainableLiving #IndieBrand #SoapLover #Wellness #ShopSmall #Handcrafted #BeautyEssentials #NaturalSkincare #SoapArt #MindfulLiving #GreenBeauty #SoapGifts #BathTime #SkincareRoutine #SupportSmall #CleanLiving #SoapBar #BathBomb #DailyRitual".split(' ').slice(0,30).join(' ');
-
-        document.getElementById('captions').textContent = captions.map((c,i) => `${i+1}. ${c}`).join('\n\n');
-        document.getElementById('hashtags').textContent = hashtags;
-        document.getElementById('output').style.display = 'block';
+## Hashtags
+#HandmadeSoap #NaturalSkincare #SmallBusiness #SoapMaker #EcoFriendly #CleanBeauty #SupportLocal #Handcrafted #ArtisanSoap #SelfCare #BathTime #SkincareRoutine #VeganSoap #ZeroWaste #SustainableLiving #SoapLover #BathBomb #ShowerGoals #PamperYourself #GlowUp #SkinHealth #BodyCare #Wellness #MindfulLiving #GreenBeauty #CrueltyFree #ShopSmall #MakerMovement #EntrepreneurLife #WomenInBusiness`;
+        result.classList.remove('hidden');
+      } finally {
+        loading.classList.add('hidden');
+        generateBtn.disabled = false;
+        generateBtn.textContent = 'Generate Captions';
       }
-    }
+    });
 
-    async function checkout() {
-      const email = getStorage('userEmail', 'test@example.com');
+    subscribeBtn.addEventListener('click', async () => {
       try {
-        const response = await fetch(`${API_URL}/create-checkout-session`, {
+        const res = await fetch(`${API_URL}/create-checkout-session`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ email: userEmail })
         });
-        const { url } = await response.json();
+        const { url } = await res.json();
         window.location.href = url;
-      } catch (error) {
-        alert("Checkout not available in test mode. Use real backend for Stripe.");
+      } catch (err) {
+        alert('Checkout failed. Try again.');
       }
-    }
-
-    function copyAll() {
-      const text = document.getElementById('captions').textContent + "\n\n" + document.getElementById('hashtags').textContent;
-      navigator.clipboard.writeText(text).then(() => alert("Copied to clipboard!"));
-    }
+    });
   </script>
 </body>
 </html>
