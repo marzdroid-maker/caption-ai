@@ -32,9 +32,11 @@
       font-size: 1rem;
       margin-bottom: 1rem;
       transition: border .2s;
+      color: #111;
     }
     input:focus, select:focus { outline: none; border-color: var(--primary); }
-    input::placeholder { color: #9ca3af; }
+    input::placeholder, select option[disabled] { color: #9ca3af; font-style: italic; }
+    select option { color: #111; }
     button {
       width: 100%;
       background: var(--primary);
@@ -89,6 +91,7 @@
 
       <label for="platform">Platform</label>
       <select id="platform" required>
+        <option value="" disabled selected>Choose platform</option>
         <option value="Instagram">Instagram</option>
         <option value="Twitter">Twitter</option>
         <option value="LinkedIn">LinkedIn</option>
@@ -97,6 +100,7 @@
 
       <label for="tone">Tone</label>
       <select id="tone" required>
+        <option value="" disabled selected>Choose tone</option>
         <option value="Professional">Professional</option>
         <option value="Fun & Playful">Fun & Playful</option>
         <option value="Inspirational">Inspirational</option>
@@ -124,7 +128,6 @@
   <!-- ←←← API_URL — UPDATE THIS WHEN YOU DEPLOY BACKEND ←←← -->
   <script>
     const API_URL = 'https://caption-ai-ze13.onrender.com'; // ← LIVE
-    // const API_URL = 'http://localhost:3000'; // ← FOR LOCAL TESTING
 
     const form = document.getElementById('captionForm');
     const generateBtn = document.getElementById('generateBtn');
@@ -136,7 +139,6 @@
 
     let userEmail = localStorage.getItem('userEmail');
 
-    // Prompt for email on first use
     if (!userEmail) {
       userEmail = prompt('Enter your email to start (for free trial tracking):');
       if (userEmail) {
@@ -179,13 +181,12 @@
           throw new Error(data.error || 'Failed');
         }
       } catch (err) {
-        // Fallback to canned response if backend fails
         output.textContent = `## Captions
-1. "Just launched my handmade soap shop! 🧼✨"
-2. "Fresh, natural, handmade with love 🌿"
+1. "Just launched my handmade soap shop! [soap][sparkles]"
+2. "Fresh, natural, handmade with love [herb]"
 3. "Your skin deserves the best — try today!"
-4. "Small batch, big heart ❤️"
-5. "Clean ingredients, clean conscience 🌱"
+4. "Small batch, big heart [red heart]"
+5. "Clean ingredients, clean conscience [seedling]"
 
 ## Hashtags
 #HandmadeSoap #NaturalSkincare #SmallBusiness #SoapMaker #EcoFriendly #CleanBeauty #SupportLocal #Handcrafted #ArtisanSoap #SelfCare #BathTime #SkincareRoutine #VeganSoap #ZeroWaste #SustainableLiving #SoapLover #BathBomb #ShowerGoals #PamperYourself #GlowUp #SkinHealth #BodyCare #Wellness #MindfulLiving #GreenBeauty #CrueltyFree #ShopSmall #MakerMovement #EntrepreneurLife #WomenInBusiness`;
