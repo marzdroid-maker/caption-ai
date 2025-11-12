@@ -237,7 +237,7 @@
     <!-- HISTORY -->
     <div id="history" class="result hidden">
       <h3>Saved Captions</h3>
-      <div id="historyList" style="font-size: 0.9rem; line-height: 1.5;"></div>
+      <div id="historyList" style="font-size: 0.9rem; line-height: 1.6;"></div>
       <button id="clearHistory">Clear All</button>
     </div>
 
@@ -472,8 +472,8 @@
         }
         list.innerHTML = history.map((item, i) => `
           <div style="border-bottom:1px solid #e5e7eb; padding: .75rem 0; display:flex; justify-content:space-between; align-items:flex-start;">
-            <div style="flex:1; font-size:0.85rem; line-height:1.5; white-space:pre-wrap; word-break:break-word;">
-              ${item.replace(/\n/g, '<br>').replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+            <div style="flex:1; font-size:0.85rem; line-height:1.6; white-space:pre-wrap; word-break:break-word;">
+              ${item.replace(/\n/g, '<br>')}
             </div>
             <button onclick="copySingle(${i})" style="margin-left:.5rem; background:#10b981; color:white; border:none; padding:.25rem .5rem; border-radius:.25rem; font-size:.75rem;">Copy</button>
           </div>
