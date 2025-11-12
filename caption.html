@@ -154,11 +154,6 @@
     #copyBtn:hover { background: var(--success-dark); }
     #copyBtn.copied { background: #059669; }
 
-    /* History - Removed
-    #history { margin-top: 1rem; }
-    #clearHistory { background: #ef4444; margin-top: 1rem; }
-    */
-
     /* Pro Templates */
     #proTemplates {
       margin-top: 2rem; padding: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: .75rem;
@@ -243,19 +238,19 @@
         <option value="Bold & Confident">Bold & Confident</option>
         <option value="Casual & Friendly">Casual & Friendly</option>
       </select>
-
-      <div class="emoji-picker-container">
-        <button type="button" id="emojiPickerBtn">Add Emojis</button>
-        <div id="emojiPicker">
-          <p style="margin-bottom: .75rem; font-weight: 600;">Pick Emojis</p>
-          <div id="emojiGrid"></div>
-          <button id="closePicker">Close</button>
-        </div>
-      </div>
-
+      
       <button type="submit" id="generateBtn">Generate Captions</button>
     </form>
 
+    <div class="emoji-picker-container">
+      <button type="button" id="emojiPickerBtn">Add Emojis</button>
+      <div id="emojiPicker">
+        <p style="margin-bottom: .75rem; font-weight: 600;">Pick Emojis</p>
+        <div id="emojiGrid"></div>
+        <button id="closePicker">Close</button>
+      </div>
+    </div>
+    
     <div id="loading" class="loading hidden">Generating magic...</div>
 
     <div id="result" class="result hidden">
@@ -359,7 +354,7 @@
         name !== 'Coffee Mug' && name !== 'Hand Wave' && name !== 'Camera Film' && name !== 'Hand Point Down'
       );
 
-      // === EMOJI PICKER IMPLEMENTATION (FIXED ENTER KEY ISSUE) ===
+      // === EMOJI PICKER IMPLEMENTATION (FIXED ENTER KEY ISSUE BY MOVING OUTSIDE FORM) ===
       const emojiBtn = document.getElementById('emojiPickerBtn');
       const picker = document.getElementById('emojiPicker');
       const grid = document.getElementById('emojiGrid');
@@ -387,10 +382,10 @@
           idea.focus();
         });
         
-        // Add a keydown listener to prevent accidental activation via Enter key
+        // Add a keydown listener (kept for safety, though moving the button is the main fix)
         btn.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' || e.keyCode === 13) {
-            e.preventDefault(); // Ignore Enter key press on emoji button
+            e.preventDefault(); 
           }
         });
         
@@ -506,8 +501,6 @@
           }, 2000);
         });
       });
-
-      // === HISTORY LOGIC REMOVED ===
       
       // === PRO TEMPLATES ===
       document.querySelectorAll('.templateBtn').forEach(btn => {
@@ -543,8 +536,6 @@
           alert('Checkout failed. Please try again.');
         }
       });
-
-      // Removed renderHistory() call on start
     }
   </script>
 </body>
