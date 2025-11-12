@@ -15,6 +15,7 @@
       --success: #10b981;
       --success-dark: #059669;
       --error: #ef4444;
+      --warning: #f59e0b;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -88,6 +89,11 @@
     button:hover { background: var(--primary-dark); }
     button:disabled { background: #93c5fd; cursor: not-allowed; }
 
+    /* Emoji Button */
+    #addEmojis {
+      background: var(--warning); margin: 1rem 0; width: auto; padding: .5rem 1rem; font-size: .9rem;
+    }
+
     .result {
       margin-top: 2rem; padding: 1.5rem; background: white; border-radius: .75rem;
       box-shadow: 0 4px 12px rgba(0,0,0,.05); position: relative;
@@ -104,6 +110,20 @@
     #copyBtn:hover { background: var(--success-dark); }
     #copyBtn.copied { background: #059669; }
 
+    /* History */
+    #history { margin-top: 1rem; }
+    #clearHistory { background: #ef4444; margin-top: 1rem; }
+
+    /* Pro Templates */
+    #proTemplates {
+      margin-top: 2rem; padding: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: .75rem;
+    }
+    .templateBtn {
+      text-align: left; padding: .75rem; background: white; border: 1px solid #d1d5db;
+      border-radius: .5rem; font-size: .9rem; margin-bottom: .5rem; cursor: pointer;
+    }
+    .templateBtn:hover { background: #f9fafb; }
+
     .paywall {
       margin-top: 2rem; padding: 2rem; background: #fefce8; border-radius: .75rem;
       text-align: center; border: 2px solid #fde68a;
@@ -118,6 +138,11 @@
 
     .hidden { display: none; }
     .loading { text-align: center; margin: 1rem 0; color: var(--gray); font-style: italic; }
+
+    footer {
+      margin-top: 3rem; text-align: center; color: #6b7280; font-size: 0.875rem;
+    }
+    footer a { color: inherit; margin: 0 1rem; text-decoration: underline; }
 
     @media (max-width: 480px) {
       h1 { font-size: 1.75rem; }
@@ -170,6 +195,10 @@
         <option value="Casual & Friendly">Casual & Friendly</option>
       </select>
 
+      <div style="text-align: center;">
+        <button type="button" id="addEmojis">Add Emojis</button>
+      </div>
+
       <button type="submit" id="generateBtn">Generate Captions</button>
     </form>
 
@@ -181,11 +210,36 @@
       <button type="button" id="copyBtn">Copy All</button>
     </div>
 
+    <!-- HISTORY -->
+    <div id="history" class="result hidden">
+      <h3>Saved Captions</h3>
+      <div id="historyList" style="font-size: 0.9rem; line-height: 1.5;"></div>
+      <button id="clearHistory">Clear All</button>
+    </div>
+
+    <!-- PRO TEMPLATES -->
+    <div id="proTemplates" class="hidden">
+      <h3>Pro Templates (Click to Use)</h3>
+      <div style="display: grid; gap: .5rem; font-size: .9rem;">
+        <button class="templateBtn">"Just hit 10K followers! Grateful for every one of you Heart"</button>
+        <button class="templateBtn">"Behind the scenes of [your idea] Camera Film"</button>
+        <button class="templateBtn">"Tag a friend who needs this! Hand Point Down"</button>
+        <button class="templateBtn">"New drop alert! Link in bio Shopping Bag"</button>
+        <button class="templateBtn">"Your daily dose of [topic] Coffee Mug"</button>
+      </div>
+    </div>
+
     <div id="paywall" class="paywall hidden">
       <h3>Upgrade to Pro!</h3>
-      <p>Unlimited generations for <strong>$7/month</strong>.</p>
+      <p>Unlimited generations + <strong>5 Pro Templates + Save History</strong> for <strong>$7/month</strong>.</p>
       <button id="subscribeBtn">Subscribe Now</button>
     </div>
+
+    <footer>
+      <a href="/terms.html">Terms</a>
+      <a href="/privacy.html">Privacy</a>
+      <span>© 2025 Caption AI</span>
+    </footer>
   </div>
 
   <script>
@@ -197,7 +251,7 @@
 
     let userEmail = localStorage.getItem('userEmail');
 
-    // Show modal if no email
+    // === EMAIL MODAL ===
     if (!userEmail) {
       emailSubmit.addEventListener('click', () => {
         const email = emailInput.value.trim();
@@ -231,6 +285,20 @@
       let debounceTimer;
       let isGenerating = false;
 
+      // === EMOJI BOOST ===
+      document.getElementById('addEmojis').addEventListener('click', () => {
+        const platform = document.getElementById('platform').value;
+        const emojis = {
+          'Instagram': 'Camera Heart Sparkles Coffee Shopping Bag',
+          'Twitter': 'Rocket Fire Chart Bar Chart',
+          'LinkedIn': 'Briefcase Handshake Target Trophy',
+          'TikTok': 'Dancer Camera Play Button Film'
+        };
+        const idea = document.getElementById('idea');
+        idea.value = idea.value.trim() + ' ' + (emojis[platform] || '');
+      });
+
+      // === LIVE GENERATION ===
       const inputs = ['idea', 'platform', 'tone'];
       inputs.forEach(id => {
         document.getElementById(id).addEventListener('input', () => {
@@ -283,11 +351,16 @@
             paywall.classList.add('hidden');
             copyBtn.classList.remove('copied');
             copyBtn.textContent = 'Copy All';
+            saveToHistory(data.result);
+            renderHistory();
           }
         } catch (err) {
           if (forceFull) {
-            output.textContent = `## Captions\n1. "Just launched my coffee shop! ☕✨"\n2. "Fresh brews, cozy vibes ☕❤️"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love 🌱"\n5. "Come say hi! 👋"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
+            const fallback = `## Captions\n1. "Just launched my coffee shop! Coffee Sparkles"\n2. "Fresh brews, cozy vibes Coffee Heart"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love Leaf"\n5. "Come say hi! Hand Wave"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
+            output.textContent = fallback;
             result.classList.remove('hidden');
+            saveToHistory(fallback);
+            renderHistory();
           }
         } finally {
           loading.classList.add('hidden');
@@ -297,6 +370,7 @@
         }
       }
 
+      // === COPY ALL ===
       copyBtn.addEventListener('click', () => {
         navigator.clipboard.writeText(output.textContent).then(() => {
           copyBtn.textContent = 'Copied!';
@@ -308,6 +382,59 @@
         });
       });
 
+      // === SAVE & HISTORY ===
+      function saveToHistory(text) {
+        const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
+        if (!history.includes(text)) {
+          history.unshift(text);
+          history.splice(20);
+          localStorage.setItem('captionHistory', JSON.stringify(history));
+        }
+        renderHistory();
+      }
+
+      function renderHistory() {
+        const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
+        const list = document.getElementById('historyList');
+        if (history.length === 0) {
+          list.innerHTML = '<p style="color:#9ca3af; font-style:italic;">No saved captions yet.</p>';
+          document.getElementById('history').classList.add('hidden');
+          return;
+        }
+        list.innerHTML = history.map((item, i) => `
+          <div style="border-bottom:1px solid #e5e7eb; padding: .75rem 0; display:flex; justify-content:space-between; align-items:flex-start;">
+            <pre style="margin:0; white-space:pre-wrap; flex:1; font-size:0.85rem;">${item}</pre>
+            <button onclick="copySingle(${i})" style="margin-left:.5rem; background:#10b981; color:white; border:none; padding:.25rem .5rem; border-radius:.25rem; font-size:.75rem;">Copy</button>
+          </div>
+        `).join('');
+        document.getElementById('history').classList.remove('hidden');
+      }
+
+      window.copySingle = (i) => {
+        const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
+        navigator.clipboard.writeText(history[i]);
+      };
+
+      document.getElementById('clearHistory').addEventListener('click', () => {
+        localStorage.removeItem('captionHistory');
+        renderHistory();
+      });
+
+      // === PRO TEMPLATES ===
+      document.querySelectorAll('.templateBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('idea').value = btn.textContent;
+        });
+      });
+
+      // Show Pro features only for subscribers
+      const userKey = userEmail.toLowerCase().trim();
+      if (localStorage.getItem('subscribed_' + userKey) === 'true') {
+        document.getElementById('proTemplates').classList.remove('hidden');
+        document.getElementById('history').classList.remove('hidden');
+      }
+
+      // === SUBSCRIBE ===
       subscribeBtn.addEventListener('click', async () => {
         try {
           const res = await fetch(`${API_URL}/create-checkout-session`, {
@@ -321,12 +448,10 @@
           alert('Checkout failed. Please try again.');
         }
       });
+
+      // Load history on start
+      renderHistory();
     }
   </script>
-<footer style="margin-top: 3rem; text-align: center; color: #6b7280; font-size: 0.875rem;">
-  <a href="/terms.html" style="color: inherit; margin: 0 1rem; text-decoration: underline;">Terms</a>
-  <a href="/privacy.html" style="color: inherit; margin: 0 1rem; text-decoration: underline;">Privacy</a>
-  <span>© 2025 Caption AI</span>
-</footer>
 </body>
 </html>
