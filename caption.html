@@ -364,16 +364,17 @@
         name !== 'Coffee Mug' && name !== 'Hand Wave' && name !== 'Camera Film' && name !== 'Hand Point Down'
       );
 
-      // === REAL EMOJI PICKER ===
+      // === EMOJI PICKER IMPLEMENTATION ===
       const emojiBtn = document.getElementById('emojiPickerBtn');
       const picker = document.getElementById('emojiPicker');
       const grid = document.getElementById('emojiGrid');
       const closePicker = document.getElementById('closePicker');
       
-      grid.innerHTML = ''; // Clear existing content
-      
+      grid.innerHTML = ''; // Ensure the grid starts empty
+
+      // Populate the grid with buttons using the actual emoji characters
       commonEmojis.forEach(name => {
-        const emoji = emojiMap[name]; // Use the actual emoji character
+        const emoji = emojiMap[name];
         const btn = document.createElement('button');
         btn.textContent = emoji;
         btn.style.background = 'none';
@@ -382,10 +383,10 @@
         btn.style.cursor = 'pointer';
         btn.style.padding = '0';
         btn.title = name;
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault(); // Prevent form submission
           const idea = document.getElementById('idea');
-          // Insert the actual emoji character into the input field
-          idea.value = idea.value.trim() + ' ' + emoji; 
+          idea.value += ' ' + emoji; 
           idea.focus();
         });
         grid.appendChild(btn);
@@ -393,10 +394,12 @@
 
       emojiBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        picker.style.display = 'flex';
+        // Toggle display using current style
+        picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
       });
 
-      closePicker.addEventListener('click', () => {
+      closePicker.addEventListener('click', (e) => {
+        e.preventDefault();
         picker.style.display = 'none';
       });
 
@@ -412,6 +415,8 @@
           e.preventDefault();
           const idea = document.getElementById('idea');
           idea.focus();
+          // Do not show the popup on mobile, rely on native keyboard
+          picker.style.display = 'none'; 
           alert('Tap the emoji key on your keyboard!');
         });
       }
