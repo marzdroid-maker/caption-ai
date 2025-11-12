@@ -154,9 +154,10 @@
     #copyBtn:hover { background: var(--success-dark); }
     #copyBtn.copied { background: #059669; }
 
-    /* History */
+    /* History - Removed
     #history { margin-top: 1rem; }
     #clearHistory { background: #ef4444; margin-top: 1rem; }
+    */
 
     /* Pro Templates */
     #proTemplates {
@@ -263,13 +264,7 @@
       <button type="button" id="copyBtn">Copy All</button>
     </div>
 
-    <div id="history" class="result hidden">
-      <h3>Saved Captions</h3>
-      <div id="historyList" style="font-size: 0.9rem; line-height: 1.6;"></div>
-      <button id="clearHistory">Clear All</button>
-    </div>
-
-    <div id="proTemplates" class="hidden">
+    <div id="proTemplates">
       <h3>Pro Templates (Click to Use)</h3>
       <div style="display: grid; gap: .5rem; font-size: .9rem;">
         <button class="templateBtn">"Just hit 10K followers! Grateful for every one of you Heart"</button>
@@ -282,7 +277,7 @@
 
     <div id="paywall" class="paywall hidden">
       <h3>Upgrade to Pro!</h3>
-      <p>Unlimited generations + <strong>Save History + Pro Templates</strong> for <strong>$7/month</strong>.</p>
+      <p>Unlimited generations + <strong>Pro Templates</strong> for <strong>$7/month</strong>.</p>
       <button id="subscribeBtn">Subscribe Now</button>
     </div>
 
@@ -364,7 +359,7 @@
         name !== 'Coffee Mug' && name !== 'Hand Wave' && name !== 'Camera Film' && name !== 'Hand Point Down'
       );
 
-      // === EMOJI PICKER IMPLEMENTATION ===
+      // === EMOJI PICKER IMPLEMENTATION (FIXED ENTER KEY ISSUE) ===
       const emojiBtn = document.getElementById('emojiPickerBtn');
       const picker = document.getElementById('emojiPicker');
       const grid = document.getElementById('emojiGrid');
@@ -383,12 +378,22 @@
         btn.style.cursor = 'pointer';
         btn.style.padding = '0';
         btn.title = name;
+        
+        // Add a click listener for the mouse click/tap
         btn.addEventListener('click', (e) => {
-          e.preventDefault(); // Prevent form submission
+          e.preventDefault(); // Prevents form submission
           const idea = document.getElementById('idea');
           idea.value += ' ' + emoji; 
           idea.focus();
         });
+        
+        // Add a keydown listener to prevent accidental activation via Enter key
+        btn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault(); // Ignore Enter key press on emoji button
+          }
+        });
+        
         grid.appendChild(btn);
       });
 
@@ -474,8 +479,6 @@
             paywall.classList.add('hidden');
             copyBtn.classList.remove('copied');
             copyBtn.textContent = 'Copy All';
-            saveToHistory(data.result);
-            renderHistory();
           }
         } catch (err) {
           if (forceFull) {
@@ -483,8 +486,6 @@
             const fallback = `## Captions\n1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"\n2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love ${emojiMap['Leaf']}"\n5. "Come say hi! ${emojiMap['Hand Wave']}"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
             output.textContent = fallback;
             result.classList.remove('hidden');
-            saveToHistory(fallback);
-            renderHistory();
           }
         } finally {
           loading.classList.add('hidden');
@@ -506,46 +507,8 @@
         });
       });
 
-      // === SAVE & HISTORY (CLEAN RENDERING) ===
-      function saveToHistory(text) {
-        const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
-        if (!history.includes(text)) {
-          history.unshift(text);
-          history.splice(20);
-          localStorage.setItem('captionHistory', JSON.stringify(history));
-        }
-        renderHistory();
-      }
-
-      function renderHistory() {
-        const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
-        const list = document.getElementById('historyList');
-        if (history.length === 0) {
-          list.innerHTML = '<p style="color:#9ca3af; font-style:italic;">No saved captions yet.</p>';
-          document.getElementById('history').classList.add('hidden');
-          return;
-        }
-        list.innerHTML = history.map((item, i) => `
-          <div style="border-bottom:1px solid #e5e7eb; padding: .75rem 0; display:flex; justify-content:space-between; align-items:flex-start;">
-            <div style="flex:1; font-size:0.85rem; line-height:1.6; white-space:pre-wrap; word-break:break-word;">
-              ${item.replace(/\n/g, '<br>')}
-            </div>
-            <button onclick="copySingle(${i})" style="margin-left:.5rem; background:#10b981; color:white; border:none; padding:.25rem .5rem; border-radius:.25rem; font-size:.75rem;">Copy</button>
-          </div>
-        `).join('');
-        document.getElementById('history').classList.remove('hidden');
-      }
-
-      window.copySingle = (i) => {
-        const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
-        navigator.clipboard.writeText(history[i]);
-      };
-
-      document.getElementById('clearHistory').addEventListener('click', () => {
-        localStorage.removeItem('captionHistory');
-        renderHistory();
-      });
-
+      // === HISTORY LOGIC REMOVED ===
+      
       // === PRO TEMPLATES ===
       document.querySelectorAll('.templateBtn').forEach(btn => {
         const originalText = btn.textContent;
@@ -581,8 +544,7 @@
         }
       });
 
-      // Load history on start
-      renderHistory();
+      // Removed renderHistory() call on start
     }
   </script>
 </body>
