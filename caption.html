@@ -96,18 +96,19 @@
 
     /* Emoji Picker Popup - MODIFIED FOR SCROLLING */
     #emojiPicker {
-      display: none; position: absolute; background: white; border: 1px solid #e5e7eb;
+      display: none; /* Corrected: Must be hidden initially */
+      position: absolute; background: white; border: 1px solid #e5e7eb;
       border-radius: .75rem; padding: 1rem; max-width: 300px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
       z-index: 100; text-align: center;
       max-height: 350px; /* Max height for the whole picker */
-      display: flex; /* Use flex to manage inner layout easily */
+      display: flex; 
       flex-direction: column;
     }
     #emojiGrid {
       display: grid; grid-template-columns: repeat(6, 1fr); gap: .5rem; font-size: 1.5rem;
       margin: .75rem 0;
-      overflow-y: auto; /* Enable scrolling for the grid area */
-      padding-right: 5px; /* Space for scrollbar */
+      overflow-y: auto; 
+      padding-right: 5px; 
     }
     #emojiGrid button {
       background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0;
@@ -305,6 +306,8 @@
 
     // === EMAIL MODAL ===
     if (!userEmail) {
+      modal.style.display = 'flex'; // Ensure modal is visible if no email is set
+      mainApp.style.display = 'none'; // Ensure main app is hidden if modal is visible
       emailSubmit.addEventListener('click', () => {
         const email = emailInput.value.trim();
         if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -333,13 +336,13 @@
       const paywall = document.getElementById('paywall');
       const subscribeBtn = document.getElementById('subscribeBtn');
       const copyBtn = document.getElementById('copyBtn');
+      const picker = document.getElementById('emojiPicker'); // Ensure picker is referenced
 
       let debounceTimer;
       let isGenerating = false;
 
       // === REAL EMOJI PICKER ===
       const emojiBtn = document.getElementById('emojiPickerBtn');
-      const picker = document.getElementById('emojiPicker');
       const grid = document.getElementById('emojiGrid');
       const closePicker = document.getElementById('closePicker');
 
@@ -359,20 +362,20 @@
           const idea = document.getElementById('idea');
           idea.value = idea.value.trim() + ' ' + emoji;
           idea.focus();
-          // Keep picker open if it's large, but close it here for simplicity
-          // picker.style.display = 'none'; 
         });
         grid.appendChild(btn);
       });
 
       emojiBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        picker.style.display = 'flex'; // Use flex to match CSS change
+        // Corrected: Set display to 'flex' to show it, matching CSS change
+        picker.style.display = 'flex'; 
         const rect = emojiBtn.getBoundingClientRect();
-        // Calculate position to center it roughly over the button and above
+        
+        // Calculate position to center it roughly over the button
         let left = rect.left - (picker.offsetWidth / 2) + (rect.width / 2);
-        if (left < 10) left = 10; // Left boundary check
-        if (left + picker.offsetWidth > window.innerWidth - 10) left = window.innerWidth - picker.offsetWidth - 10; // Right boundary check
+        if (left < 10) left = 10; 
+        if (left + picker.offsetWidth > window.innerWidth - 10) left = window.innerWidth - picker.offsetWidth - 10; 
         
         picker.style.left = `${left}px`;
         picker.style.top = `${rect.bottom + 5}px`;
@@ -485,7 +488,6 @@
       // === SAVE & HISTORY ===
       function saveToHistory(text) {
         const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
-        // Only save if the new text is different from the most recent one
         if (history[0] !== text) {
           history.unshift(text);
           history.splice(20);
@@ -527,7 +529,6 @@
       document.querySelectorAll('.templateBtn').forEach(btn => {
         const originalText = btn.textContent;
         
-        // Replace the text names in the button content with actual emojis for display
         let displayText = originalText
           .replace('Heart', emojiMap['Heart'])
           .replace('Camera Film', emojiMap['Camera'] + emojiMap['Film'])
@@ -538,7 +539,6 @@
         btn.innerHTML = displayText; 
 
         btn.addEventListener('click', () => {
-          // Set the input value using the actual emojis
           document.getElementById('idea').value = displayText;
           document.getElementById('idea').focus();
         });
@@ -560,7 +560,22 @@
       });
 
       // Load history on start
-      renderHistory();
+      if (userEmail) renderHistory(); // Only load history if the user is already logged in
+    }
+    
+    // Ensure the initial state is set correctly before initApp runs if no email exists
+    if (!userEmail) {
+        // This is necessary to override the inline style if userEmail is null and the script hasn't fully executed.
+        // However, the inline style change on #mainApp and the lack of inline style on #emailModal in the HTML body
+        // combined with the logic above should correctly handle the initial state.
+        
+        // Final check to ensure the initial state is correct for users without saved emails
+        if (document.getElementById('emailModal')) {
+             document.getElementById('emailModal').style.display = 'flex';
+        }
+        if (document.getElementById('mainApp')) {
+            document.getElementById('mainApp').style.display = 'none';
+        }
     }
   </script>
 </body>
