@@ -108,7 +108,6 @@
       text-align: center;
       max-height: 350px; 
       flex-direction: column;
-      /* Default position set to top-right corner of the button's parent container */
       right: 0; 
       top: 100%; 
       transform: translateY(5px);
@@ -131,7 +130,7 @@
     /* Re-styled parent container for positioning the picker relative to the button */
     .emoji-picker-container {
         position: relative; 
-        text-align: left; /* Aligns the button to the left/center */
+        text-align: left; 
         display: flex;
         justify-content: center;
     }
@@ -151,8 +150,6 @@
     }
     #copyBtn:hover { background: var(--success-dark); }
     #copyBtn.copied { background: #059669; }
-
-    /* History section removed */
 
     /* Pro Templates */
     #proTemplates {
@@ -323,6 +320,8 @@
         const email = emailInput.value.trim();
         if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
           localStorage.setItem('userEmail', email);
+          // Set initial generation count to 0 when a new email is submitted
+          localStorage.setItem('generationCount', 0);
           modal.style.display = 'none';
           mainApp.style.display = 'block';
           userEmail = email;
@@ -351,6 +350,20 @@
 
       let debounceTimer;
       let isGenerating = false;
+
+      // Helper function to track usage
+      function trackUsage() {
+          let count = parseInt(localStorage.getItem('generationCount') || 0);
+          count++;
+          localStorage.setItem('generationCount', count);
+          return count;
+      }
+      
+      // Helper function to check for subscription/paywall
+      function isSubscribed() {
+          // Placeholder for real subscription check (e.g., checking user status against the backend)
+          return false; // Assuming the user is not subscribed for now
+      }
 
       // === REAL EMOJI PICKER ===
       const emojiBtn = document.getElementById('emojiPickerBtn');
@@ -402,7 +415,7 @@
         });
       }
 
-      // === LIVE GENERATION ===
+      // === LIVE GENERATION & PAYWALL CHECK ===
       const inputs = ['idea', 'platform', 'tone'];
       inputs.forEach(id => {
         document.getElementById(id).addEventListener('input', () => {
@@ -430,6 +443,18 @@
           return;
         }
 
+        // --- NEW PAYWALL LOGIC CHECK ---
+        const currentCount = parseInt(localStorage.getItem('generationCount') || 0);
+        const MAX_FREE_TRIES = 3;
+        const isUserSubscribed = isSubscribed(); // Check subscription status
+
+        if (currentCount >= MAX_FREE_TRIES && !isUserSubscribed) {
+            paywall.classList.remove('hidden');
+            result.classList.add('hidden');
+            return; 
+        }
+        // -------------------------------
+        
         isGenerating = true;
         loading.classList.remove('hidden');
         result.classList.add('hidden');
@@ -447,6 +472,7 @@
           const data = await res.json();
 
           if (res.status === 402) {
+            // This is for a server-side paywall check, keeping it for robustness
             paywall.classList.remove('hidden');
             result.classList.add('hidden');
           } else if (res.ok) {
@@ -455,14 +481,22 @@
             paywall.classList.add('hidden');
             copyBtn.classList.remove('copied');
             copyBtn.textContent = 'Copy All';
-            // Removed saveToHistory() call
+            
+            // Increment usage count ONLY on successful generation
+            if (!isUserSubscribed) {
+               trackUsage();
+            }
           }
         } catch (err) {
           if (forceFull) {
             const fallback = `## Captions\n1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"\n2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love ${emojiMap['Leaf']}"\n5. "Come say hi! ${emojiMap['Hand Wave']}"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
             output.textContent = fallback;
             result.classList.remove('hidden');
-            // Removed saveToHistory() call
+            
+            // Increment usage count ONLY on successful generation (or fallback display)
+            if (!isUserSubscribed) {
+               trackUsage();
+            }
           }
         } finally {
           loading.classList.add('hidden');
@@ -483,8 +517,6 @@
           }, 2000);
         });
       });
-
-      // === SAVE & HISTORY - ALL REMOVED ===
       
       // === PRO TEMPLATES ===
       document.querySelectorAll('.templateBtn').forEach(btn => {
