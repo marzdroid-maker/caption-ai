@@ -261,12 +261,22 @@
 
     <div id="proTemplates">
       <h3>Pro Templates (Click to Use)</h3>
-      <div style="display: grid; gap: .5rem; font-size: .9rem;">
-        <button class="templateBtn">"Just hit 10K followers! Grateful for every one of you Heart"</button>
-        <button class="templateBtn">"Behind the scenes of [your idea] Camera Film"</button>
-        <button class="templateBtn">"Tag a friend who needs this! Hand Point Down"</button>
-        <button class="templateBtn">"New drop alert! Link in bio Shopping Bag"</button>
-        <button class="templateBtn">"Your daily dose of [topic] Coffee Mug"</button>
+      <div id="templateContainer" style="display: grid; gap: .5rem; font-size: .9rem;">
+        <button class="templateBtn" data-text="Just hit 10K followers! Grateful for every one of you [Heart]">
+          "Just hit 10K followers! Grateful for every one of you Heart"
+        </button>
+        <button class="templateBtn" data-text="Behind the scenes of [your idea] [Camera Film]">
+          "Behind the scenes of [your idea] Camera Film"
+        </button>
+        <button class="templateBtn" data-text="Tag a friend who needs this! [Hand Point Down]">
+          "Tag a friend who needs this! Hand Point Down"
+        </button>
+        <button class="templateBtn" data-text="New drop alert! Link in bio [Shopping Bag]">
+          "New drop alert! Link in bio Shopping Bag"
+        </button>
+        <button class="templateBtn" data-text="Your daily dose of [topic] [Coffee Mug]">
+          "Your daily dose of [topic] Coffee Mug"
+        </button>
       </div>
     </div>
 
@@ -502,22 +512,28 @@
         });
       });
       
-      // === PRO TEMPLATES ===
+      // === PRO TEMPLATES (FIXED DISPLAY) ===
       document.querySelectorAll('.templateBtn').forEach(btn => {
-        const originalText = btn.textContent;
+        // Use the original text from the data-text attribute for reliable replacement
+        const originalTemplateText = btn.getAttribute('data-text');
+
+        // Function to perform replacements
+        const replaceEmojis = (text) => {
+            return text
+                .replace('[Heart]', emojiMap['Heart'])
+                .replace('[Camera Film]', emojiMap['Camera'] + emojiMap['Film'])
+                .replace('[Hand Point Down]', emojiMap['Hand Point Down'])
+                .replace('[Shopping Bag]', emojiMap['Shopping Bag'])
+                .replace('[Coffee Mug]', emojiMap['Coffee Mug']); 
+        };
         
-        // This section now correctly replaces the text placeholders with the actual emojis
-        let displayText = originalText
-          .replace('Heart', emojiMap['Heart'])
-          .replace('Camera Film', emojiMap['Camera'] + emojiMap['Film'])
-          .replace('Hand Point Down', emojiMap['Hand Point Down'])
-          .replace('Shopping Bag', emojiMap['Shopping Bag'])
-          .replace('Coffee Mug', emojiMap['Coffee']); // Assuming 'Coffee Mug' can be substituted by 'Coffee' emoji
+        // 1. Display the fully formatted text on the button
+        const formattedDisplayText = replaceEmojis(originalTemplateText);
+        btn.innerHTML = formattedDisplayText; 
 
-        btn.innerHTML = displayText; 
-
+        // 2. Set the click handler to put the formatted text into the input
         btn.addEventListener('click', () => {
-          document.getElementById('idea').value = displayText;
+          document.getElementById('idea').value = formattedDisplayText.replace(/"/g, ''); // Remove quotes if present
           document.getElementById('idea').focus();
         });
       });
