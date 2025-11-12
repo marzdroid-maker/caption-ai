@@ -101,4 +101,421 @@
       z-index: 100; text-align: center;
     }
     #emojiGrid {
-      display: grid;
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: .5rem; font-size: 1.5rem;
+      margin: .75rem 0;
+    }
+    #emojiGrid button {
+      background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0;
+    }
+    #closePicker {
+      margin-top: .5rem; background: #6b7280; color: white; padding: .5rem 1rem;
+      border-radius: .5rem; font-size: .8rem; width: auto;
+    }
+
+    .result {
+      margin-top: 2rem; padding: 1.5rem; background: white; border-radius: .75rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,.05); position: relative;
+    }
+    .result h3 { margin-bottom: .75rem; color: var(--primary); }
+    .result pre {
+      white-space: pre-wrap; font-family: inherit; line-height: 1.6; margin-bottom: 1rem;
+    }
+    #copyBtn {
+      position: absolute; top: 1rem; right: 1rem; background: var(--success);
+      color: white; padding: .5rem 1rem; border: none; border-radius: .5rem;
+      font-size: .9rem; cursor: pointer; transition: background .2s;
+    }
+    #copyBtn:hover { background: var(--success-dark); }
+    #copyBtn.copied { background: #059669; }
+
+    /* History */
+    #history { margin-top: 1rem; }
+    #clearHistory { background: #ef4444; margin-top: 1rem; }
+
+    /* Pro Templates */
+    #proTemplates {
+      margin-top: 2rem; padding: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: .75rem;
+    }
+    .templateBtn {
+      text-align: left; padding: .75rem; background: white; border: 1px solid #d1d5db;
+      border-radius: .5rem; font-size: .9rem; margin-bottom: .5rem; cursor: pointer;
+    }
+    .templateBtn:hover { background: #f9fafb; }
+
+    .paywall {
+      margin-top: 2rem; padding: 2rem; background: #fefce8; border-radius: .75rem;
+      text-align: center; border: 2px solid #fde68a;
+    }
+    .paywall h3 { margin-bottom: .5rem; font-size: 1.5rem; }
+    .paywall p { color: #92400e; margin-bottom: 1rem; }
+    .paywall button {
+      background: #16a34a; padding: .75rem 1.5rem; font-size: 1rem;
+      width: auto; display: inline-block;
+    }
+    .paywall button:hover { background: #15803d; }
+
+    .hidden { display: none; }
+    .loading { text-align: center; margin: 1rem 0; color: var(--gray); font-style: italic; }
+
+    footer {
+      margin-top: 3rem; text-align: center; color: #6b7280; font-size: 0.875rem;
+    }
+    footer a { color: inherit; margin: 0 1rem; text-decoration: underline; }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 1.75rem; }
+      .container { padding: 0 1rem; }
+      #copyBtn { position: static; margin-top: 1rem; width: 100%; }
+      #emojiGrid { grid-template-columns: repeat(5, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- EMAIL MODAL -->
+  <div id="emailModal">
+    <div class="modal-content">
+      <h2>Welcome!</h2>
+      <p>Enter your email to get <strong>3 free generations</strong>.</p>
+      <input type="email" id="emailInput" placeholder="you@example.com" required />
+      <button id="emailSubmit">Start Generating</button>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div class="container" id="mainApp" style="display: none;">
+    <h1>AI Caption + Hashtag Generator</h1>
+    <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
+
+    <div class="proof">
+      <strong>Trusted by 50+ creators, solopreneurs, and small businesses</strong>
+    </div>
+
+    <form id="captionForm">
+      <label for="idea">Post Idea</label>
+      <input type="text" id="idea" placeholder="e.g. Just launched my coffee shop" required />
+
+      <label for="platform">Platform</label>
+      <select id="platform" required>
+        <option value="" disabled selected data-placeholder>Choose platform</option>
+        <option value="Instagram">Instagram</option>
+        <option value="Twitter">Twitter</option>
+        <option value="LinkedIn">LinkedIn</option>
+        <option value="TikTok">TikTok</option>
+      </select>
+
+      <label for="tone">Tone</label>
+      <select id="tone" required>
+        <option value="" disabled selected data-placeholder>Choose tone</option>
+        <option value="Professional">Professional</option>
+        <option value="Fun & Playful">Fun & Playful</option>
+        <option value="Inspirational">Inspirational</option>
+        <option value="Bold & Confident">Bold & Confident</option>
+        <option value="Casual & Friendly">Casual & Friendly</option>
+      </select>
+
+      <div style="position: relative; text-align: center;">
+        <button type="button" id="emojiPickerBtn">Add Emojis</button>
+        <div id="emojiPicker">
+          <p style="margin-bottom: .75rem; font-weight: 600;">Pick Emojis</p>
+          <div id="emojiGrid"></div>
+          <button id="closePicker">Close</button>
+        </div>
+      </div>
+
+      <button type="submit" id="generateBtn">Generate Captions</button>
+    </form>
+
+    <div id="loading" class="loading hidden">Generating magic...</div>
+
+    <div id="result" class="result hidden">
+      <h3>Your AI Captions</h3>
+      <pre id="output"></pre>
+      <button type="button" id="copyBtn">Copy All</button>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="history" class="result hidden">
+      <h3>Saved Captions</h3>
+      <div id="historyList" style="font-size: 0.9rem; line-height: 1.5;"></div>
+      <button id="clearHistory">Clear All</button>
+    </div>
+
+    <!-- PRO TEMPLATES -->
+    <div id="proTemplates" class="hidden">
+      <h3>Pro Templates (Click to Use)</h3>
+      <div style="display: grid; gap: .5rem; font-size: .9rem;">
+        <button class="templateBtn">"Just hit 10K followers! Grateful for every one of you Heart"</button>
+        <button class="templateBtn">"Behind the scenes of [your idea] Camera Film"</button>
+        <button class="templateBtn">"Tag a friend who needs this! Hand Point Down"</button>
+        <button class="templateBtn">"New drop alert! Link in bio Shopping Bag"</button>
+        <button class="templateBtn">"Your daily dose of [topic] Coffee Mug"</button>
+      </div>
+    </div>
+
+    <div id="paywall" class="paywall hidden">
+      <h3>Upgrade to Pro!</h3>
+      <p>Unlimited generations + <strong>Save History + Pro Templates</strong> for <strong>$7/month</strong>.</p>
+      <button id="subscribeBtn">Subscribe Now</button>
+    </div>
+
+    <footer>
+      <a href="/terms.html">Terms</a>
+      <a href="/privacy.html">Privacy</a>
+      <span>© 2025 Caption AI</span>
+    </footer>
+  </div>
+
+  <script>
+    const API_URL = 'https://caption-ai-ze13.onrender.com';
+    const modal = document.getElementById('emailModal');
+    const mainApp = document.getElementById('mainApp');
+    const emailInput = document.getElementById('emailInput');
+    const emailSubmit = document.getElementById('emailSubmit');
+
+    let userEmail = localStorage.getItem('userEmail');
+
+    // === EMAIL MODAL ===
+    if (!userEmail) {
+      emailSubmit.addEventListener('click', () => {
+        const email = emailInput.value.trim();
+        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          localStorage.setItem('userEmail', email);
+          modal.style.display = 'none';
+          mainApp.style.display = 'block';
+          userEmail = email;
+          initApp();
+        } else {
+          emailInput.style.borderColor = '#ef4444';
+          emailInput.focus();
+        }
+      });
+    } else {
+      modal.style.display = 'none';
+      mainApp.style.display = 'block';
+      initApp();
+    }
+
+    function initApp() {
+      const form = document.getElementById('captionForm');
+      const generateBtn = document.getElementById('generateBtn');
+      const loading = document.getElementById('loading');
+      const result = document.getElementById('result');
+      const output = document.getElementById('output');
+      const paywall = document.getElementById('paywall');
+      const subscribeBtn = document.getElementById('subscribeBtn');
+      const copyBtn = document.getElementById('copyBtn');
+
+      let debounceTimer;
+      let isGenerating = false;
+
+      // === REAL EMOJI PICKER ===
+      const emojiBtn = document.getElementById('emojiPickerBtn');
+      const picker = document.getElementById('emojiPicker');
+      const grid = document.getElementById('emojiGrid');
+      const closePicker = document.getElementById('closePicker');
+
+      const commonEmojis = [
+        'Camera', 'Heart', 'Sparkles', 'Coffee', 'Shopping Bag', 'Rocket', 'Fire', 'Trophy',
+        'Briefcase', 'Handshake', 'Laptop', 'Sunrise', 'Moon', 'Pizza', 'Leaf', 'Flexed Biceps',
+        'Airplane', 'Book', 'Dog', 'Cat', 'Birthday Cake', 'Party Popper', 'Star', 'Film',
+        'Musical Notes', 'Dancer', 'Play Button', 'New', 'Sale', 'Check Mark', 'Cross Mark'
+      ];
+
+      commonEmojis.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.textContent = emoji;
+        btn.style.background = 'none';
+        btn.style.border = 'none';
+        btn.style.fontSize = '1.5rem';
+        btn.style.cursor = 'pointer';
+        btn.style.padding = '0';
+        btn.title = emoji;
+        btn.addEventListener('click', () => {
+          const idea = document.getElementById('idea');
+          idea.value = idea.value.trim() + ' ' + emoji;
+          idea.focus();
+        });
+        grid.appendChild(btn);
+      });
+
+      emojiBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        picker.style.display = 'block';
+        const rect = emojiBtn.getBoundingClientRect();
+        picker.style.left = `${rect.left}px`;
+        picker.style.top = `${rect.bottom + 5}px`;
+      });
+
+      closePicker.addEventListener('click', () => {
+        picker.style.display = 'none';
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!picker.contains(e.target) && e.target !== emojiBtn) {
+          picker.style.display = 'none';
+        }
+      });
+
+      // Mobile: Use native emoji keyboard
+      if (/Mobi|Android/i.test(navigator.userAgent)) {
+        emojiBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const idea = document.getElementById('idea');
+          idea.focus();
+          alert('Tap the emoji key on your keyboard!');
+        });
+      }
+
+      // === LIVE GENERATION ===
+      const inputs = ['idea', 'platform', 'tone'];
+      inputs.forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(tryGenerate, 800);
+        });
+      });
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        clearTimeout(debounceTimer);
+        tryGenerate(true);
+      });
+
+      async function tryGenerate(forceFull = false) {
+        if (isGenerating || !userEmail) return;
+
+        const idea = document.getElementById('idea').value.trim();
+        const platform = document.getElementById('platform').value;
+        const tone = document.getElementById('tone').value;
+
+        if (!idea || !platform || !tone) {
+          result.classList.add('hidden');
+          paywall.classList.add('hidden');
+          return;
+        }
+
+        isGenerating = true;
+        loading.classList.remove('hidden');
+        result.classList.add('hidden');
+        paywall.classList.add('hidden');
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'Generating...';
+
+        try {
+          const res = await fetch(`${API_URL}/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idea, platform, tone, email: userEmail })
+          });
+
+          const data = await res.json();
+
+          if (res.status === 402) {
+            paywall.classList.remove('hidden');
+            result.classList.add('hidden');
+          } else if (res.ok) {
+            output.textContent = data.result;
+            result.classList.remove('hidden');
+            paywall.classList.add('hidden');
+            copyBtn.classList.remove('copied');
+            copyBtn.textContent = 'Copy All';
+            saveToHistory(data.result);
+            renderHistory();
+          }
+        } catch (err) {
+          if (forceFull) {
+            const fallback = `## Captions\n1. "Just launched my coffee shop! Coffee Sparkles"\n2. "Fresh brews, cozy vibes Coffee Heart"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love Leaf"\n5. "Come say hi! Hand Wave"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
+            output.textContent = fallback;
+            result.classList.remove('hidden');
+            saveToHistory(fallback);
+            renderHistory();
+          }
+        } finally {
+          loading.classList.add('hidden');
+          generateBtn.disabled = false;
+          generateBtn.textContent = 'Generate Captions';
+          isGenerating = false;
+        }
+      }
+
+      // === COPY ALL ===
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(output.textContent).then(() => {
+          copyBtn.textContent = 'Copied!';
+          copyBtn.classList.add('copied');
+          setTimeout(() => {
+            copyBtn.textContent = 'Copy All';
+            copyBtn.classList.remove('copied');
+          }, 2000);
+        });
+      });
+
+      // === SAVE & HISTORY (FIXED RENDERING) ===
+      function saveToHistory(text) {
+        const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
+        if (!history.includes(text)) {
+          history.unshift(text);
+          history.splice(20);
+          localStorage.setItem('captionHistory', JSON.stringify(history));
+        }
+        renderHistory();
+      }
+
+      function renderHistory() {
+        const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
+        const list = document.getElementById('historyList');
+        if (history.length === 0) {
+          list.innerHTML = '<p style="color:#9ca3af; font-style:italic;">No saved captions yet.</p>';
+          document.getElementById('history').classList.add('hidden');
+          return;
+        }
+        list.innerHTML = history.map((item, i) => `
+          <div style="border-bottom:1px solid #e5e7eb; padding: .75rem 0; display:flex; justify-content:space-between; align-items:flex-start;">
+            <div style="flex:1; font-size:0.85rem; line-height:1.5; white-space:pre-wrap; word-break:break-word;">
+              ${item.replace(/\n/g, '<br>').replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+            </div>
+            <button onclick="copySingle(${i})" style="margin-left:.5rem; background:#10b981; color:white; border:none; padding:.25rem .5rem; border-radius:.25rem; font-size:.75rem;">Copy</button>
+          </div>
+        `).join('');
+        document.getElementById('history').classList.remove('hidden');
+      }
+
+      window.copySingle = (i) => {
+        const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
+        navigator.clipboard.writeText(history[i]);
+      };
+
+      document.getElementById('clearHistory').addEventListener('click', () => {
+        localStorage.removeItem('captionHistory');
+        renderHistory();
+      });
+
+      // === PRO TEMPLATES ===
+      document.querySelectorAll('.templateBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('idea').value = btn.textContent;
+        });
+      });
+
+      // === SUBSCRIBE ===
+      subscribeBtn.addEventListener('click', async () => {
+        try {
+          const res = await fetch(`${API_URL}/create-checkout-session`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userEmail })
+          });
+          const { url } = await res.json();
+          window.location.href = url;
+        } catch (err) {
+          alert('Checkout failed. Please try again.');
+        }
+      });
+
+      // Load history on start
+      renderHistory();
+    }
+  </script>
+</body>
+</html>
