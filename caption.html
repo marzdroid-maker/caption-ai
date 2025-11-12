@@ -94,15 +94,20 @@
       background: var(--warning); margin: 1rem 0; width: auto; padding: .5rem 1rem; font-size: .9rem;
     }
 
-    /* Emoji Picker Popup */
+    /* Emoji Picker Popup - MODIFIED FOR SCROLLING */
     #emojiPicker {
       display: none; position: absolute; background: white; border: 1px solid #e5e7eb;
       border-radius: .75rem; padding: 1rem; max-width: 300px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
       z-index: 100; text-align: center;
+      max-height: 350px; /* Max height for the whole picker */
+      display: flex; /* Use flex to manage inner layout easily */
+      flex-direction: column;
     }
     #emojiGrid {
       display: grid; grid-template-columns: repeat(6, 1fr); gap: .5rem; font-size: 1.5rem;
       margin: .75rem 0;
+      overflow-y: auto; /* Enable scrolling for the grid area */
+      padding-right: 5px; /* Space for scrollbar */
     }
     #emojiGrid button {
       background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0;
@@ -271,18 +276,32 @@
 
     let userEmail = localStorage.getItem('userEmail');
 
-    // === EMOJI MAPPING (FIX for empty picker & template display) ===
+    // === EMOJI MAPPING (EXPANDED) ===
     const emojiMap = {
+      // Essentials
       'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
       'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
       'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
       'Flexed Biceps': '💪', 'Airplane': '✈️', 'Book': '📚', 'Dog': '🐶', 'Cat': '🐱',
       'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
       'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
-      'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋'
+      'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
+      
+      // New additions for variety and scrolling
+      'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💰',
+      'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
+      'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
+      'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
+      'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😢',
+      'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
+      'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
+      'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
+      'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
+      'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🧰', 'Graduation Cap': '🎓'
     };
-    // Use the keys for the picker
-    const commonEmojis = Object.keys(emojiMap).filter(name => name !== 'Coffee Mug' && name !== 'Hand Wave'); 
+    
+    // Get all keys except the utility/template ones for the main picker grid
+    const commonEmojis = Object.keys(emojiMap).filter(name => name !== 'Coffee Mug' && name !== 'Hand Wave' && name !== 'Camera Film' && name !== 'Hand Point Down');
 
     // === EMAIL MODAL ===
     if (!userEmail) {
@@ -318,37 +337,44 @@
       let debounceTimer;
       let isGenerating = false;
 
-      // === REAL EMOJI PICKER (FIXED) ===
+      // === REAL EMOJI PICKER ===
       const emojiBtn = document.getElementById('emojiPickerBtn');
       const picker = document.getElementById('emojiPicker');
       const grid = document.getElementById('emojiGrid');
       const closePicker = document.getElementById('closePicker');
 
-      grid.innerHTML = ''; // Clear the grid before adding new buttons
+      grid.innerHTML = ''; 
 
       commonEmojis.forEach(name => {
-        const emoji = emojiMap[name]; // Get the actual character
+        const emoji = emojiMap[name]; 
         const btn = document.createElement('button');
-        btn.textContent = emoji; // Set to the actual emoji character
+        btn.textContent = emoji; 
         btn.style.background = 'none';
         btn.style.border = 'none';
         btn.style.fontSize = '1.5rem';
         btn.style.cursor = 'pointer';
         btn.style.padding = '0';
-        btn.title = name; // Use the name for the tooltip
+        btn.title = name; 
         btn.addEventListener('click', () => {
           const idea = document.getElementById('idea');
           idea.value = idea.value.trim() + ' ' + emoji;
           idea.focus();
+          // Keep picker open if it's large, but close it here for simplicity
+          // picker.style.display = 'none'; 
         });
         grid.appendChild(btn);
       });
 
       emojiBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        picker.style.display = 'block';
+        picker.style.display = 'flex'; // Use flex to match CSS change
         const rect = emojiBtn.getBoundingClientRect();
-        picker.style.left = `${rect.left}px`;
+        // Calculate position to center it roughly over the button and above
+        let left = rect.left - (picker.offsetWidth / 2) + (rect.width / 2);
+        if (left < 10) left = 10; // Left boundary check
+        if (left + picker.offsetWidth > window.innerWidth - 10) left = window.innerWidth - picker.offsetWidth - 10; // Right boundary check
+        
+        picker.style.left = `${left}px`;
         picker.style.top = `${rect.bottom + 5}px`;
       });
 
@@ -430,7 +456,6 @@
           }
         } catch (err) {
           if (forceFull) {
-            // FIX: Updated fallback to use real emojis
             const fallback = `## Captions\n1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"\n2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love ${emojiMap['Leaf']}"\n5. "Come say hi! ${emojiMap['Hand Wave']}"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
             output.textContent = fallback;
             result.classList.remove('hidden');
@@ -457,7 +482,7 @@
         });
       });
 
-      // === SAVE & HISTORY (FIXED RENDERING) ===
+      // === SAVE & HISTORY ===
       function saveToHistory(text) {
         const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
         // Only save if the new text is different from the most recent one
@@ -498,26 +523,26 @@
         renderHistory();
       });
 
-      // === PRO TEMPLATES (FIXED EMOJI NAMES) ===
+      // === PRO TEMPLATES ===
       document.querySelectorAll('.templateBtn').forEach(btn => {
         const originalText = btn.textContent;
-        
-        // Replace the text names in the button content with actual emojis for display
-        let displayText = originalText
-          .replace('Heart', emojiMap['Heart'])
-          .replace('Camera Film', emojiMap['Camera'] + emojiMap['Film'])
-          .replace('Hand Point Down', emojiMap['Hand Point Down'])
-          .replace('Shopping Bag', emojiMap['Shopping Bag'])
-          .replace('Coffee Mug', emojiMap['Coffee']);
+        
+        // Replace the text names in the button content with actual emojis for display
+        let displayText = originalText
+          .replace('Heart', emojiMap['Heart'])
+          .replace('Camera Film', emojiMap['Camera'] + emojiMap['Film'])
+          .replace('Hand Point Down', emojiMap['Hand Point Down'])
+          .replace('Shopping Bag', emojiMap['Shopping Bag'])
+          .replace('Coffee Mug', emojiMap['Coffee']);
 
-        btn.innerHTML = displayText; // Set the button's display text (with actual emojis)
+        btn.innerHTML = displayText; 
 
-        btn.addEventListener('click', () => {
-          // Set the input value using the actual emojis
-          document.getElementById('idea').value = displayText;
-          document.getElementById('idea').focus();
-        });
-      });
+        btn.addEventListener('click', () => {
+          // Set the input value using the actual emojis
+          document.getElementById('idea').value = displayText;
+          document.getElementById('idea').focus();
+        });
+      });
 
       // === SUBSCRIBE ===
       subscribeBtn.addEventListener('click', async () => {
