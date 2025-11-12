@@ -89,9 +89,27 @@
     button:hover { background: var(--primary-dark); }
     button:disabled { background: #93c5fd; cursor: not-allowed; }
 
-    /* Emoji Button */
-    #addEmojis {
+    /* Emoji Picker Button */
+    #emojiPickerBtn {
       background: var(--warning); margin: 1rem 0; width: auto; padding: .5rem 1rem; font-size: .9rem;
+    }
+
+    /* Emoji Picker Popup */
+    #emojiPicker {
+      display: none; position: absolute; background: white; border: 1px solid #e5e7eb;
+      border-radius: .75rem; padding: 1rem; max-width: 300px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      z-index: 100; text-align: center;
+    }
+    #emojiGrid {
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: .5rem; font-size: 1.5rem;
+      margin: .75rem 0;
+    }
+    #emojiGrid button {
+      background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0;
+    }
+    #closePicker {
+      margin-top: .5rem; background: #6b7280; color: white; padding: .5rem 1rem;
+      border-radius: .5rem; font-size: .8rem; width: auto;
     }
 
     .result {
@@ -148,6 +166,7 @@
       h1 { font-size: 1.75rem; }
       .container { padding: 0 1rem; }
       #copyBtn { position: static; margin-top: 1rem; width: 100%; }
+      #emojiGrid { grid-template-columns: repeat(5, 1fr); }
     }
   </style>
 </head>
@@ -195,8 +214,13 @@
         <option value="Casual & Friendly">Casual & Friendly</option>
       </select>
 
-      <div style="text-align: center;">
-        <button type="button" id="addEmojis">Add Emojis</button>
+      <div style="position: relative; text-align: center;">
+        <button type="button" id="emojiPickerBtn">Add Emojis</button>
+        <div id="emojiPicker">
+          <p style="margin-bottom: .75rem; font-weight: 600;">Pick Emojis</p>
+          <div id="emojiGrid"></div>
+          <button id="closePicker">Close</button>
+        </div>
       </div>
 
       <button type="submit" id="generateBtn">Generate Captions</button>
@@ -231,7 +255,7 @@
 
     <div id="paywall" class="paywall hidden">
       <h3>Upgrade to Pro!</h3>
-      <p>Unlimited generations + <strong>5 Pro Templates + Save History</strong> for <strong>$7/month</strong>.</p>
+      <p>Unlimited generations + <strong>Save History + Pro Templates</strong> for <strong>$7/month</strong>.</p>
       <button id="subscribeBtn">Subscribe Now</button>
     </div>
 
@@ -285,18 +309,63 @@
       let debounceTimer;
       let isGenerating = false;
 
-      // === EMOJI BOOST ===
-      document.getElementById('addEmojis').addEventListener('click', () => {
-        const platform = document.getElementById('platform').value;
-        const emojis = {
-          'Instagram': 'Camera Heart Sparkles Coffee Shopping Bag',
-          'Twitter': 'Rocket Fire Chart Bar Chart',
-          'LinkedIn': 'Briefcase Handshake Target Trophy',
-          'TikTok': 'Dancer Camera Play Button Film'
-        };
-        const idea = document.getElementById('idea');
-        idea.value = idea.value.trim() + ' ' + (emojis[platform] || '');
+      // === REAL EMOJI PICKER ===
+      const emojiBtn = document.getElementById('emojiPickerBtn');
+      const picker = document.getElementById('emojiPicker');
+      const grid = document.getElementById('emojiGrid');
+      const closePicker = document.getElementById('closePicker');
+
+      const commonEmojis = [
+        'Camera', 'Heart', 'Sparkles', 'Coffee', 'Shopping Bag', 'Rocket', 'Fire', 'Trophy',
+        'Briefcase', 'Handshake', 'Laptop', 'Sunrise', 'Moon', 'Pizza', 'Leaf', 'Flexed Biceps',
+        'Airplane', 'Book', 'Dog', 'Cat', 'Birthday Cake', 'Party Popper', 'Star', 'Film',
+        'Musical Notes', 'Dancer', 'Play Button', 'New', 'Sale', 'Check Mark', 'Cross Mark'
+      ];
+
+      commonEmojis.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.textContent = emoji;
+        btn.style.background = 'none';
+        btn.style.border = 'none';
+        btn.style.fontSize = '1.5rem';
+        btn.style.cursor = 'pointer';
+        btn.style.padding = '0';
+        btn.title = emoji;
+        btn.addEventListener('click', () => {
+          const idea = document.getElementById('idea');
+          idea.value = idea.value.trim() + ' ' + emoji;
+          idea.focus();
+        });
+        grid.appendChild(btn);
       });
+
+      emojiBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        picker.style.display = 'block';
+        const rect = emojiBtn.getBoundingClientRect();
+        picker.style.left = `${rect.left}px`;
+        picker.style.top = `${rect.bottom + 5}px`;
+      });
+
+      closePicker.addEventListener('click', () => {
+        picker.style.display = 'none';
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!picker.contains(e.target) && e.target !== emojiBtn) {
+          picker.style.display = 'none';
+        }
+      });
+
+      // Mobile: Use native emoji keyboard
+      if (/Mobi|Android/i.test(navigator.userAgent)) {
+        emojiBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const idea = document.getElementById('idea');
+          idea.focus();
+          alert('Tap the emoji key on your keyboard!');
+        });
+      }
 
       // === LIVE GENERATION ===
       const inputs = ['idea', 'platform', 'tone'];
@@ -426,13 +495,6 @@
           document.getElementById('idea').value = btn.textContent;
         });
       });
-
-      // Show Pro features only for subscribers
-      const userKey = userEmail.toLowerCase().trim();
-      if (localStorage.getItem('subscribed_' + userKey) === 'true') {
-        document.getElementById('proTemplates').classList.remove('hidden');
-        document.getElementById('history').classList.remove('hidden');
-      }
 
       // === SUBSCRIBE ===
       subscribeBtn.addEventListener('click', async () => {
