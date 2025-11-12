@@ -29,7 +29,6 @@
     h1 { font-size: 2.25rem; font-weight: 700; text-align: center; margin-bottom: .5rem; }
     p.subtitle { text-align: center; color: var(--gray); margin-bottom: 1.5rem; font-size: 1.1rem; }
 
-    /* Social Proof */
     .proof {
       background: #ecfdf5;
       border: 1px solid #a7f3d0;
@@ -42,7 +41,6 @@
     }
     .proof strong { font-weight: 600; }
 
-    /* Email Modal */
     #emailModal {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.7); display: flex; align-items: center;
@@ -65,7 +63,6 @@
       cursor: pointer; width: 100%;
     }
 
-    /* Form */
     label { display: block; margin-bottom: .5rem; font-weight: 600; color: #111; }
     input, select {
       width: 100%; padding: .75rem 1rem; border: 2px solid var(--border);
@@ -75,7 +72,6 @@
     input:focus, select:focus { outline: none; border-color: var(--primary); }
     input::placeholder { color: var(--placeholder); font-style: italic; }
 
-    /* Dropdown placeholder */
     select option[disabled] { display: none; }
     select option[data-placeholder] { color: var(--placeholder); font-style: italic; }
     select:invalid { color: var(--placeholder); }
@@ -89,12 +85,10 @@
     button:hover { background: var(--primary-dark); }
     button:disabled { background: #93c5fd; cursor: not-allowed; }
 
-    /* Emoji Picker Button */
     #emojiPickerBtn {
       background: var(--warning); margin: 1rem 0; width: auto; padding: .5rem 1rem; font-size: .9rem;
     }
 
-    /* Emoji Picker Container */
     .emoji-picker-container {
       position: relative; 
       text-align: left; 
@@ -102,7 +96,6 @@
       justify-content: center;
     }
 
-    /* Emoji Picker Popup - MODIFIED FOR POSITIONING */
     #emojiPicker {
       display: none; 
       position: absolute; 
@@ -154,7 +147,6 @@
     #copyBtn:hover { background: var(--success-dark); }
     #copyBtn.copied { background: #059669; }
 
-    /* Pro Templates */
     #proTemplates {
       margin-top: 2rem; padding: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: .75rem;
     }
@@ -263,26 +255,26 @@
       <h3>Pro Templates (Click to Use)</h3>
       <div id="templateContainer" style="display: grid; gap: .5rem; font-size: .9rem;">
         <button class="templateBtn" data-text="Just hit 10K followers! Grateful for every one of you [Heart]">
-          "Just hit 10K followers! Grateful for every one of you Heart"
+          "Just hit 10K followers! Grateful for every one of you [Heart]"
         </button>
         <button class="templateBtn" data-text="Behind the scenes of [your idea] [Camera Film]">
-          "Behind the scenes of [your idea] Camera Film"
+          "Behind the scenes of [your idea] [Camera Film]"
         </button>
         <button class="templateBtn" data-text="Tag a friend who needs this! [Hand Point Down]">
-          "Tag a friend who needs this! Hand Point Down"
+          "Tag a friend who needs this! [Hand Point Down]"
         </button>
         <button class="templateBtn" data-text="New drop alert! Link in bio [Shopping Bag]">
-          "New drop alert! Link in bio Shopping Bag"
+          "New drop alert! Link in bio [Shopping Bag]"
         </button>
         <button class="templateBtn" data-text="Your daily dose of [topic] [Coffee Mug]">
-          "Your daily dose of [topic] Coffee Mug"
+          "Your daily dose of [topic] [Coffee Mug]"
         </button>
       </div>
     </div>
 
     <div id="paywall" class="paywall hidden">
       <h3>Upgrade to Pro!</h3>
-      <p>Unlimited generations + <strong>Pro Templates</strong> for <strong>$7/month</strong>.</p>
+      <p>You've used your 3 free generations. <strong>Unlimited + Pro Templates</strong> for <strong>$7/month</strong>.</p>
       <button id="subscribeBtn">Subscribe Now</button>
     </div>
 
@@ -302,12 +294,12 @@
 
     let userEmail = localStorage.getItem('userEmail');
 
-    // === EMAIL MODAL ===
     if (!userEmail) {
       emailSubmit.addEventListener('click', () => {
         const email = emailInput.value.trim();
         if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
           localStorage.setItem('userEmail', email);
+          localStorage.setItem('freeUses', '0');
           modal.style.display = 'none';
           mainApp.style.display = 'block';
           userEmail = email;
@@ -336,9 +328,16 @@
       let debounceTimer;
       let isGenerating = false;
 
-      // === EMOJI MAPPING (CORRECTED) ===
+      let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
+      const isPro = localStorage.getItem('isPro') === 'true';
+
+      if (!isPro && freeUses >= 3) {
+        paywall.classList.remove('hidden');
+        form.querySelector('button[type="submit"]').disabled = true;
+      }
+
+      // === YOUR EXACT EMOJI MAP — REAL UNICODE FROM YOUR CODE ===
       const emojiMap = {
-        // Essentials
         'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
         'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
         'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
@@ -346,8 +345,6 @@
         'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
         'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
         'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
-        
-        // New additions for variety and scrolling
         'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💰',
         'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
         'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
@@ -364,19 +361,16 @@
         name !== 'Coffee Mug' && name !== 'Hand Wave' && name !== 'Camera Film' && name !== 'Hand Point Down'
       );
 
-      // === EMOJI PICKER IMPLEMENTATION (FIXED ENTER KEY ISSUE BY MOVING OUTSIDE FORM) ===
       const emojiBtn = document.getElementById('emojiPickerBtn');
       const picker = document.getElementById('emojiPicker');
       const grid = document.getElementById('emojiGrid');
       const closePicker = document.getElementById('closePicker');
       
-      grid.innerHTML = ''; // Ensure the grid starts empty
+      grid.innerHTML = '';
 
-      // Populate the grid with buttons using the actual emoji characters
       commonEmojis.forEach(name => {
-        const emoji = emojiMap[name];
         const btn = document.createElement('button');
-        btn.textContent = emoji;
+        btn.textContent = emojiMap[name];
         btn.style.background = 'none';
         btn.style.border = 'none';
         btn.style.fontSize = '1.5rem';
@@ -384,19 +378,15 @@
         btn.style.padding = '0';
         btn.title = name;
         
-        // Add a click listener for the mouse click/tap
         btn.addEventListener('click', (e) => {
-          e.preventDefault(); // Prevents form submission
+          e.preventDefault();
           const idea = document.getElementById('idea');
-          idea.value += ' ' + emoji; 
+          idea.value += ' ' + emojiMap[name];
           idea.focus();
         });
         
-        // Add a keydown listener (kept for safety, though moving the button is the main fix)
         btn.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.keyCode === 13) {
-            e.preventDefault(); 
-          }
+          if (e.key === 'Enter') e.preventDefault();
         });
         
         grid.appendChild(btn);
@@ -404,14 +394,10 @@
 
       emojiBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        // Toggle display using current style
         picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
       });
 
-      closePicker.addEventListener('click', (e) => {
-        e.preventDefault();
-        picker.style.display = 'none';
-      });
+      closePicker.addEventListener('click', () => picker.style.display = 'none');
 
       document.addEventListener('click', (e) => {
         if (!picker.contains(e.target) && e.target !== emojiBtn) {
@@ -419,19 +405,15 @@
         }
       });
 
-      // Mobile: Use native emoji keyboard
       if (/Mobi|Android/i.test(navigator.userAgent)) {
         emojiBtn.addEventListener('click', (e) => {
           e.preventDefault();
-          const idea = document.getElementById('idea');
-          idea.focus();
-          // Do not show the popup on mobile, rely on native keyboard
-          picker.style.display = 'none'; 
+          document.getElementById('idea').focus();
+          picker.style.display = 'none';
           alert('Tap the emoji key on your keyboard!');
         });
       }
 
-      // === LIVE GENERATION ===
       const inputs = ['idea', 'platform', 'tone'];
       inputs.forEach(id => {
         document.getElementById(id).addEventListener('input', () => {
@@ -459,6 +441,12 @@
           return;
         }
 
+        if (!isPro && freeUses >= 3) {
+          paywall.classList.remove('hidden');
+          result.classList.add('hidden');
+          return;
+        }
+
         isGenerating = true;
         loading.classList.remove('hidden');
         result.classList.add('hidden');
@@ -475,7 +463,7 @@
 
           const data = await res.json();
 
-          if (res.status === 402) {
+          if (res.status === 402 || (!isPro && freeUses >= 3)) {
             paywall.classList.remove('hidden');
             result.classList.add('hidden');
           } else if (res.ok) {
@@ -484,13 +472,25 @@
             paywall.classList.add('hidden');
             copyBtn.classList.remove('copied');
             copyBtn.textContent = 'Copy All';
+
+            if (!isPro) {
+              freeUses++;
+              localStorage.setItem('freeUses', freeUses.toString());
+              if (freeUses >= 3) {
+                paywall.classList.remove('hidden');
+                form.querySelector('button[type="submit"]').disabled = true;
+              }
+            }
           }
         } catch (err) {
           if (forceFull) {
-            // Updated fallback text to use corrected emoji characters
             const fallback = `## Captions\n1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"\n2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love ${emojiMap['Leaf']}"\n5. "Come say hi! ${emojiMap['Hand Wave']}"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
             output.textContent = fallback;
             result.classList.remove('hidden');
+            if (!isPro) {
+              freeUses++;
+              localStorage.setItem('freeUses', freeUses.toString());
+            }
           }
         } finally {
           loading.classList.add('hidden');
@@ -500,7 +500,6 @@
         }
       }
 
-      // === COPY ALL ===
       copyBtn.addEventListener('click', () => {
         navigator.clipboard.writeText(output.textContent).then(() => {
           copyBtn.textContent = 'Copied!';
@@ -511,34 +510,26 @@
           }, 2000);
         });
       });
-      
-      // === PRO TEMPLATES (FIXED DISPLAY) ===
+
       document.querySelectorAll('.templateBtn').forEach(btn => {
-        // Use the original text from the data-text attribute for reliable replacement
         const originalTemplateText = btn.getAttribute('data-text');
-
-        // Function to perform replacements
         const replaceEmojis = (text) => {
-            return text
-                .replace('[Heart]', emojiMap['Heart'])
-                .replace('[Camera Film]', emojiMap['Camera'] + emojiMap['Film'])
-                .replace('[Hand Point Down]', emojiMap['Hand Point Down'])
-                .replace('[Shopping Bag]', emojiMap['Shopping Bag'])
-                .replace('[Coffee Mug]', emojiMap['Coffee Mug']); 
+          return text
+            .replace('[Heart]', emojiMap['Heart'])
+            .replace('[Camera Film]', emojiMap['Camera'] + emojiMap['Film'])
+            .replace('[Hand Point Down]', emojiMap['Hand Point Down'])
+            .replace('[Shopping Bag]', emojiMap['Shopping Bag'])
+            .replace('[Coffee Mug]', emojiMap['Coffee Mug']);
         };
-        
-        // 1. Display the fully formatted text on the button
         const formattedDisplayText = replaceEmojis(originalTemplateText);
-        btn.innerHTML = formattedDisplayText; 
+        btn.innerHTML = formattedDisplayText;
 
-        // 2. Set the click handler to put the formatted text into the input
         btn.addEventListener('click', () => {
-          document.getElementById('idea').value = formattedDisplayText.replace(/"/g, ''); // Remove quotes if present
+          document.getElementById('idea').value = formattedDisplayText.replace(/"/g, '');
           document.getElementById('idea').focus();
         });
       });
 
-      // === SUBSCRIBE ===
       subscribeBtn.addEventListener('click', async () => {
         try {
           const res = await fetch(`${API_URL}/create-checkout-session`, {
@@ -552,6 +543,14 @@
           alert('Checkout failed. Please try again.');
         }
       });
+
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('success') === 'true') {
+        localStorage.setItem('isPro', 'true');
+        paywall.classList.add('hidden');
+        form.querySelector('button[type="submit"]').disabled = false;
+        alert('Welcome to Pro! Unlimited generations unlocked.');
+      }
     }
   </script>
 </body>
