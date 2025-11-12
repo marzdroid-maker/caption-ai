@@ -203,7 +203,6 @@
 </head>
 <body>
 
-  <!-- EMAIL MODAL -->
   <div id="emailModal">
     <div class="modal-content">
       <h2>Welcome!</h2>
@@ -213,7 +212,6 @@
     </div>
   </div>
 
-  <!-- MAIN APP -->
   <div class="container" id="mainApp" style="display: none;">
     <h1>AI Caption + Hashtag Generator</h1>
     <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
@@ -265,14 +263,12 @@
       <button type="button" id="copyBtn">Copy All</button>
     </div>
 
-    <!-- HISTORY -->
     <div id="history" class="result hidden">
       <h3>Saved Captions</h3>
       <div id="historyList" style="font-size: 0.9rem; line-height: 1.6;"></div>
       <button id="clearHistory">Clear All</button>
     </div>
 
-    <!-- PRO TEMPLATES -->
     <div id="proTemplates" class="hidden">
       <h3>Pro Templates (Click to Use)</h3>
       <div style="display: grid; gap: .5rem; font-size: .9rem;">
@@ -343,25 +339,25 @@
       // === EMOJI MAPPING (CORRECTED) ===
       const emojiMap = {
         // Essentials
-        'Camera': 'Camera', 'Heart': 'Heart', 'Sparkles': 'Sparkles', 'Coffee': 'Coffee', 'Shopping Bag': 'Shopping Bag',
-        'Rocket': 'Rocket', 'Fire': 'Fire', 'Trophy': 'Trophy', 'Briefcase': 'Briefcase', 'Handshake': 'Handshake',
-        'Laptop': 'Laptop', 'Sunrise': 'Sunrise', 'Moon': 'Moon', 'Pizza': 'Pizza', 'Leaf': 'Leaf',
-        'Flexed Biceps': 'Flexed Biceps', 'Airplane': 'Airplane', 'Book': 'Book', 'Dog': 'Dog', 'Cat': 'Cat',
-        'Birthday Cake': 'Birthday Cake', 'Party Popper': 'Party Popper', 'Star': 'Star', 'Film': 'Film',
-        'Musical Notes': 'Musical Notes', 'Dancer': 'Dancer', 'Play Button': 'Play Button', 'New': 'New', 'Sale': 'Sale',
-        'Check Mark': 'Check Mark', 'Cross Mark': 'Cross Mark', 'Hand Point Down': 'Hand Point Down', 'Coffee Mug': 'Coffee Mug', 'Hand Wave': 'Hand Wave',
+        'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
+        'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
+        'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
+        'Flexed Biceps': '💪', 'Airplane': '✈️', 'Book': '📚', 'Dog': '🐶', 'Cat': '🐱',
+        'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
+        'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
+        'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
         
         // New additions for variety and scrolling
-        'Light Bulb': 'Light Bulb', 'Thinking Face': 'Thinking Face', '100 Score': '100 Score', 'Money Bag': 'Money Bag',
-        'Chart Increasing': 'Chart Increasing', 'Target': 'Target', 'Alarm Clock': 'Alarm Clock', 'Question Mark': 'Question Mark',
-        'Speech Bubble': 'Speech Bubble', 'Crown': 'Crown', 'Diamond': 'Diamond', 'Robot': 'Robot',
-        'Globe': 'Globe', 'Mountain': 'Mountain', 'Pin': 'Pin', 'Megaphone': 'Megaphone',
-        'Writing Hand': 'Writing Hand', 'Open Book': 'Open Book', 'Smiling Face': 'Smiling Face', 'Crying Face': 'Crying Face',
-        'Clapping Hands': 'Clapping Hands', 'Winking Face': 'Winking Face', 'Red Apple': 'Red Apple', 'Grapes': 'Grapes',
-        'Donut': 'Donut', 'Taco': 'Taco', 'Beer Mug': 'Beer Mug', 'Martini Glass': 'Martini Glass',
-        'Car': 'Car', 'Bicycle': 'Bicycle', 'Train': 'Train', 'Boat': 'Boat',
-        'Fingers Crossed': 'Fingers Crossed', 'Poo': 'Poo', 'Ghost': 'Ghost', 'Alien': 'Alien',
-        'Lock': 'Lock', 'Key': 'Key', 'Toolbox': 'Toolbox', 'Graduation Cap': 'Graduation Cap'
+        'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💰',
+        'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
+        'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
+        'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
+        'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😢',
+        'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
+        'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
+        'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
+        'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
+        'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🧰', 'Graduation Cap': '🎓'
       };
 
       const commonEmojis = Object.keys(emojiMap).filter(name => 
@@ -373,10 +369,13 @@
       const picker = document.getElementById('emojiPicker');
       const grid = document.getElementById('emojiGrid');
       const closePicker = document.getElementById('closePicker');
-
+      
+      grid.innerHTML = ''; // Clear existing content
+      
       commonEmojis.forEach(name => {
+        const emoji = emojiMap[name]; // Use the actual emoji character
         const btn = document.createElement('button');
-        btn.textContent = emojiMap[name];
+        btn.textContent = emoji;
         btn.style.background = 'none';
         btn.style.border = 'none';
         btn.style.fontSize = '1.5rem';
@@ -385,7 +384,8 @@
         btn.title = name;
         btn.addEventListener('click', () => {
           const idea = document.getElementById('idea');
-          idea.value = idea.value.trim() + ' ' + emojiMap[name];
+          // Insert the actual emoji character into the input field
+          idea.value = idea.value.trim() + ' ' + emoji; 
           idea.focus();
         });
         grid.appendChild(btn);
@@ -474,7 +474,8 @@
           }
         } catch (err) {
           if (forceFull) {
-            const fallback = `## Captions\n1. "Just launched my coffee shop! Coffee Sparkles"\n2. "Fresh brews, cozy vibes Coffee Heart"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love Leaf"\n5. "Come say hi! Hand Wave"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
+            // Updated fallback text to use corrected emoji characters
+            const fallback = `## Captions\n1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"\n2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love ${emojiMap['Leaf']}"\n5. "Come say hi! ${emojiMap['Hand Wave']}"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
             output.textContent = fallback;
             result.classList.remove('hidden');
             saveToHistory(fallback);
@@ -542,8 +543,21 @@
 
       // === PRO TEMPLATES ===
       document.querySelectorAll('.templateBtn').forEach(btn => {
+        const originalText = btn.textContent;
+        
+        // This section now correctly replaces the text placeholders with the actual emojis
+        let displayText = originalText
+          .replace('Heart', emojiMap['Heart'])
+          .replace('Camera Film', emojiMap['Camera'] + emojiMap['Film'])
+          .replace('Hand Point Down', emojiMap['Hand Point Down'])
+          .replace('Shopping Bag', emojiMap['Shopping Bag'])
+          .replace('Coffee Mug', emojiMap['Coffee']); // Assuming 'Coffee Mug' can be substituted by 'Coffee' emoji
+
+        btn.innerHTML = displayText; 
+
         btn.addEventListener('click', () => {
-          document.getElementById('idea').value = btn.textContent;
+          document.getElementById('idea').value = displayText;
+          document.getElementById('idea').focus();
         });
       });
 
