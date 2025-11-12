@@ -94,16 +94,26 @@
       background: var(--warning); margin: 1rem 0; width: auto; padding: .5rem 1rem; font-size: .9rem;
     }
 
-    /* Emoji Picker Popup - MODIFIED FOR SCROLLING */
+    /* Emoji Picker Popup - MODIFIED FOR POSITIONING */
     #emojiPicker {
-      display: none; /* Corrected: Must be hidden initially */
-      position: absolute; background: white; border: 1px solid #e5e7eb;
-      border-radius: .75rem; padding: 1rem; max-width: 300px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-      z-index: 100; text-align: center;
-      max-height: 350px; /* Max height for the whole picker */
-      display: flex; 
+      display: none; 
+      position: absolute; 
+      background: white; 
+      border: 1px solid #e5e7eb;
+      border-radius: .75rem; 
+      padding: 1rem; 
+      max-width: 300px; 
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      z-index: 100; 
+      text-align: center;
+      max-height: 350px; 
       flex-direction: column;
+      /* Default position set to top-right corner of the button's parent container */
+      right: 0; 
+      top: 100%; 
+      transform: translateY(5px);
     }
+
     #emojiGrid {
       display: grid; grid-template-columns: repeat(6, 1fr); gap: .5rem; font-size: 1.5rem;
       margin: .75rem 0;
@@ -118,6 +128,14 @@
       border-radius: .5rem; font-size: .8rem; width: auto;
     }
 
+    /* Re-styled parent container for positioning the picker relative to the button */
+    .emoji-picker-container {
+        position: relative; 
+        text-align: left; /* Aligns the button to the left/center */
+        display: flex;
+        justify-content: center;
+    }
+    
     .result {
       margin-top: 2rem; padding: 1.5rem; background: white; border-radius: .75rem;
       box-shadow: 0 4px 12px rgba(0,0,0,.05); position: relative;
@@ -134,9 +152,7 @@
     #copyBtn:hover { background: var(--success-dark); }
     #copyBtn.copied { background: #059669; }
 
-    /* History */
-    #history { margin-top: 1rem; }
-    #clearHistory { background: #ef4444; margin-top: 1rem; }
+    /* History section removed */
 
     /* Pro Templates */
     #proTemplates {
@@ -173,6 +189,11 @@
       .container { padding: 0 1rem; }
       #copyBtn { position: static; margin-top: 1rem; width: 100%; }
       #emojiGrid { grid-template-columns: repeat(5, 1fr); }
+      #emojiPicker { 
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%) translateY(5px);
+      }
     }
   </style>
 </head>
@@ -218,7 +239,7 @@
         <option value="Casual & Friendly">Casual & Friendly</option>
       </select>
 
-      <div style="position: relative; text-align: center;">
+      <div class="emoji-picker-container"> 
         <button type="button" id="emojiPickerBtn">Add Emojis</button>
         <div id="emojiPicker">
           <p style="margin-bottom: .75rem; font-weight: 600;">Pick Emojis</p>
@@ -238,12 +259,6 @@
       <button type="button" id="copyBtn">Copy All</button>
     </div>
 
-    <div id="history" class="result hidden">
-      <h3>Saved Captions</h3>
-      <div id="historyList" style="font-size: 0.9rem; line-height: 1.6;"></div>
-      <button id="clearHistory">Clear All</button>
-    </div>
-
     <div id="proTemplates" class="hidden">
       <h3>Pro Templates (Click to Use)</h3>
       <div style="display: grid; gap: .5rem; font-size: .9rem;">
@@ -257,7 +272,7 @@
 
     <div id="paywall" class="paywall hidden">
       <h3>Upgrade to Pro!</h3>
-      <p>Unlimited generations + <strong>Save History + Pro Templates</strong> for <strong>$7/month</strong>.</p>
+      <p>Unlimited generations + Pro Templates for <strong>$7/month</strong>.</p>
       <button id="subscribeBtn">Subscribe Now</button>
     </div>
 
@@ -277,9 +292,8 @@
 
     let userEmail = localStorage.getItem('userEmail');
 
-    // === EMOJI MAPPING (EXPANDED) ===
+    // === EMOJI MAPPING ===
     const emojiMap = {
-      // Essentials
       'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
       'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
       'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
@@ -287,8 +301,6 @@
       'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
       'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
       'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
-      
-      // New additions for variety and scrolling
       'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💰',
       'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
       'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
@@ -301,13 +313,12 @@
       'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🧰', 'Graduation Cap': '🎓'
     };
     
-    // Get all keys except the utility/template ones for the main picker grid
     const commonEmojis = Object.keys(emojiMap).filter(name => name !== 'Coffee Mug' && name !== 'Hand Wave' && name !== 'Camera Film' && name !== 'Hand Point Down');
 
     // === EMAIL MODAL ===
     if (!userEmail) {
-      modal.style.display = 'flex'; // Ensure modal is visible if no email is set
-      mainApp.style.display = 'none'; // Ensure main app is hidden if modal is visible
+      modal.style.display = 'flex'; 
+      mainApp.style.display = 'none'; 
       emailSubmit.addEventListener('click', () => {
         const email = emailInput.value.trim();
         if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -336,7 +347,7 @@
       const paywall = document.getElementById('paywall');
       const subscribeBtn = document.getElementById('subscribeBtn');
       const copyBtn = document.getElementById('copyBtn');
-      const picker = document.getElementById('emojiPicker'); // Ensure picker is referenced
+      const picker = document.getElementById('emojiPicker');
 
       let debounceTimer;
       let isGenerating = false;
@@ -368,17 +379,7 @@
 
       emojiBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        // Corrected: Set display to 'flex' to show it, matching CSS change
         picker.style.display = 'flex'; 
-        const rect = emojiBtn.getBoundingClientRect();
-        
-        // Calculate position to center it roughly over the button
-        let left = rect.left - (picker.offsetWidth / 2) + (rect.width / 2);
-        if (left < 10) left = 10; 
-        if (left + picker.offsetWidth > window.innerWidth - 10) left = window.innerWidth - picker.offsetWidth - 10; 
-        
-        picker.style.left = `${left}px`;
-        picker.style.top = `${rect.bottom + 5}px`;
       });
 
       closePicker.addEventListener('click', () => {
@@ -454,16 +455,14 @@
             paywall.classList.add('hidden');
             copyBtn.classList.remove('copied');
             copyBtn.textContent = 'Copy All';
-            saveToHistory(data.result);
-            renderHistory();
+            // Removed saveToHistory() call
           }
         } catch (err) {
           if (forceFull) {
             const fallback = `## Captions\n1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"\n2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love ${emojiMap['Leaf']}"\n5. "Come say hi! ${emojiMap['Hand Wave']}"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
             output.textContent = fallback;
             result.classList.remove('hidden');
-            saveToHistory(fallback);
-            renderHistory();
+            // Removed saveToHistory() call
           }
         } finally {
           loading.classList.add('hidden');
@@ -485,46 +484,8 @@
         });
       });
 
-      // === SAVE & HISTORY ===
-      function saveToHistory(text) {
-        const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
-        if (history[0] !== text) {
-          history.unshift(text);
-          history.splice(20);
-          localStorage.setItem('captionHistory', JSON.stringify(history));
-        }
-        renderHistory();
-      }
-
-      function renderHistory() {
-        const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
-        const list = document.getElementById('historyList');
-        if (history.length === 0) {
-          list.innerHTML = '<p style="color:#9ca3af; font-style:italic;">No saved captions yet.</p>';
-          document.getElementById('history').classList.add('hidden');
-          return;
-        }
-        list.innerHTML = history.map((item, i) => `
-          <div style="border-bottom:1px solid #e5e7eb; padding: .75rem 0; display:flex; justify-content:space-between; align-items:flex-start;">
-            <pre style="flex:1; margin:0; font-size:0.85rem; line-height:1.6; white-space:pre-wrap; word-break:break-word; font-family: inherit;">
-              ${item}
-            </pre>
-            <button onclick="copySingle(${i})" style="margin-left:.5rem; background:#10b981; color:white; border:none; padding:.25rem .5rem; border-radius:.25rem; font-size:.75rem;">Copy</button>
-          </div>
-        `).join('');
-        document.getElementById('history').classList.remove('hidden');
-      }
-
-      window.copySingle = (i) => {
-        const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
-        navigator.clipboard.writeText(history[i]);
-      };
-
-      document.getElementById('clearHistory').addEventListener('click', () => {
-        localStorage.removeItem('captionHistory');
-        renderHistory();
-      });
-
+      // === SAVE & HISTORY - ALL REMOVED ===
+      
       // === PRO TEMPLATES ===
       document.querySelectorAll('.templateBtn').forEach(btn => {
         const originalText = btn.textContent;
@@ -558,24 +519,6 @@
           alert('Checkout failed. Please try again.');
         }
       });
-
-      // Load history on start
-      if (userEmail) renderHistory(); // Only load history if the user is already logged in
-    }
-    
-    // Ensure the initial state is set correctly before initApp runs if no email exists
-    if (!userEmail) {
-        // This is necessary to override the inline style if userEmail is null and the script hasn't fully executed.
-        // However, the inline style change on #mainApp and the lack of inline style on #emailModal in the HTML body
-        // combined with the logic above should correctly handle the initial state.
-        
-        // Final check to ensure the initial state is correct for users without saved emails
-        if (document.getElementById('emailModal')) {
-             document.getElementById('emailModal').style.display = 'flex';
-        }
-        if (document.getElementById('mainApp')) {
-            document.getElementById('mainApp').style.display = 'none';
-        }
     }
   </script>
 </body>
