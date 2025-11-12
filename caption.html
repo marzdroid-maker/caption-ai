@@ -94,6 +94,14 @@
       background: var(--warning); margin: 1rem 0; width: auto; padding: .5rem 1rem; font-size: .9rem;
     }
 
+    /* Emoji Picker Container */
+    .emoji-picker-container {
+      position: relative; 
+      text-align: left; 
+      display: flex;
+      justify-content: center;
+    }
+
     /* Emoji Picker Popup - MODIFIED FOR POSITIONING */
     #emojiPicker {
       display: none; 
@@ -114,7 +122,10 @@
     }
 
     #emojiGrid {
-      display: grid; grid-template-columns: repeat(6, 1fr); gap: .5rem; font-size: 1.5rem;
+      display: grid; 
+      grid-template-columns: repeat(6, 1fr); 
+      gap: .5rem; 
+      font-size: 1.5rem;
       margin: .75rem 0;
       overflow-y: auto; 
       padding-right: 5px; 
@@ -127,14 +138,6 @@
       border-radius: .5rem; font-size: .8rem; width: auto;
     }
 
-    /* Re-styled parent container for positioning the picker relative to the button */
-    .emoji-picker-container {
-        position: relative; 
-        text-align: left; 
-        display: flex;
-        justify-content: center;
-    }
-    
     .result {
       margin-top: 2rem; padding: 1.5rem; background: white; border-radius: .75rem;
       box-shadow: 0 4px 12px rgba(0,0,0,.05); position: relative;
@@ -150,6 +153,10 @@
     }
     #copyBtn:hover { background: var(--success-dark); }
     #copyBtn.copied { background: #059669; }
+
+    /* History */
+    #history { margin-top: 1rem; }
+    #clearHistory { background: #ef4444; margin-top: 1rem; }
 
     /* Pro Templates */
     #proTemplates {
@@ -196,6 +203,7 @@
 </head>
 <body>
 
+  <!-- EMAIL MODAL -->
   <div id="emailModal">
     <div class="modal-content">
       <h2>Welcome!</h2>
@@ -205,6 +213,7 @@
     </div>
   </div>
 
+  <!-- MAIN APP -->
   <div class="container" id="mainApp" style="display: none;">
     <h1>AI Caption + Hashtag Generator</h1>
     <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
@@ -236,7 +245,7 @@
         <option value="Casual & Friendly">Casual & Friendly</option>
       </select>
 
-      <div class="emoji-picker-container"> 
+      <div class="emoji-picker-container">
         <button type="button" id="emojiPickerBtn">Add Emojis</button>
         <div id="emojiPicker">
           <p style="margin-bottom: .75rem; font-weight: 600;">Pick Emojis</p>
@@ -256,6 +265,14 @@
       <button type="button" id="copyBtn">Copy All</button>
     </div>
 
+    <!-- HISTORY -->
+    <div id="history" class="result hidden">
+      <h3>Saved Captions</h3>
+      <div id="historyList" style="font-size: 0.9rem; line-height: 1.6;"></div>
+      <button id="clearHistory">Clear All</button>
+    </div>
+
+    <!-- PRO TEMPLATES -->
     <div id="proTemplates" class="hidden">
       <h3>Pro Templates (Click to Use)</h3>
       <div style="display: grid; gap: .5rem; font-size: .9rem;">
@@ -269,7 +286,7 @@
 
     <div id="paywall" class="paywall hidden">
       <h3>Upgrade to Pro!</h3>
-      <p>Unlimited generations + Pro Templates for <strong>$7/month</strong>.</p>
+      <p>Unlimited generations + <strong>Save History + Pro Templates</strong> for <strong>$7/month</strong>.</p>
       <button id="subscribeBtn">Subscribe Now</button>
     </div>
 
@@ -289,39 +306,12 @@
 
     let userEmail = localStorage.getItem('userEmail');
 
-    // === EMOJI MAPPING ===
-    const emojiMap = {
-      'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
-      'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
-      'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
-      'Flexed Biceps': '💪', 'Airplane': '✈️', 'Book': '📚', 'Dog': '🐶', 'Cat': '🐱',
-      'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
-      'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
-      'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
-      'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💰',
-      'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
-      'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
-      'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
-      'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😢',
-      'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
-      'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
-      'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
-      'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
-      'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🧰', 'Graduation Cap': '🎓'
-    };
-    
-    const commonEmojis = Object.keys(emojiMap).filter(name => name !== 'Coffee Mug' && name !== 'Hand Wave' && name !== 'Camera Film' && name !== 'Hand Point Down');
-
     // === EMAIL MODAL ===
     if (!userEmail) {
-      modal.style.display = 'flex'; 
-      mainApp.style.display = 'none'; 
       emailSubmit.addEventListener('click', () => {
         const email = emailInput.value.trim();
         if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
           localStorage.setItem('userEmail', email);
-          // Set initial generation count to 0 when a new email is submitted
-          localStorage.setItem('generationCount', 0);
           modal.style.display = 'none';
           mainApp.style.display = 'block';
           userEmail = email;
@@ -346,45 +336,56 @@
       const paywall = document.getElementById('paywall');
       const subscribeBtn = document.getElementById('subscribeBtn');
       const copyBtn = document.getElementById('copyBtn');
-      const picker = document.getElementById('emojiPicker');
 
       let debounceTimer;
       let isGenerating = false;
 
-      // Helper function to track usage
-      function trackUsage() {
-          let count = parseInt(localStorage.getItem('generationCount') || 0);
-          count++;
-          localStorage.setItem('generationCount', count);
-          return count;
-      }
-      
-      // Helper function to check for subscription/paywall
-      function isSubscribed() {
-          // Placeholder for real subscription check (e.g., checking user status against the backend)
-          return false; // Assuming the user is not subscribed for now
-      }
+      // === EMOJI MAPPING ===
+      const emojiMap = {
+        // Essentials
+        'Camera': 'Camera', 'Heart': 'Heart', 'Sparkles': 'Sparkles', 'Coffee': 'Coffee', 'Shopping Bag': 'Shopping Bag',
+        'Rocket': 'Rocket', 'Fire': 'Fire', 'Trophy': 'Trophy', 'Briefcase': 'Briefcase', 'Handshake': 'Handshake',
+        'Laptop': 'Laptop', 'Sunrise': 'Sunrise', 'Moon': 'Moon', 'Pizza': 'Pizza', 'Leaf': 'Leaf',
+        'Flexed Biceps': 'Flexed Biceps', 'Airplane': 'Airplane', 'Book': 'Book', 'Dog': 'Dog', 'Cat': 'Cat',
+        'Birthday Cake': 'Birthday Cake', 'Party Popper': 'Party Popper', 'Star': 'Star', 'Film': 'Film',
+        'Musical Notes': 'Musical Notes', 'Dancer': 'Dancer', 'Play Button': 'Play Button', 'New': 'New', 'Sale': 'Sale',
+        'Check Mark': 'Check Mark', 'Cross Mark': 'Cross Mark', 'Hand Point Down': 'Hand Point Down', 'Coffee Mug': 'Coffee Mug', 'Hand Wave': 'Hand Wave',
+        
+        // New additions for variety and scrolling
+        'Light Bulb': 'Light Bulb', 'Thinking Face': 'Thinking Face', '100 Score': '100 Score', 'Money Bag': 'Money Bag',
+        'Chart Increasing': 'Chart Increasing', 'Target': 'Target', 'Alarm Clock': 'Alarm Clock', 'Question Mark': 'Question Mark',
+        'Speech Bubble': 'Speech Bubble', 'Crown': 'Crown', 'Diamond': 'Diamond', 'Robot': 'Robot',
+        'Globe': 'Globe', 'Mountain': 'Mountain', 'Pin': 'Pin', 'Megaphone': 'Megaphone',
+        'Writing Hand': 'Writing Hand', 'Open Book': 'Open Book', 'Smiling Face': 'Smiling Face', 'Crying Face': 'Crying Face',
+        'Clapping Hands': 'Clapping Hands', 'Winking Face': 'Winking Face', 'Red Apple': 'Red Apple', 'Grapes': 'Grapes',
+        'Donut': 'Donut', 'Taco': 'Taco', 'Beer Mug': 'Beer Mug', 'Martini Glass': 'Martini Glass',
+        'Car': 'Car', 'Bicycle': 'Bicycle', 'Train': 'Train', 'Boat': 'Boat',
+        'Fingers Crossed': 'Fingers Crossed', 'Poo': 'Poo', 'Ghost': 'Ghost', 'Alien': 'Alien',
+        'Lock': 'Lock', 'Key': 'Key', 'Toolbox': 'Toolbox', 'Graduation Cap': 'Graduation Cap'
+      };
+
+      const commonEmojis = Object.keys(emojiMap).filter(name => 
+        name !== 'Coffee Mug' && name !== 'Hand Wave' && name !== 'Camera Film' && name !== 'Hand Point Down'
+      );
 
       // === REAL EMOJI PICKER ===
       const emojiBtn = document.getElementById('emojiPickerBtn');
+      const picker = document.getElementById('emojiPicker');
       const grid = document.getElementById('emojiGrid');
       const closePicker = document.getElementById('closePicker');
 
-      grid.innerHTML = ''; 
-
       commonEmojis.forEach(name => {
-        const emoji = emojiMap[name]; 
         const btn = document.createElement('button');
-        btn.textContent = emoji; 
+        btn.textContent = emojiMap[name];
         btn.style.background = 'none';
         btn.style.border = 'none';
         btn.style.fontSize = '1.5rem';
         btn.style.cursor = 'pointer';
         btn.style.padding = '0';
-        btn.title = name; 
+        btn.title = name;
         btn.addEventListener('click', () => {
           const idea = document.getElementById('idea');
-          idea.value = idea.value.trim() + ' ' + emoji;
+          idea.value = idea.value.trim() + ' ' + emojiMap[name];
           idea.focus();
         });
         grid.appendChild(btn);
@@ -392,7 +393,7 @@
 
       emojiBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        picker.style.display = 'flex'; 
+        picker.style.display = 'flex';
       });
 
       closePicker.addEventListener('click', () => {
@@ -415,7 +416,7 @@
         });
       }
 
-      // === LIVE GENERATION & PAYWALL CHECK ===
+      // === LIVE GENERATION ===
       const inputs = ['idea', 'platform', 'tone'];
       inputs.forEach(id => {
         document.getElementById(id).addEventListener('input', () => {
@@ -443,18 +444,6 @@
           return;
         }
 
-        // --- NEW PAYWALL LOGIC CHECK ---
-        const currentCount = parseInt(localStorage.getItem('generationCount') || 0);
-        const MAX_FREE_TRIES = 3;
-        const isUserSubscribed = isSubscribed(); // Check subscription status
-
-        if (currentCount >= MAX_FREE_TRIES && !isUserSubscribed) {
-            paywall.classList.remove('hidden');
-            result.classList.add('hidden');
-            return; 
-        }
-        // -------------------------------
-        
         isGenerating = true;
         loading.classList.remove('hidden');
         result.classList.add('hidden');
@@ -472,7 +461,6 @@
           const data = await res.json();
 
           if (res.status === 402) {
-            // This is for a server-side paywall check, keeping it for robustness
             paywall.classList.remove('hidden');
             result.classList.add('hidden');
           } else if (res.ok) {
@@ -481,22 +469,16 @@
             paywall.classList.add('hidden');
             copyBtn.classList.remove('copied');
             copyBtn.textContent = 'Copy All';
-            
-            // Increment usage count ONLY on successful generation
-            if (!isUserSubscribed) {
-               trackUsage();
-            }
+            saveToHistory(data.result);
+            renderHistory();
           }
         } catch (err) {
           if (forceFull) {
-            const fallback = `## Captions\n1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"\n2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love ${emojiMap['Leaf']}"\n5. "Come say hi! ${emojiMap['Hand Wave']}"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
+            const fallback = `## Captions\n1. "Just launched my coffee shop! Coffee Sparkles"\n2. "Fresh brews, cozy vibes Coffee Heart"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love Leaf"\n5. "Come say hi! Hand Wave"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
             output.textContent = fallback;
             result.classList.remove('hidden');
-            
-            // Increment usage count ONLY on successful generation (or fallback display)
-            if (!isUserSubscribed) {
-               trackUsage();
-            }
+            saveToHistory(fallback);
+            renderHistory();
           }
         } finally {
           loading.classList.add('hidden');
@@ -517,23 +499,51 @@
           }, 2000);
         });
       });
-      
+
+      // === SAVE & HISTORY (CLEAN RENDERING) ===
+      function saveToHistory(text) {
+        const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
+        if (!history.includes(text)) {
+          history.unshift(text);
+          history.splice(20);
+          localStorage.setItem('captionHistory', JSON.stringify(history));
+        }
+        renderHistory();
+      }
+
+      function renderHistory() {
+        const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
+        const list = document.getElementById('historyList');
+        if (history.length === 0) {
+          list.innerHTML = '<p style="color:#9ca3af; font-style:italic;">No saved captions yet.</p>';
+          document.getElementById('history').classList.add('hidden');
+          return;
+        }
+        list.innerHTML = history.map((item, i) => `
+          <div style="border-bottom:1px solid #e5e7eb; padding: .75rem 0; display:flex; justify-content:space-between; align-items:flex-start;">
+            <div style="flex:1; font-size:0.85rem; line-height:1.6; white-space:pre-wrap; word-break:break-word;">
+              ${item.replace(/\n/g, '<br>')}
+            </div>
+            <button onclick="copySingle(${i})" style="margin-left:.5rem; background:#10b981; color:white; border:none; padding:.25rem .5rem; border-radius:.25rem; font-size:.75rem;">Copy</button>
+          </div>
+        `).join('');
+        document.getElementById('history').classList.remove('hidden');
+      }
+
+      window.copySingle = (i) => {
+        const history = JSON.parse(localStorage.getItem('captionHistory') || '[]');
+        navigator.clipboard.writeText(history[i]);
+      };
+
+      document.getElementById('clearHistory').addEventListener('click', () => {
+        localStorage.removeItem('captionHistory');
+        renderHistory();
+      });
+
       // === PRO TEMPLATES ===
       document.querySelectorAll('.templateBtn').forEach(btn => {
-        const originalText = btn.textContent;
-        
-        let displayText = originalText
-          .replace('Heart', emojiMap['Heart'])
-          .replace('Camera Film', emojiMap['Camera'] + emojiMap['Film'])
-          .replace('Hand Point Down', emojiMap['Hand Point Down'])
-          .replace('Shopping Bag', emojiMap['Shopping Bag'])
-          .replace('Coffee Mug', emojiMap['Coffee']);
-
-        btn.innerHTML = displayText; 
-
         btn.addEventListener('click', () => {
-          document.getElementById('idea').value = displayText;
-          document.getElementById('idea').focus();
+          document.getElementById('idea').value = btn.textContent;
         });
       });
 
@@ -551,6 +561,9 @@
           alert('Checkout failed. Please try again.');
         }
       });
+
+      // Load history on start
+      renderHistory();
     }
   </script>
 </body>
