@@ -187,6 +187,14 @@
     }
     footer a { color: inherit; margin: 0 1rem; text-decoration: underline; }
 
+    /* PRO TEMPLATES GRID */
+    #templateContainer {
+      display: grid;
+      gap: .5rem;
+      font-size: .9rem;
+      margin-top: 1rem;
+    }
+
     @media (max-width: 480px) {
       h1 { font-size: 1.75rem; }
       .container { padding: 0 1rem; }
@@ -262,7 +270,7 @@
       <button type="button" id="copyBtn">Copy All</button>
     </div>
 
-    <!-- PRO TEMPLATES — SELLING COPY VISIBLE, TEMPLATES HIDDEN UNTIL SUBSCRIBED -->
+    <!-- PRO TEMPLATES — 10 HIGH-CONVERTING TEMPLATES -->
     <div id="proTemplates">
       <h3>Pro Templates (Click to Use)</h3>
       <p style="margin: 1rem 0 .75rem; font-size: .95rem; color: #065f46; line-height: 1.5;">
@@ -271,29 +279,63 @@
         Just click, edit, generate. <strong>Instant viral edge.</strong>
       </p>
 
-      <!-- HIDDEN UNTIL SUBSCRIBED -->
-      <div id="templateContainer" class="hidden" style="display: grid; gap: .5rem; font-size: .9rem;">
-        <button class="templateBtn" data-text="Just hit 10K followers! Grateful for every one of you Heart">
-          Just hit 10K followers! Grateful for every one of you Heart
+      <!-- HIDDEN UNTIL PRO — NO INLINE DISPLAY -->
+      <div id="templateContainer" class="hidden" style="display: none !important;">
+        <!-- 1. Milestone Celebration -->
+        <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">
+          Just hit [X] followers! Grateful for every one of you Heart Sparkles
         </button>
-        <button class="templateBtn" data-text="Behind the scenes of [your idea] CameraFilm">
-          Behind the scenes of [your idea] CameraFilm
+
+        <!-- 2. Behind-the-Scenes -->
+        <button class="templateBtn" data-text="Behind the scenes of [your idea] Camera Film">
+          Behind the scenes of [your idea] Camera Film
         </button>
+
+        <!-- 3. Tag a Friend -->
         <button class="templateBtn" data-text="Tag a friend who needs this! Hand Point Down">
           Tag a friend who needs this! Hand Point Down
         </button>
-        <button class="templateBtn" data-text="New drop alert! Link in bio Shopping Bag">
-          New drop alert! Link in bio Shopping Bag
+
+        <!-- 4. New Drop Alert -->
+        <button class="templateBtn" data-text="New drop alert! Link in bio Shopping Bag Fire">
+          New drop alert! Link in bio Shopping Bag Fire
         </button>
-        <button class="templateBtn" data-text="Your daily dose of [topic] Coffee Mug">
-          Your daily dose of [topic] Coffee Mug
+
+        <!-- 5. Daily Value -->
+        <button class="templateBtn" data-text="Your daily dose of [topic] Coffee Mug Light Bulb">
+          Your daily dose of [topic] Coffee Mug Light Bulb
+        </button>
+
+        <!-- 6. Poll / Question -->
+        <button class="templateBtn" data-text="Reply with YES or NO: [question]? Question Mark Thinking Face">
+          Reply with YES or NO: [question]? Question Mark Thinking Face
+        </button>
+
+        <!-- 7. Save This -->
+        <button class="templateBtn" data-text="Save this for later — you’ll thank me! Bookmark Sparkles">
+          Save this for later — you’ll thank me! Bookmark Sparkles
+        </button>
+
+        <!-- 8. Freebie / Lead Magnet -->
+        <button class="templateBtn" data-text="Free [resource] in bio! Don’t miss it Gift Rocket">
+          Free [resource] in bio! Don’t miss it Gift Rocket
+        </button>
+
+        <!-- 9. Story Highlight -->
+        <button class="templateBtn" data-text="Swipe up to see the full story! Hand Point Up Film">
+          Swipe up to see the full story! Hand Point Up Film
+        </button>
+
+        <!-- 10. Testimonial / Social Proof -->
+        <button class="templateBtn" data-text="'Changed my [niche] game!' – @username Star Speech Bubble">
+          "Changed my [niche] game!" – @username Star Speech Bubble
         </button>
       </div>
 
-      <!-- VISIBLE TO ALL — UPGRADE PROMPT -->
+      <!-- UPGRADE PROMPT — ALWAYS VISIBLE -->
       <div id="templateTeaser">
         <p style="font-size: .9rem; color: #92400e; font-style: italic; margin-top: 1rem;">
-          <strong>Unlock 50+ Pro Templates</strong> — only available in <strong>Pro</strong>.
+          <strong>Unlock 10 Pro Templates</strong> — only available in <strong>Pro</strong>.
         </p>
         <button id="unlockTemplatesBtn" style="
           background: #f59e0b; color: white; border: none; padding: .6rem 1.2rem;
@@ -378,27 +420,40 @@
         'Donut': 'Donut', 'Taco': 'Taco', 'Beer Mug': 'Beer Mug', 'Martini Glass': 'Martini Glass',
         'Car': 'Car', 'Bicycle': 'Bicycle', 'Train': 'Train', 'Boat': 'Boat',
         'Fingers Crossed': 'Fingers Crossed', 'Poo': 'Poo', 'Ghost': 'Ghost', 'Alien': 'Alien',
-        'Lock': 'Lock', 'Key': 'Key', 'Toolbox': 'Toolbox', 'Graduation Cap': 'Graduation Cap'
+        'Lock': 'Lock', 'Key': 'Key', 'Toolbox': 'Toolbox', 'Graduation Cap': 'Graduation Cap',
+        'Bookmark': 'Bookmark', 'Gift': 'Gift', 'Hand Point Up': 'Hand Point Up'
       };
 
-      // === PRO TEMPLATES VISIBILITY & EMOJI RENDERING ===
+      // === PRO TEMPLATES: 10 HIGH-CONVERTING TEMPLATES ===
       const isPro = localStorage.getItem('isPro') === 'true';
       const templateContainer = document.getElementById('templateContainer');
       const templateTeaser = document.getElementById('templateTeaser');
-      const unlockTemplatesBtn = document.getElementById('unlockTemplatesBtn');
 
       if (isPro) {
         templateContainer.classList.remove('hidden');
-        templateTeaser.classList.add('hidden');
+        templateContainer.style.display = 'grid';
+        templateTeaser.style.display = 'none';
 
         document.querySelectorAll('.templateBtn').forEach(btn => {
           const raw = btn.getAttribute('data-text');
           const rendered = raw
-            .replace('[Heart]', emojiMap['Heart'])
-            .replace('[Camera Film]', emojiMap['Camera'] + emojiMap['Film'])
-            .replace('[Hand Point Down]', emojiMap['Hand Point Down'])
-            .replace('[Shopping Bag]', emojiMap['Shopping Bag'])
-            .replace('[Coffee Mug]', emojiMap['Coffee Mug']);
+            .replace('Heart', emojiMap['Heart'])
+            .replace('Sparkles', emojiMap['Sparkles'])
+            .replace('Camera', emojiMap['Camera'])
+            .replace('Film', emojiMap['Film'])
+            .replace('Hand Point Down', emojiMap['Hand Point Down'])
+            .replace('Shopping Bag', emojiMap['Shopping Bag'])
+            .replace('Fire', emojiMap['Fire'])
+            .replace('Coffee Mug', emojiMap['Coffee Mug'])
+            .replace('Light Bulb', emojiMap['Light Bulb'])
+            .replace('Question Mark', emojiMap['Question Mark'])
+            .replace('Thinking Face', emojiMap['Thinking Face'])
+            .replace('Bookmark', emojiMap['Bookmark'])
+            .replace('Gift snake', emojiMap['Gift'])
+            .replace('Rocket', emojiMap['Rocket'])
+            .replace('Hand Point Up', emojiMap['Hand Point Up'])
+            .replace('Star', emojiMap['Star'])
+            .replace('Speech Bubble', emojiMap['Speech Bubble']);
           btn.innerHTML = rendered;
 
           btn.addEventListener('click', () => {
@@ -407,13 +462,13 @@
           });
         });
       } else {
-        templateContainer.classList.add('hidden');
-        templateTeaser.classList.remove('hidden');
+        templateContainer.style.display = 'none';
+        templateTeaser.style.display = 'block';
       }
 
-      unlockTemplatesBtn.addEventListener('click', () => {
+      document.getElementById('unlockTemplatesBtn').addEventListener('click', () => {
         paywall.classList.remove('hidden');
-        paywall.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        paywall.scrollIntoView({ behavior: 'smooth' });
       });
 
       // === SUBSCRIBE BUTTON ===
@@ -462,15 +517,6 @@
           picker.style.display = 'none';
         }
       });
-
-      if (/Mobi|Android/i.test(navigator.userAgent)) {
-        emojiBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          document.getElementById('idea').focus();
-          picker.style.display = 'none';
-          alert('Tap the emoji key on your keyboard!');
-        });
-      }
 
       // === GENERATION LOGIC ===
       const inputs = ['idea', 'platform', 'tone'];
@@ -576,7 +622,7 @@
         localStorage.setItem('isPro', 'true');
         paywall.classList.add('hidden');
         form.querySelector('button[type="submit"]').disabled = false;
-        alert('Welcome to Pro! Unlimited generations + Pro Templates unlocked.');
+        alert('Welcome to Pro! Unlimited generations + 10 Pro Templates unlocked.');
         window.history.replaceState({}, document.title, window.location.pathname);
         location.reload();
       }
