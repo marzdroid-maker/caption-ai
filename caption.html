@@ -161,11 +161,35 @@
       cursor: pointer;
       color: #111 !important;
       line-height: 1.4;
+      display: block; /* Ensure buttons take full width */
     }
     .templateBtn:hover {
       background: #f9fafb;
       color: #111 !important;
     }
+    
+    /* Template Paging Styles */
+    #templatePaging {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    #templatePaging button {
+        width: auto;
+        padding: .5rem 1.2rem;
+        background: #9ca3af; /* Gray for inactive */
+        font-weight: 500;
+        font-size: .9rem;
+    }
+    #templatePaging button.active {
+        background: var(--primary); /* Blue for active */
+        font-weight: 700;
+    }
+    #templatePaging button:hover {
+        background: var(--primary-dark);
+    }
+    /* End Template Paging Styles */
 
     .paywall {
       margin-top: 2rem; padding: 2rem; background: #fefce8; border-radius: .75rem;
@@ -193,6 +217,10 @@
       gap: .5rem;
       font-size: .9rem;
       margin-top: 1rem;
+    }
+    /* Hide the second page initially */
+    #templatePage2 {
+        display: none;
     }
 
     @media (max-width: 480px) {
@@ -279,50 +307,101 @@
       </p>
 
       <div id="templateContainer" class="hidden" style="display: none !important;">
-        <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you ❤️ ✨">
-          Just hit [X] followers! Grateful for every one of you ❤️ ✨
-        </button>
+        
+        <div id="templatePage1">
+            <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">
+            Just hit [X] followers! Grateful for every one of you ❤️ ✨
+            </button>
 
-        <button class="templateBtn" data-text="Behind the scenes of [your idea] 📸 🎬">
-          Behind the scenes of [your idea] 📸 🎬
-        </button>
+            <button class="templateBtn" data-text="Behind the scenes of [your idea] Camera Film">
+            Behind the scenes of [your idea] 📸 🎬
+            </button>
 
-        <button class="templateBtn" data-text="Tag a friend who needs this! 👇">
-          Tag a friend who needs this! 👇
-        </button>
+            <button class="templateBtn" data-text="Tag a friend who needs this! Hand Point Down">
+            Tag a friend who needs this! 👇
+            </button>
 
-        <button class="templateBtn" data-text="New drop alert! Link in bio 🛍️ 🔥">
-          New drop alert! Link in bio 🛍️ 🔥
-        </button>
+            <button class="templateBtn" data-text="New drop alert! Link in bio Shopping Bag Fire">
+            New drop alert! Link in bio 🛍️ 🔥
+            </button>
 
-        <button class="templateBtn" data-text="Your daily dose of [topic] ☕ 💡">
-          Your daily dose of [topic] ☕ 💡
-        </button>
+            <button class="templateBtn" data-text="Your daily dose of [topic] Coffee Mug Light Bulb">
+            Your daily dose of [topic] ☕ 💡
+            </button>
 
-        <button class="templateBtn" data-text="Reply with YES or NO: [question]? ❓ 🤔">
-          Reply with YES or NO: [question]? ❓ 🤔
-        </button>
+            <button class="templateBtn" data-text="Reply with YES or NO: [question]? Question Mark Thinking Face">
+            Reply with YES or NO: [question]? ❓ 🤔
+            </button>
 
-        <button class="templateBtn" data-text="Save this for later — you’ll thank me! 🔖 ✨">
-          Save this for later — you’ll thank me! 🔖 ✨
-        </button>
+            <button class="templateBtn" data-text="Save this for later — you’ll thank me! Bookmark Sparkles">
+            Save this for later — you’ll thank me! 🔖 ✨
+            </button>
 
-        <button class="templateBtn" data-text="Free [resource] in bio! Don’t miss it 🎁 🚀">
-          Free [resource] in bio! Don’t miss it 🎁 🚀
-        </button>
+            <button class="templateBtn" data-text="Free [resource] in bio! Don’t miss it Gift Rocket">
+            Free [resource] in bio! Don’t miss it 🎁 🚀
+            </button>
 
-        <button class="templateBtn" data-text="Swipe up to see the full story! 👆 🎬">
-          Swipe up to see the full story! 👆 🎬
-        </button>
+            <button class="templateBtn" data-text="Swipe up to see the full story! Hand Point Up Film">
+            Swipe up to see the full story! 👆 🎬
+            </button>
 
-        <button class="templateBtn" data-text="'Changed my [niche] game!' – @username ⭐ 💬">
-          "Changed my [niche] game!" – @username ⭐ 💬
-        </button>
+            <button class="templateBtn" data-text="'Changed my [niche] game!' – @username Star Speech Bubble">
+            "Changed my [niche] game!" – @username ⭐ 💬
+            </button>
+        </div>
+        
+        <div id="templatePage2">
+            <button class="templateBtn" data-text="You think [Product] is too expensive? Here's the ROI breakdown. Money Bag Chart Increasing">
+            You think [Product] is too expensive? Here's the ROI breakdown. 💸 📈
+            </button>
+            
+            <button class="templateBtn" data-text="Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. Crying Face Check Mark">
+            Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. 😫 ✅
+            </button>
+            
+            <button class="templateBtn" data-text="6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. Thinking Face Light Bulb">
+            6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. 🤯 💡
+            </button>
+            
+            <button class="templateBtn" data-text="How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. Toolbox Target">
+            How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. 🛠️ 🎯
+            </button>
+            
+            <button class="templateBtn" data-text="Unpopular opinion: [Common Belief] is completely wrong. Here's why. Speech Bubble Cross Mark">
+            Unpopular opinion: [Common Belief] is completely wrong. Here's why. 🗣️ ❌
+            </button>
+            
+            <button class="templateBtn" data-text="Get the exact checklist I use to [Goal]! Click the link that says Link Bookmark">
+            Get the exact checklist I use to [Goal]! Click the link that says "Free Guide." 🔗 🔖
+            </button>
+            
+            <button class="templateBtn" data-text="Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? Smiling Face 100 Score">
+            Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? 😮 💯
+            </button>
+            
+            <button class="templateBtn" data-text="Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. User Rocket">
+            Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. 👤 🚀
+            </button>
+            
+            <button class="templateBtn" data-text="My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. Alarm Clock Flexed Biceps">
+            My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. ⏰ 💪
+            </button>
+            
+            <button class="templateBtn" data-text="[Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. Balance Scale Magnifying Glass">
+            [Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. ⚖️ 🧐
+            </button>
+        </div>
+
+        <div id="templatePaging">
+            <button id="page1Btn" class="active">Page 1</button>
+            <button id="page2Btn">Page 2</button>
+        </div>
+
       </div>
 
       <div id="templateTeaser">
         <p style="font-size: .9rem; color: #92400e; font-style: italic; margin-top: 1rem;">
-          <strong>Unlock 10 Pro Templates</strong> — only available in <strong>Pro</strong>.
+          <strong>Unlock 20 Pro Templates</strong> — only available in <strong>Pro</strong>.
         </p>
         <button id="unlockTemplatesBtn" style="
           background: #f59e0b; color: white; border: none; padding: .6rem 1.2rem;
@@ -334,7 +413,7 @@
 
     <div id="paywall" class="paywall hidden">
       <h3>Upgrade to Pro!</h3>
-      <p>You've used your 3 free generations. <strong>Unlimited + Pro Templates</strong> for <strong>$7/month</strong>.</p>
+      <p>You've used your 3 free generations. <strong>Unlimited + 20 Pro Templates</strong> for <strong>$7/month</strong>.</p>
       <button id="subscribeBtn">Subscribe Now</button>
     </div>
 
@@ -389,7 +468,7 @@
       let isGenerating = false;
       let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
 
-      // === YOUR EMOJI MAP — REAL UNICODE EMOJIS ===
+      // === EMOJI MAP ===
       const emojiMap = {
         'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
         'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
@@ -398,54 +477,101 @@
         'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
         'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
         'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
-        'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💰',
+        'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💸', // Money Bag changed to bank/money with wings
         'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
         'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
         'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
-        'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😢',
+        'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😫', // Crying face changed to tired face for pain point
         'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
         'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
         'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
         'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
-        'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🧰', 'Graduation Cap': '🎓',
-        'Bookmark': '🔖', 'Gift': '🎁', 'Hand Point Up': '👆'
+        'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🛠️', 'Graduation Cap': '🎓',
+        'Bookmark': '🔖', 'Gift': '🎁', 'Hand Point Up': '👆',
+        'Link': '🔗', 'Balance Scale': '⚖️', 'Magnifying Glass': '🧐', 'User': '👤' // Added new emojis for new templates
       };
 
-      // === PRO TEMPLATES: 10 HIGH-CONVERTING TEMPLATES ===
+      // === PRO TEMPLATES PAGINATION LOGIC ===
       const isPro = localStorage.getItem('isPro') === 'true';
       const templateContainer = document.getElementById('templateContainer');
       const templateTeaser = document.getElementById('templateTeaser');
+      const page1 = document.getElementById('templatePage1');
+      const page2 = document.getElementById('templatePage2');
+      const page1Btn = document.getElementById('page1Btn');
+      const page2Btn = document.getElementById('page2Btn');
+      
+      // Function to show/hide template pages
+      function showPage(pageNumber) {
+          if (pageNumber === 1) {
+              page1.style.display = 'grid';
+              page2.style.display = 'none';
+              page1Btn.classList.add('active');
+              page2Btn.classList.remove('active');
+          } else if (pageNumber === 2) {
+              page1.style.display = 'none';
+              page2.style.display = 'grid';
+              page1Btn.classList.remove('active');
+              page2Btn.classList.add('active');
+          }
+      }
 
       if (isPro) {
         templateContainer.classList.remove('hidden');
-        templateContainer.style.display = 'grid';
+        templateContainer.style.display = 'block'; // Block to contain the pages
         templateTeaser.style.display = 'none';
+        showPage(1); // Default to page 1
+
+        // Pagination button listeners
+        page1Btn.addEventListener('click', () => showPage(1));
+        page2Btn.addEventListener('click', () => showPage(2));
 
         document.querySelectorAll('.templateBtn').forEach(btn => {
           const raw = btn.getAttribute('data-text');
-          const rendered = raw
-            .replace('Heart', emojiMap['Heart'])
-            .replace('Sparkles', emojiMap['Sparkles'])
-            .replace('Camera', emojiMap['Camera'])
-            .replace('Film', emojiMap['Film'])
-            .replace('Hand Point Down', emojiMap['Hand Point Down'])
-            .replace('Shopping Bag', emojiMap['Shopping Bag'])
-            .replace('Fire', emojiMap['Fire'])
-            .replace('Coffee Mug', emojiMap['Coffee Mug'])
-            .replace('Light Bulb', emojiMap['Light Bulb'])
-            .replace('Question Mark', emojiMap['Question Mark'])
-            .replace('Thinking Face', emojiMap['Thinking Face'])
-            .replace('Bookmark', emojiMap['Bookmark'])
-            .replace('Gift snake', emojiMap['Gift']) // This was the only non-emoji replacement, keeping its mapping logic to avoid breaking flow.
-            .replace('Gift', emojiMap['Gift'])
-            .replace('Rocket', emojiMap['Rocket'])
-            .replace('Hand Point Up', emojiMap['Hand Point Up'])
-            .replace('Star', emojiMap['Star'])
-            .replace('Speech Bubble', emojiMap['Speech Bubble']);
-          btn.innerHTML = rendered;
+          
+          // Function to process replacement logic for button innerHTML and value
+          const processTemplateText = (text) => {
+              // Replace compound names first
+              text = text.replace('Camera Film', emojiMap['Camera'] + ' ' + emojiMap['Film']);
+              text = text.replace('Coffee Mug', emojiMap['Coffee Mug']);
+              text = text.replace('Question Mark Thinking Face', emojiMap['Question Mark'] + ' ' + emojiMap['Thinking Face']);
+              text = text.replace('Bookmark Sparkles', emojiMap['Bookmark'] + ' ' + emojiMap['Sparkles']);
+              text = text.replace('Gift Rocket', emojiMap['Gift'] + ' ' + emojiMap['Rocket']);
+              text = text.replace('Hand Point Up Film', emojiMap['Hand Point Up'] + ' ' + emojiMap['Film']);
+              text = text.replace('Star Speech Bubble', emojiMap['Star'] + ' ' + emojiMap['Speech Bubble']);
+              text = text.replace('Money Bag Chart Increasing', emojiMap['Money Bag'] + ' ' + emojiMap['Chart Increasing']);
+              text = text.replace('Crying Face Check Mark', emojiMap['Crying Face'] + ' ' + emojiMap['Check Mark']);
+              text = text.replace('Thinking Face Light Bulb', emojiMap['Thinking Face'] + ' ' + emojiMap['Light Bulb']);
+              text = text.replace('Toolbox Target', emojiMap['Toolbox'] + ' ' + emojiMap['Target']);
+              text = text.replace('Speech Bubble Cross Mark', emojiMap['Speech Bubble'] + ' ' + emojiMap['Cross Mark']);
+              text = text.replace('Link Bookmark', emojiMap['Link'] + ' ' + emojiMap['Bookmark']);
+              text = text.replace('Smiling Face 100 Score', emojiMap['Smiling Face'] + ' ' + emojiMap['100 Score']);
+              text = text.replace('User Rocket', emojiMap['User'] + ' ' + emojiMap['Rocket']);
+              text = text.replace('Alarm Clock Flexed Biceps', emojiMap['Alarm Clock'] + ' ' + emojiMap['Flexed Biceps']);
+              text = text.replace('Balance Scale Magnifying Glass', emojiMap['Balance Scale'] + ' ' + emojiMap['Magnifying Glass']);
 
+
+              // Replace single names last
+              text = text.replace('Heart', emojiMap['Heart']);
+              text = text.replace('Sparkles', emojiMap['Sparkles']);
+              text = text.replace('Hand Point Down', emojiMap['Hand Point Down']);
+              text = text.replace('Shopping Bag', emojiMap['Shopping Bag']);
+              text = text.replace('Fire', emojiMap['Fire']);
+              text = text.replace('Light Bulb', emojiMap['Light Bulb']);
+              text = text.replace('Film', emojiMap['Film']); // Safety fallback for Film if not part of a pair
+              text = text.replace('Camera', emojiMap['Camera']); // Safety fallback for Camera if not part of a pair
+              text = text.replace('Gift snake', emojiMap['Gift']); // Handles the old typo/extra word
+
+              return text.replace(/\[\w+\]/g, (match) => match); // Keep placeholders like [X]
+          };
+
+          const renderedText = processTemplateText(raw);
+          
+          // Set the inner HTML to the already rendered text (which was put there manually for initial display)
+          // Since we already put the rendered text in the HTML above, we only need to ensure the click handler works.
+          
           btn.addEventListener('click', () => {
-            document.getElementById('idea').value = rendered;
+            // The value put into the input field must be the one with placeholders but correct emojis
+            document.getElementById('idea').value = renderedText;
             document.getElementById('idea').focus();
           });
         });
@@ -610,7 +736,7 @@
         localStorage.setItem('isPro', 'true');
         paywall.classList.add('hidden');
         form.querySelector('button[type="submit"]').disabled = false;
-        alert('Welcome to Pro! Unlimited generations + 10 Pro Templates unlocked.');
+        alert('Welcome to Pro! Unlimited generations + 20 Pro Templates unlocked.');
         window.history.replaceState({}, document.title, window.location.pathname);
         location.reload();
       }
