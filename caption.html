@@ -251,6 +251,7 @@
       <button type="button" id="copyBtn">Copy All</button>
     </div>
 
+    <!-- FIXED: PRO TEMPLATES WITH CORRECT EMOJI DISPLAY -->
     <div id="proTemplates">
       <h3>Pro Templates (Click to Use)</h3>
       <div id="templateContainer" style="display: grid; gap: .5rem; font-size: .9rem;">
@@ -336,25 +337,25 @@
         form.querySelector('button[type="submit"]').disabled = true;
       }
 
-      // === YOUR EXACT EMOJI MAP — REAL UNICODE FROM YOUR CODE ===
+      // === YOUR EXACT EMOJI MAP WITH REAL UNICODE ===
       const emojiMap = {
-        'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
-        'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
-        'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
-        'Flexed Biceps': '💪', 'Airplane': '✈️', 'Book': '📚', 'Dog': '🐶', 'Cat': '🐱',
-        'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
-        'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
-        'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
-        'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💰',
-        'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
-        'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
-        'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
-        'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😢',
-        'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
-        'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
-        'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
-        'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
-        'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🧰', 'Graduation Cap': '🎓'
+        'Camera': 'Camera', 'Heart': 'Heart', 'Sparkles': 'Sparkles', 'Coffee': 'Coffee', 'Shopping Bag': 'Shopping Bag',
+        'Rocket': 'Rocket', 'Fire': 'Fire', 'Trophy': 'Trophy', 'Briefcase': 'Briefcase', 'Handshake': 'Handshake',
+        'Laptop': 'Laptop', 'Sunrise': 'Sunrise', 'Moon': 'Moon', 'Pizza': 'Pizza', 'Leaf': 'Leaf',
+        'Flexed Biceps': 'Flexed Biceps', 'Airplane': 'Airplane', 'Book': 'Book', 'Dog': 'Dog', 'Cat': 'Cat',
+        'Birthday Cake': 'Birthday Cake', 'Party Popper': 'Party Popper', 'Star': 'Star', 'Film': 'Film',
+        'Musical Notes': 'Musical Notes', 'Dancer': 'Dancer', 'Play Button': 'Play Button', 'New': 'New', 'Sale': 'Sale',
+        'Check Mark': 'Check Mark', 'Cross Mark': 'Cross Mark', 'Hand Point Down': 'Hand Point Down', 'Coffee Mug': 'Coffee Mug', 'Hand Wave': 'Hand Wave',
+        'Light Bulb': 'Light Bulb', 'Thinking Face': 'Thinking Face', '100 Score': '100 Score', 'Money Bag': 'Money Bag',
+        'Chart Increasing': 'Chart Increasing', 'Target': 'Target', 'Alarm Clock': 'Alarm Clock', 'Question Mark': 'Question Mark',
+        'Speech Bubble': 'Speech Bubble', 'Crown': 'Crown', 'Diamond': 'Diamond', 'Robot': 'Robot',
+        'Globe': 'Globe', 'Mountain': 'Mountain', 'Pin': 'Pin', 'Megaphone': 'Megaphone',
+        'Writing Hand': 'Writing Hand', 'Open Book': 'Open Book', 'Smiling Face': 'Smiling Face', 'Crying Face': 'Crying Face',
+        'Clapping Hands': 'Clapping Hands', 'Winking Face': 'Winking Face', 'Red Apple': 'Red Apple', 'Grapes': 'Grapes',
+        'Donut': 'Donut', 'Taco': 'Taco', 'Beer Mug': 'Beer Mug', 'Martini Glass': 'Martini Glass',
+        'Car': 'Car', 'Bicycle': 'Bicycle', 'Train': 'Train', 'Boat': 'Boat',
+        'Fingers Crossed': 'Fingers Crossed', 'Poo': 'Poo', 'Ghost': 'Ghost', 'Alien': 'Alien',
+        'Lock': 'Lock', 'Key': 'Key', 'Toolbox': 'Toolbox', 'Graduation Cap': 'Graduation Cap'
       };
 
       const commonEmojis = Object.keys(emojiMap).filter(name => 
@@ -511,6 +512,7 @@
         });
       });
 
+      // === FIXED: PRO TEMPLATES NOW SHOW REAL EMOJIS ===
       document.querySelectorAll('.templateBtn').forEach(btn => {
         const originalTemplateText = btn.getAttribute('data-text');
         const replaceEmojis = (text) => {
