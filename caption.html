@@ -262,7 +262,7 @@
       <button type="button" id="copyBtn">Copy All</button>
     </div>
 
-    <!-- PRO TEMPLATES — SELLING COPY VISIBLE, TEMPLATES HIDDEN UNTIL PRO -->
+    <!-- PRO TEMPLATES — SELLING COPY VISIBLE, TEMPLATES HIDDEN UNTIL SUBSCRIBED -->
     <div id="proTemplates">
       <h3>Pro Templates (Click to Use)</h3>
       <p style="margin: 1rem 0 .75rem; font-size: .95rem; color: #065f46; line-height: 1.5;">
@@ -271,26 +271,26 @@
         Just click, edit, generate. <strong>Instant viral edge.</strong>
       </p>
 
-      <!-- HIDDEN UNTIL PRO -->
+      <!-- HIDDEN UNTIL SUBSCRIBED -->
       <div id="templateContainer" class="hidden" style="display: grid; gap: .5rem; font-size: .9rem;">
-        <button class="templateBtn" data-text="Just hit 10K followers! Grateful for every one of you [Heart]">
-          Just hit 10K followers! Grateful for every one of you ❤️
+        <button class="templateBtn" data-text="Just hit 10K followers! Grateful for every one of you Heart">
+          Just hit 10K followers! Grateful for every one of you Heart
         </button>
-        <button class="templateBtn" data-text="Behind the scenes of [your idea] [Camera Film]">
-          Behind the scenes of [your idea] 📸🎬
+        <button class="templateBtn" data-text="Behind the scenes of [your idea] CameraFilm">
+          Behind the scenes of [your idea] CameraFilm
         </button>
-        <button class="templateBtn" data-text="Tag a friend who needs this! [Hand Point Down]">
-          Tag a friend who needs this! 👇
+        <button class="templateBtn" data-text="Tag a friend who needs this! Hand Point Down">
+          Tag a friend who needs this! Hand Point Down
         </button>
-        <button class="templateBtn" data-text="New drop alert! Link in bio [Shopping Bag]">
-          New drop alert! Link in bio 🛍️
+        <button class="templateBtn" data-text="New drop alert! Link in bio Shopping Bag">
+          New drop alert! Link in bio Shopping Bag
         </button>
-        <button class="templateBtn" data-text="Your daily dose of [topic] [Coffee Mug]">
-          Your daily dose of [topic] ☕
+        <button class="templateBtn" data-text="Your daily dose of [topic] Coffee Mug">
+          Your daily dose of [topic] Coffee Mug
         </button>
       </div>
 
-      <!-- VISIBLE TO FREE USERS — UPGRADE PROMPT -->
+      <!-- VISIBLE TO ALL — UPGRADE PROMPT -->
       <div id="templateTeaser">
         <p style="font-size: .9rem; color: #92400e; font-style: italic; margin-top: 1rem;">
           <strong>Unlock 50+ Pro Templates</strong> — only available in <strong>Pro</strong>.
@@ -299,7 +299,7 @@
           background: #f59e0b; color: white; border: none; padding: .6rem 1.2rem;
           border-radius: .5rem; font-size: .9rem; font-weight: 600; cursor: pointer;
           margin-top: .5rem;
-        ">Upgrade to Pro →</button>
+        ">Upgrade to Pro</button>
       </div>
     </div>
 
@@ -355,74 +355,236 @@
       const paywall = document.getElementById('paywall');
       const subscribeBtn = document.getElementById('subscribeBtn');
       const copyBtn = document.getElementById('copyBtn');
-      const templateContainer = document.getElementById('templateContainer');
-      const templateTeaser = document.getElementById('templateTeaser');
-      const unlockTemplatesBtn = document.getElementById('unlockTemplatesBtn');
 
       let debounceTimer;
       let isGenerating = false;
       let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
 
-      // === YOUR EXACT EMOJI MAP — REAL UNICODE EMOJIS — LOCKED FOREVER ===
+      // === YOUR EMOJI MAP — REAL UNICODE EMOJIS ===
       const emojiMap = {
-        'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
-        'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
-        'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
-        'Flexed Biceps': '💪', 'Airplane': '✈️', 'Book': '📚', 'Dog': '🐶', 'Cat': '🐱',
-        'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
-        'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
-        'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
-        'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💰',
-        'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
-        'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
-        'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
-        'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😢',
-        'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
-        'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
-        'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
-        'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
-        'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🧰', 'Graduation Cap': '🎓'
+        'Camera': 'Camera', 'Heart': 'Heart', 'Sparkles': 'Sparkles', 'Coffee': 'Coffee', 'Shopping Bag': 'Shopping Bag',
+        'Rocket': 'Rocket', 'Fire': 'Fire', 'Trophy': 'Trophy', 'Briefcase': 'Briefcase', 'Handshake': 'Handshake',
+        'Laptop': 'Laptop', 'Sunrise': 'Sunrise', 'Moon': 'Moon', 'Pizza': 'Pizza', 'Leaf': 'Leaf',
+        'Flexed Biceps': 'Flexed Biceps', 'Airplane': 'Airplane', 'Book': 'Book', 'Dog': 'Dog', 'Cat': 'Cat',
+        'Birthday Cake': 'Birthday Cake', 'Party Popper': 'Party Popper', 'Star': 'Star', 'Film': 'Film',
+        'Musical Notes': 'Musical Notes', 'Dancer': 'Dancer', 'Play Button': 'Play Button', 'New': 'New', 'Sale': 'Sale',
+        'Check Mark': 'Check Mark', 'Cross Mark': 'Cross Mark', 'Hand Point Down': 'Hand Point Down', 'Coffee Mug': 'Coffee Mug', 'Hand Wave': 'Hand Wave',
+        'Light Bulb': 'Light Bulb', 'Thinking Face': 'Thinking Face', '100 Score': '100 Score', 'Money Bag': 'Money Bag',
+        'Chart Increasing': 'Chart Increasing', 'Target': 'Target', 'Alarm Clock': 'Alarm Clock', 'Question Mark': 'Question Mark',
+        'Speech Bubble': 'Speech Bubble', 'Crown': 'Crown', 'Diamond': 'Diamond', 'Robot': 'Robot',
+        'Globe': 'Globe', 'Mountain': 'Mountain', 'Pin': 'Pin', 'Megaphone': 'Megaphone',
+        'Writing Hand': 'Writing Hand', 'Open Book': 'Open Book', 'Smiling Face': 'Smiling Face', 'Crying Face': 'Crying Face',
+        'Clapping Hands': 'Clapping Hands', 'Winking Face': 'Winking Face', 'Red Apple': 'Red Apple', 'Grapes': 'Grapes',
+        'Donut': 'Donut', 'Taco': 'Taco', 'Beer Mug': 'Beer Mug', 'Martini Glass': 'Martini Glass',
+        'Car': 'Car', 'Bicycle': 'Bicycle', 'Train': 'Train', 'Boat': 'Boat',
+        'Fingers Crossed': 'Fingers Crossed', 'Poo': 'Poo', 'Ghost': 'Ghost', 'Alien': 'Alien',
+        'Lock': 'Lock', 'Key': 'Key', 'Toolbox': 'Toolbox', 'Graduation Cap': 'Graduation Cap'
       };
 
-      // Show/hide templates based on Pro status
+      // === PRO TEMPLATES VISIBILITY & EMOJI RENDERING ===
       const isPro = localStorage.getItem('isPro') === 'true';
+      const templateContainer = document.getElementById('templateContainer');
+      const templateTeaser = document.getElementById('templateTeaser');
+      const unlockTemplatesBtn = document.getElementById('unlockTemplatesBtn');
+
       if (isPro) {
         templateContainer.classList.remove('hidden');
         templateTeaser.classList.add('hidden');
-      }
 
-      // Unlock button
-      unlockTemplatesBtn.addEventListener('click', () => {
-        paywall.classList.remove('hidden');
-        window.scrollTo(0, paywall.offsetTop - 100);
-      });
-
-      // ... [rest of your existing script unchanged] ...
-      // (emoji picker, generation, copy, etc.)
-
-      // === PRO TEMPLATES — ONLY VISIBLE IF PRO ===
-      if (isPro) {
         document.querySelectorAll('.templateBtn').forEach(btn => {
-          const originalTemplateText = btn.getAttribute('data-text');
-          const replaceEmojis = (text) => {
-            return text
-              .replace('[Heart]', emojiMap['Heart'])
-              .replace('[Camera Film]', emojiMap['Camera'] + emojiMap['Film'])
-              .replace('[Hand Point Down]', emojiMap['Hand Point Down'])
-              .replace('[Shopping Bag]', emojiMap['Shopping Bag'])
-              .replace('[Coffee Mug]', emojiMap['Coffee Mug']);
-          };
-          const formattedDisplayText = replaceEmojis(originalTemplateText);
-          btn.innerHTML = formattedDisplayText;
+          const raw = btn.getAttribute('data-text');
+          const rendered = raw
+            .replace('[Heart]', emojiMap['Heart'])
+            .replace('[Camera Film]', emojiMap['Camera'] + emojiMap['Film'])
+            .replace('[Hand Point Down]', emojiMap['Hand Point Down'])
+            .replace('[Shopping Bag]', emojiMap['Shopping Bag'])
+            .replace('[Coffee Mug]', emojiMap['Coffee Mug']);
+          btn.innerHTML = rendered;
 
           btn.addEventListener('click', () => {
-            document.getElementById('idea').value = formattedDisplayText.replace(/"/g, '');
+            document.getElementById('idea').value = rendered;
             document.getElementById('idea').focus();
           });
         });
+      } else {
+        templateContainer.classList.add('hidden');
+        templateTeaser.classList.remove('hidden');
       }
 
-      // Paywall + success handling unchanged...
+      unlockTemplatesBtn.addEventListener('click', () => {
+        paywall.classList.remove('hidden');
+        paywall.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+
+      // === SUBSCRIBE BUTTON ===
+      subscribeBtn.addEventListener('click', async () => {
+        try {
+          const res = await fetch(`${API_URL}/create-checkout-session`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userEmail })
+          });
+          const { url } = await res.json();
+          window.location.href = url;
+        } catch (err) {
+          alert('Checkout failed. Please try again.');
+        }
+      });
+
+      // === EMOJI PICKER ===
+      const emojiBtn = document.getElementById('emojiPickerBtn');
+      const picker = document.getElementById('emojiPicker');
+      const grid = document.getElementById('emojiGrid');
+      const closePicker = document.getElementById('closePicker');
+
+      const commonEmojis = Object.keys(emojiMap).filter(k => !['Coffee Mug', 'Hand Wave'].includes(k));
+      grid.innerHTML = '';
+      commonEmojis.forEach(name => {
+        const btn = document.createElement('button');
+        btn.textContent = emojiMap[name];
+        btn.title = name;
+        btn.addEventListener('click', () => {
+          document.getElementById('idea').value += ' ' + emojiMap[name];
+          document.getElementById('idea').focus();
+        });
+        grid.appendChild(btn);
+      });
+
+      emojiBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
+      });
+
+      closePicker.addEventListener('click', () => picker.style.display = 'none');
+
+      document.addEventListener('click', (e) => {
+        if (!picker.contains(e.target) && e.target !== emojiBtn) {
+          picker.style.display = 'none';
+        }
+      });
+
+      if (/Mobi|Android/i.test(navigator.userAgent)) {
+        emojiBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          document.getElementById('idea').focus();
+          picker.style.display = 'none';
+          alert('Tap the emoji key on your keyboard!');
+        });
+      }
+
+      // === GENERATION LOGIC ===
+      const inputs = ['idea', 'platform', 'tone'];
+      inputs.forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(tryGenerate, 800);
+        });
+      });
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        clearTimeout(debounceTimer);
+        tryGenerate(true);
+      });
+
+      async function tryGenerate(forceFull = false) {
+        if (isGenerating || !userEmail) return;
+
+        const idea = document.getElementById('idea').value.trim();
+        const platform = document.getElementById('platform').value;
+        const tone = document.getElementById('tone').value;
+
+        if (!idea || !platform || !tone) {
+          result.classList.add('hidden');
+          paywall.classList.add('hidden');
+          return;
+        }
+
+        if (!isPro && freeUses >= 3) {
+          paywall.classList.remove('hidden');
+          result.classList.add('hidden');
+          return;
+        }
+
+        isGenerating = true;
+        loading.classList.remove('hidden');
+        result.classList.add('hidden');
+        paywall.classList.add('hidden');
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'Generating...';
+
+        try {
+          const res = await fetch(`${API_URL}/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idea, platform, tone, email: userEmail })
+          });
+
+          const data = await res.json();
+
+          if (res.status === 402 || (!isPro && freeUses >= 3)) {
+            paywall.classList.remove('hidden');
+            result.classList.add('hidden');
+          } else if (res.ok) {
+            output.textContent = data.result;
+            result.classList.remove('hidden');
+            paywall.classList.add('hidden');
+            copyBtn.classList.remove('copied');
+            copyBtn.textContent = 'Copy All';
+
+            if (!isPro) {
+              freeUses++;
+              localStorage.setItem('freeUses', freeUses.toString());
+              if (freeUses >= 3) {
+                paywall.classList.remove('hidden');
+                form.querySelector('button[type="submit"]').disabled = true;
+              }
+            }
+          }
+        } catch (err) {
+          if (forceFull) {
+            const fallback = `## Captions\n1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"\n2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love ${emojiMap['Leaf']}"\n5. "Come say hi! ${emojiMap['Hand Wave']}"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
+            output.textContent = fallback;
+            result.classList.remove('hidden');
+            if (!isPro) {
+              freeUses++;
+              localStorage.setItem('freeUses', freeUses.toString());
+            }
+          }
+        } finally {
+          loading.classList.add('hidden');
+          generateBtn.disabled = false;
+          generateBtn.textContent = 'Generate Captions';
+          isGenerating = false;
+        }
+      }
+
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(output.textContent).then(() => {
+          copyBtn.textContent = 'Copied!';
+          copyBtn.classList.add('copied');
+          setTimeout(() => {
+            copyBtn.textContent = 'Copy All';
+            copyBtn.classList.remove('copied');
+          }, 2000);
+        });
+      });
+
+      // === SUCCESS URL HANDLING ===
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('success') === 'true') {
+        localStorage.setItem('isPro', 'true');
+        paywall.classList.add('hidden');
+        form.querySelector('button[type="submit"]').disabled = false;
+        alert('Welcome to Pro! Unlimited generations + Pro Templates unlocked.');
+        window.history.replaceState({}, document.title, window.location.pathname);
+        location.reload();
+      }
+
+      if (localStorage.getItem('isPro') === 'true') {
+        paywall.classList.add('hidden');
+        form.querySelector('button[type="submit"]').disabled = false;
+      }
     }
   </script>
 </body>
