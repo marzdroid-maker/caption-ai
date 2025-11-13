@@ -251,7 +251,6 @@
       <button type="button" id="copyBtn">Copy All</button>
     </div>
 
-    <!-- PRO TEMPLATES — NOW SHOWING REAL EMOJIS -->
     <div id="proTemplates">
       <h3>Pro Templates (Click to Use)</h3>
       <div id="templateContainer" style="display: grid; gap: .5rem; font-size: .9rem;">
@@ -330,12 +329,6 @@
       let isGenerating = false;
 
       let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
-      const isPro = localStorage.getItem('isPro') === 'true';
-
-      if (!isPro && freeUses >= 3) {
-        paywall.classList.remove('hidden');
-        form.querySelector('button[type="submit"]').disabled = true;
-      }
 
       // === YOUR EXACT EMOJI MAP — WITH REAL EMOJIS ===
       const emojiMap = {
@@ -438,6 +431,8 @@
           return;
         }
 
+        const isPro = localStorage.getItem('isPro') === 'true';
+
         if (!isPro && freeUses >= 3) {
           paywall.classList.remove('hidden');
           result.classList.add('hidden');
@@ -508,7 +503,6 @@
         });
       });
 
-      // === PRO TEMPLATES — REAL EMOJIS USING YOUR MAP ===
       document.querySelectorAll('.templateBtn').forEach(btn => {
         const originalTemplateText = btn.getAttribute('data-text');
         const replaceEmojis = (text) => {
@@ -548,6 +542,12 @@
         paywall.classList.add('hidden');
         form.querySelector('button[type="submit"]').disabled = false;
         alert('Welcome to Pro! Unlimited generations unlocked.');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      if (localStorage.getItem('isPro') === 'true') {
+        paywall.classList.add('hidden');
+        form.querySelector('button[type="submit"]').disabled = false;
       }
     }
   </script>
