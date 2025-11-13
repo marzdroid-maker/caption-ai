@@ -262,9 +262,14 @@
       <button type="button" id="copyBtn">Copy All</button>
     </div>
 
-    <!-- PRO TEMPLATES — TEXT VISIBLE + EMOJIS REPLACED -->
+    <!-- PRO TEMPLATES — WITH HIGH-SELLING DESCRIPTION -->
     <div id="proTemplates">
       <h3>Pro Templates (Click to Use)</h3>
+      <p style="margin: 1rem 0 .75rem; font-size: .95rem; color: #065f46; line-height: 1.5;">
+        <strong>Steal the exact captions used by 6-figure creators.</strong>  
+        These aren’t random — they’re <em>proven</em> to get 3x more likes, comments, and saves.  
+        Just click, edit, generate. <strong>Instant viral edge.</strong>
+      </p>
       <div id="templateContainer" style="display: grid; gap: .5rem; font-size: .9rem;">
         <button class="templateBtn" data-text="Just hit 10K followers! Grateful for every one of you [Heart]">
           Just hit 10K followers! Grateful for every one of you ❤️
@@ -364,7 +369,7 @@
       };
 
       const commonEmojis = Object.keys(emojiMap).filter(name => 
-        !['Coffee Mug', 'Hand Wave', 'Camera Film', 'Hand Point Down'].includes(name)
+        !['Coffee Mug', 'Hand Wave'].includes(name)
       );
 
       const emojiBtn = document.getElementById('emojiPickerBtn');
@@ -515,7 +520,7 @@
         });
       });
 
-      // === PRO TEMPLATES — TEXT VISIBLE + EMOJIS REPLACED ===
+      // === PRO TEMPLATES — TEXT + EMOJIS REPLACED ===
       document.querySelectorAll('.templateBtn').forEach(btn => {
         const originalTemplateText = btn.getAttribute('data-text');
         const replaceEmojis = (text) => {
