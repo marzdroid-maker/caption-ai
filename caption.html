@@ -151,10 +151,21 @@
       margin-top: 2rem; padding: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: .75rem;
     }
     .templateBtn {
-      text-align: left; padding: .75rem; background: white; border: 1px solid #d1d5db;
-      border-radius: .5rem; font-size: .9rem; margin-bottom: .5rem; cursor: pointer;
+      text-align: left;
+      padding: .75rem;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: .5rem;
+      font-size: .9rem;
+      margin-bottom: .5rem;
+      cursor: pointer;
+      color: #111 !important;
+      line-height: 1.4;
     }
-    .templateBtn:hover { background: #f9fafb; }
+    .templateBtn:hover {
+      background: #f9fafb;
+      color: #111 !important;
+    }
 
     .paywall {
       margin-top: 2rem; padding: 2rem; background: #fefce8; border-radius: .75rem;
@@ -251,6 +262,7 @@
       <button type="button" id="copyBtn">Copy All</button>
     </div>
 
+    <!-- PRO TEMPLATES — TEXT VISIBLE + EMOJIS REPLACED -->
     <div id="proTemplates">
       <h3>Pro Templates (Click to Use)</h3>
       <div id="templateContainer" style="display: grid; gap: .5rem; font-size: .9rem;">
@@ -330,7 +342,7 @@
 
       let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
 
-      // === YOUR EXACT EMOJI MAP — WITH REAL EMOJIS ===
+      // === YOUR EXACT EMOJI MAP — REAL UNICODE EMOJIS — LOCKED FOREVER ===
       const emojiMap = {
         'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
         'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
@@ -503,6 +515,7 @@
         });
       });
 
+      // === PRO TEMPLATES — TEXT VISIBLE + EMOJIS REPLACED ===
       document.querySelectorAll('.templateBtn').forEach(btn => {
         const originalTemplateText = btn.getAttribute('data-text');
         const replaceEmojis = (text) => {
