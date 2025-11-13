@@ -270,7 +270,6 @@
       <button type="button" id="copyBtn">Copy All</button>
     </div>
 
-    <!-- PRO TEMPLATES — 10 HIGH-CONVERTING TEMPLATES -->
     <div id="proTemplates">
       <h3>Pro Templates (Click to Use)</h3>
       <p style="margin: 1rem 0 .75rem; font-size: .95rem; color: #065f46; line-height: 1.5;">
@@ -279,60 +278,48 @@
         Just click, edit, generate. <strong>Instant viral edge.</strong>
       </p>
 
-      <!-- HIDDEN UNTIL PRO — NO INLINE DISPLAY -->
       <div id="templateContainer" class="hidden" style="display: none !important;">
-        <!-- 1. Milestone Celebration -->
-        <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">
-          Just hit [X] followers! Grateful for every one of you Heart Sparkles
+        <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you ❤️ ✨">
+          Just hit [X] followers! Grateful for every one of you ❤️ ✨
         </button>
 
-        <!-- 2. Behind-the-Scenes -->
-        <button class="templateBtn" data-text="Behind the scenes of [your idea] Camera Film">
-          Behind the scenes of [your idea] Camera Film
+        <button class="templateBtn" data-text="Behind the scenes of [your idea] 📸 🎬">
+          Behind the scenes of [your idea] 📸 🎬
         </button>
 
-        <!-- 3. Tag a Friend -->
-        <button class="templateBtn" data-text="Tag a friend who needs this! Hand Point Down">
-          Tag a friend who needs this! Hand Point Down
+        <button class="templateBtn" data-text="Tag a friend who needs this! 👇">
+          Tag a friend who needs this! 👇
         </button>
 
-        <!-- 4. New Drop Alert -->
-        <button class="templateBtn" data-text="New drop alert! Link in bio Shopping Bag Fire">
-          New drop alert! Link in bio Shopping Bag Fire
+        <button class="templateBtn" data-text="New drop alert! Link in bio 🛍️ 🔥">
+          New drop alert! Link in bio 🛍️ 🔥
         </button>
 
-        <!-- 5. Daily Value -->
-        <button class="templateBtn" data-text="Your daily dose of [topic] Coffee Mug Light Bulb">
-          Your daily dose of [topic] Coffee Mug Light Bulb
+        <button class="templateBtn" data-text="Your daily dose of [topic] ☕ 💡">
+          Your daily dose of [topic] ☕ 💡
         </button>
 
-        <!-- 6. Poll / Question -->
-        <button class="templateBtn" data-text="Reply with YES or NO: [question]? Question Mark Thinking Face">
-          Reply with YES or NO: [question]? Question Mark Thinking Face
+        <button class="templateBtn" data-text="Reply with YES or NO: [question]? ❓ 🤔">
+          Reply with YES or NO: [question]? ❓ 🤔
         </button>
 
-        <!-- 7. Save This -->
-        <button class="templateBtn" data-text="Save this for later — you’ll thank me! Bookmark Sparkles">
-          Save this for later — you’ll thank me! Bookmark Sparkles
+        <button class="templateBtn" data-text="Save this for later — you’ll thank me! 🔖 ✨">
+          Save this for later — you’ll thank me! 🔖 ✨
         </button>
 
-        <!-- 8. Freebie / Lead Magnet -->
-        <button class="templateBtn" data-text="Free [resource] in bio! Don’t miss it Gift Rocket">
-          Free [resource] in bio! Don’t miss it Gift Rocket
+        <button class="templateBtn" data-text="Free [resource] in bio! Don’t miss it 🎁 🚀">
+          Free [resource] in bio! Don’t miss it 🎁 🚀
         </button>
 
-        <!-- 9. Story Highlight -->
-        <button class="templateBtn" data-text="Swipe up to see the full story! Hand Point Up Film">
-          Swipe up to see the full story! Hand Point Up Film
+        <button class="templateBtn" data-text="Swipe up to see the full story! 👆 🎬">
+          Swipe up to see the full story! 👆 🎬
         </button>
 
-        <!-- 10. Testimonial / Social Proof -->
-        <button class="templateBtn" data-text="'Changed my [niche] game!' – @username Star Speech Bubble">
-          "Changed my [niche] game!" – @username Star Speech Bubble
+        <button class="templateBtn" data-text="'Changed my [niche] game!' – @username ⭐ 💬">
+          "Changed my [niche] game!" – @username ⭐ 💬
         </button>
       </div>
 
-      <!-- UPGRADE PROMPT — ALWAYS VISIBLE -->
       <div id="templateTeaser">
         <p style="font-size: .9rem; color: #92400e; font-style: italic; margin-top: 1rem;">
           <strong>Unlock 10 Pro Templates</strong> — only available in <strong>Pro</strong>.
@@ -404,24 +391,24 @@
 
       // === YOUR EMOJI MAP — REAL UNICODE EMOJIS ===
       const emojiMap = {
-        'Camera': 'Camera', 'Heart': 'Heart', 'Sparkles': 'Sparkles', 'Coffee': 'Coffee', 'Shopping Bag': 'Shopping Bag',
-        'Rocket': 'Rocket', 'Fire': 'Fire', 'Trophy': 'Trophy', 'Briefcase': 'Briefcase', 'Handshake': 'Handshake',
-        'Laptop': 'Laptop', 'Sunrise': 'Sunrise', 'Moon': 'Moon', 'Pizza': 'Pizza', 'Leaf': 'Leaf',
-        'Flexed Biceps': 'Flexed Biceps', 'Airplane': 'Airplane', 'Book': 'Book', 'Dog': 'Dog', 'Cat': 'Cat',
-        'Birthday Cake': 'Birthday Cake', 'Party Popper': 'Party Popper', 'Star': 'Star', 'Film': 'Film',
-        'Musical Notes': 'Musical Notes', 'Dancer': 'Dancer', 'Play Button': 'Play Button', 'New': 'New', 'Sale': 'Sale',
-        'Check Mark': 'Check Mark', 'Cross Mark': 'Cross Mark', 'Hand Point Down': 'Hand Point Down', 'Coffee Mug': 'Coffee Mug', 'Hand Wave': 'Hand Wave',
-        'Light Bulb': 'Light Bulb', 'Thinking Face': 'Thinking Face', '100 Score': '100 Score', 'Money Bag': 'Money Bag',
-        'Chart Increasing': 'Chart Increasing', 'Target': 'Target', 'Alarm Clock': 'Alarm Clock', 'Question Mark': 'Question Mark',
-        'Speech Bubble': 'Speech Bubble', 'Crown': 'Crown', 'Diamond': 'Diamond', 'Robot': 'Robot',
-        'Globe': 'Globe', 'Mountain': 'Mountain', 'Pin': 'Pin', 'Megaphone': 'Megaphone',
-        'Writing Hand': 'Writing Hand', 'Open Book': 'Open Book', 'Smiling Face': 'Smiling Face', 'Crying Face': 'Crying Face',
-        'Clapping Hands': 'Clapping Hands', 'Winking Face': 'Winking Face', 'Red Apple': 'Red Apple', 'Grapes': 'Grapes',
-        'Donut': 'Donut', 'Taco': 'Taco', 'Beer Mug': 'Beer Mug', 'Martini Glass': 'Martini Glass',
-        'Car': 'Car', 'Bicycle': 'Bicycle', 'Train': 'Train', 'Boat': 'Boat',
-        'Fingers Crossed': 'Fingers Crossed', 'Poo': 'Poo', 'Ghost': 'Ghost', 'Alien': 'Alien',
-        'Lock': 'Lock', 'Key': 'Key', 'Toolbox': 'Toolbox', 'Graduation Cap': 'Graduation Cap',
-        'Bookmark': 'Bookmark', 'Gift': 'Gift', 'Hand Point Up': 'Hand Point Up'
+        'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
+        'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
+        'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
+        'Flexed Biceps': '💪', 'Airplane': '✈️', 'Book': '📚', 'Dog': '🐶', 'Cat': '🐱',
+        'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
+        'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
+        'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
+        'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💰',
+        'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
+        'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
+        'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
+        'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😢',
+        'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
+        'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
+        'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
+        'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
+        'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🧰', 'Graduation Cap': '🎓',
+        'Bookmark': '🔖', 'Gift': '🎁', 'Hand Point Up': '👆'
       };
 
       // === PRO TEMPLATES: 10 HIGH-CONVERTING TEMPLATES ===
@@ -449,7 +436,8 @@
             .replace('Question Mark', emojiMap['Question Mark'])
             .replace('Thinking Face', emojiMap['Thinking Face'])
             .replace('Bookmark', emojiMap['Bookmark'])
-            .replace('Gift snake', emojiMap['Gift'])
+            .replace('Gift snake', emojiMap['Gift']) // This was the only non-emoji replacement, keeping its mapping logic to avoid breaking flow.
+            .replace('Gift', emojiMap['Gift'])
             .replace('Rocket', emojiMap['Rocket'])
             .replace('Hand Point Up', emojiMap['Hand Point Up'])
             .replace('Star', emojiMap['Star'])
