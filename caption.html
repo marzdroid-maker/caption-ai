@@ -700,30 +700,14 @@
       // Replicate button now generates a clean, structured prompt
       replicateBtn.addEventListener('click', () => {
           const platform = document.getElementById('analyzePlatform').value;
-          const score = document.getElementById('analysisScore').textContent;
-          const analysisDetailsEl = document.getElementById('analysisDetails');
           
-          // 1. Extract and Clean Details: Get text content and split it by paragraphs/lines
-          const detailElements = analysisDetailsEl.querySelectorAll('p');
-          let cleanDetails = "";
-          detailElements.forEach(p => {
-              // Remove <strong> tags and HTML entities, then trim
-              let text = p.innerHTML.replace(/<[^>]*>/g, '').trim();
-              
-              // Remove the trailing emoji/icon, and then remove the analysis type (e.g., 'Hook Score:')
-              const parts = text.split(':');
-              if (parts.length > 1) {
-                  // Keep only the descriptive part of the analysis (e.g., "High urgency, clear value proposition.")
-                  cleanDetails += parts[1].trim() + ". ";
-              }
-          });
-          
-          // 2. Construct the high-quality prompt for the AI
-          const cleanPrompt = `Generate a high-performing caption and hashtag set for [YOUR IDEA HERE]. Use the structure and tone recommended by this analysis (Score: ${score}). Specifically, ensure the content: ${cleanDetails.trim()} Retain the call-to-action type identified.`;
-
-          // 3. Set the form values and switch tab
+          // 1. Set the Platform dropdown.
           document.getElementById('platform').value = platform;
-          ideaInput.value = cleanPrompt;
+          
+          // 2. Set the Idea input to a simple call-to-action.
+          document.getElementById('idea').value = `Now, what is *your* idea for a ${platform} post?`;
+          
+          // 3. Switch tab and focus.
           showTab('generateContent');
           ideaInput.focus();
       });
