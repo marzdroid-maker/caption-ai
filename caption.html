@@ -92,7 +92,6 @@
     button:hover { background: var(--primary-dark); }
     button:disabled { background: #93c5fd; cursor: not-allowed; }
     
-    /* Tab Styles */
     #tabHeader {
         display: flex;
         margin-bottom: 1.5rem;
@@ -118,7 +117,6 @@
     }
     .tab-content { padding: 0; }
 
-    /* Analysis Card */
     .analysis-card {
         background: white;
         border: 1px solid var(--border);
@@ -144,15 +142,11 @@
         line-height: 1.4;
     }
     .analysis-detail strong { color: #111; font-weight: 700; }
-    #analyzeAgainBtn, #copyScoreBtn { 
+    #analyzeAgainBtn { 
         background: var(--primary);
         margin-top: 1rem;
         width: 100%;
         font-size: 1rem;
-    }
-    #copyScoreBtn {
-        background: #6b7280;
-        margin-top: .5rem;
     }
 
     #emojiPickerBtn {
@@ -320,7 +314,6 @@
 
               <div id="templateContainer">
                 <div id="templatePage1">
-                  <!-- 10 templates -->
                   <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">
                     Just hit [X] followers! Grateful for every one of you Heart Sparkles
                   </button>
@@ -354,7 +347,6 @@
                 </div>
                 
                 <div id="templatePage2">
-                  <!-- 10 more -->
                   <button class="templateBtn" data-text="You think [Product] is too expensive? Here's the ROI breakdown. Money Bag Chart Increasing">
                     You think [Product] is too expensive? Here's the ROI breakdown. Money Bag Chart Increasing
                   </button>
@@ -435,8 +427,8 @@
                 <div id="analysisScore" class="analysis-score">--</div>
                 <div id="analysisDetails" class="analysis-detail"></div>
                 <button id="analyzeAgainBtn">Analyze Another Post</button>
-                <button id="copyScoreBtn">Copy Score</button>
-            </div>
+                <button id="copyScoreBtn" style="margin-top:.5rem;background:#6b7280;color:white;padding:.5rem 1rem;border:none;border-radius:.5rem;font-size:.9rem;">Copy Score</button>
+            </0>
         </div>
     </div>
 
@@ -527,13 +519,8 @@
       let isGenerating = false;
       let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
 
-      // REFERRAL TRACKING
-      const ref = urlParams.get('ref');
-      if (ref) localStorage.setItem('referrer', ref);
+      const emojiMap = { /* ... same ... */ };
 
-      const emojiMap = { /* ... same as before ... */ };
-
-      // TAB LOGIC
       const generateTabBtn = document.getElementById('generateTabBtn');
       const analyzeTabBtn = document.getElementById('analyzeTabBtn');
       const generateContent = document.getElementById('generateContent');
@@ -577,7 +564,6 @@
       analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
       subscribeAnalyzeBtn.addEventListener('click', () => subscribeBtn.click());
 
-      // ANALYSIS LOGIC
       analyzeForm.addEventListener('submit', (e) => {
         e.preventDefault();
         if (!isPro) return;
@@ -606,13 +592,14 @@
         document.getElementById('competitorUrl').value = '';
         analysisResult.classList.add('hidden');
         document.getElementById('competitorUrl').focus();
+        document.getElementById('analysisDetails').innerHTML = '';
       });
 
       document.getElementById('copyScoreBtn')?.addEventListener('click', () => {
-        navigator.clipboard.writeText(`Content Score: ${document.getElementById('analysisScore').textContent}/100`);
+        const score = document.getElementById('analysisScore').textContent;
+        navigator.clipboard.writeText(`Content Score: ${score}/100`);
       });
 
-      // TEMPLATES
       const page1 = document.getElementById('templatePage1');
       const page2 = document.getElementById('templatePage2');
       const page1Btn = document.getElementById('page1Btn');
@@ -632,7 +619,6 @@
         showPage(1);
         page1Btn.onclick = () => showPage(1);
         page2Btn.onclick = () => showPage(2);
-
         document.querySelectorAll('.templateBtn').forEach(btn => {
           const raw = btn.dataset.text;
           const rendered = raw.replace(/(\w+ \w+)/g, m => emojiMap[m] || m).replace(/\w+/g, w => emojiMap[w] || w);
@@ -650,7 +636,157 @@
 
       showTab(currentTab);
 
-      // REST OF LOGIC (generate, subscribe, etc.) unchanged...
+      document.getElementById('unlockTemplatesBtn').addEventListener('click', () => {
+        paywall.classList.remove('hidden');
+        paywall.scrollIntoView({ behavior: 'smooth' });
+      });
+
+      subscribeBtn.addEventListener('click', async () => {
+        try {
+          const res = await fetch(`${API_URL}/create-checkout-session`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userEmail })
+          });
+          const { url } = await res.json();
+          window.location.href = url;
+        } catch (err) {
+          alert('Checkout failed. Please try again.');
+        }
+      });
+
+      const emojiBtn = document.getElementById('emojiPickerBtn');
+      const picker = document.getElementById('emojiPicker');
+      const grid = document.getElementById('emojiGrid');
+      const closePicker = document.getElementById('closePicker');
+
+      const commonEmojis = Object.keys(emojiMap).filter(k => !['Coffee Mug', 'Hand Wave'].includes(k));
+      grid.innerHTML = '';
+      commonEmojis.forEach(name => {
+        const btn = document.createElement('button');
+        btn.textContent = emojiMap[name];
+        btn.title = name;
+        btn.addEventListener('click', () => {
+          document.getElementById('idea').value += ' ' + emojiMap[name];
+          document.getElementById('idea').focus();
+        });
+        grid.appendChild(btn);
+      });
+
+      emojiBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
+      });
+
+      closePicker.addEventListener('click', () => picker.style.display = 'none');
+
+      document.addEventListener('click', (e) => {
+        if (!picker.contains(e.target) && e.target !== emojiBtn) {
+          picker.style.display = 'none';
+        }
+      });
+
+      const inputs = ['idea', 'platform', 'tone'];
+      inputs.forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(tryGenerate, 800);
+        });
+      });
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        clearTimeout(debounceTimer);
+        tryGenerate(true);
+      });
+
+      async function tryGenerate(forceFull = false) {
+        if (isGenerating || !userEmail) return; 
+
+        const idea = document.getElementById('idea').value.trim();
+        const platform = document.getElementById('platform').value;
+        const tone = document.getElementById('tone').value;
+
+        if (!idea || !platform || !tone) {
+          result.classList.add('hidden');
+          paywall.classList.add('hidden');
+          return;
+        }
+
+        if (!isPro && freeUses >= 3) {
+          paywall.classList.remove('hidden');
+          result.classList.add('hidden');
+          return;
+        }
+
+        isGenerating = true;
+        loading.classList.remove('hidden');
+        result.classList.add('hidden');
+        paywall.classList.add('hidden');
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'Generating...';
+
+        try {
+          const res = await fetch(`${API_URL}/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idea, platform, tone, email: userEmail })
+          });
+
+          const data = await res.json();
+
+          if (res.status === 402 || (!isPro && freeUses >= 3)) {
+            paywall.classList.remove('hidden');
+            result.classList.add('hidden');
+          } else if (res.ok) {
+            output.textContent = data.result;
+            result.classList.remove('hidden');
+            paywall.classList.add('hidden');
+            copyBtn.classList.remove('copied');
+            copyBtn.textContent = 'Copy All';
+
+            if (!isPro) {
+              freeUses++;
+              localStorage.setItem('freeUses', freeUses.toString());
+              if (freeUses >= 3) {
+                paywall.classList.remove('hidden');
+                form.querySelector('button[type="submit"]').disabled = true;
+              }
+            }
+          }
+        } catch (err) {
+          if (forceFull) {
+            const fallback = `## Captions\n1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"\n2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love ${emojiMap['Leaf']}"\n5. "Come say hi! ${emojiMap['Hand Wave']}"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
+            output.textContent = fallback;
+            result.classList.remove('hidden');
+            if (!isPro) {
+              freeUses++;
+              localStorage.setItem('freeUses', freeUses.toString());
+            }
+          }
+        } finally {
+          loading.classList.add('hidden');
+          generateBtn.disabled = false;
+          generateBtn.textContent = 'Generate Captions';
+          
+          if (!isPro && freeUses >= 3 && currentTab === 'generateContent') {
+              paywall.classList.remove('hidden');
+              form.querySelector('button[type="submit"]').disabled = true;
+          }
+          isGenerating = false;
+        }
+      }
+
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(output.textContent).then(() => {
+          copyBtn.textContent = 'Copied!';
+          copyBtn.classList.add('copied');
+          setTimeout(() => {
+            copyBtn.textContent = 'Copy All';
+            copyBtn.classList.remove('copied');
+          }, 2000);
+        });
+      });
     }
   </script>
 </body>
