@@ -213,7 +213,7 @@
     }
     .result h3 { margin-bottom: .75rem; color: var(--primary); }
     .result pre {
-      white-space: pre-wrap; font-family: inherit; line-height: 1.6; margin-bottom: 1.rem;
+      white-space: pre-wrap; font-family: inherit; line-height: 1.6; margin-bottom: 1rem;
     }
     #copyBtn {
       position: absolute; top: 1rem; right: 1rem; background: var(--success);
@@ -390,9 +390,7 @@
                 Just click, edit, generate. <strong>Instant viral edge.</strong>
               </p>
 
-              <div id="templateContainer" class="hidden">
-                
-                <div id="templatePage1">
+              <div id="templateContainer"> <div id="templatePage1">
                     <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">
                     Just hit [X] followers! Grateful for every one of you ❤️ ✨
                     </button>
@@ -815,12 +813,15 @@
       // === PRO TEMPLATES PAGINATION LOGIC ===
       const templateContainer = document.getElementById('templateContainer');
       const templateTeaser = document.getElementById('templateTeaser');
+      const templatePaging = document.getElementById('templatePaging');
       const page1 = document.getElementById('templatePage1');
       const page2 = document.getElementById('templatePage2');
       const page1Btn = document.getElementById('page1Btn');
       const page2Btn = document.getElementById('page2Btn');
       
       function showPage(pageNumber) {
+          // This function is only called if isPro is true
+          templatePaging.style.display = 'flex'; 
           if (pageNumber === 1) {
               page1.style.display = 'grid';
               page2.style.display = 'none';
@@ -833,10 +834,11 @@
               page2Btn.classList.add('active');
           }
       }
-      
-      // Template visibility logic runs after Pro status check in the main async block.
+
+      // FIX: The visibility logic must be explicitly handled by JS styles 
+      // to ensure the paywall is not bypassed regardless of initial HTML state.
       if (isPro) {
-        templateContainer.classList.remove('hidden'); 
+        templateContainer.style.display = 'grid'; // Use 'grid' as defined in CSS
         templateTeaser.style.display = 'none';
         showPage(1); 
 
@@ -888,8 +890,9 @@
           });
         });
       } else {
-        templateContainer.classList.add('hidden'); // Ensure it is hidden if not Pro
+        templateContainer.style.display = 'none'; // FIX: Explicitly hide the content if not Pro
         templateTeaser.style.display = 'block';
+        templatePaging.style.display = 'none'; // Hide paging buttons too
       }
       
       // Ensure correct tab visibility on load
@@ -1067,11 +1070,13 @@
         analysisPaywall.classList.add('hidden');
         analyzeForm.classList.remove('hidden');
         form.querySelector('button[type="submit"]').disabled = false;
+        // Template visibility is handled above
       } else {
         // Ensure non-pro visibility is correctly enforced here for the main paywall flow
         if (freeUses >= 3 && currentTab === 'generateContent') {
             paywall.classList.remove('hidden');
         }
+        // Template visibility is handled above
       }
     }
   </script>
