@@ -141,8 +141,9 @@
         color: #111;
         font-weight: 700;
     }
-    #replicateBtn {
-        background: var(--success);
+    /* Updated button styling */
+    #analyzeAgainBtn { 
+        background: var(--primary);
         margin-top: 1rem;
         width: 100%;
         font-size: 1rem;
@@ -371,7 +372,7 @@
             </div>
 
             <div id="proTemplates">
-              <h3>Pro Templates (Click to Use)</h3>
+              <h3>The Viral Swipe File: Proven 6-Figure Post Structures</h3>
               <p style="margin: 1rem 0 .75rem; font-size: .95rem; color: #065f46; line-height: 1.5;">
                 <strong>Steal the exact captions used by 6-figure creators.</strong>  
                 These aren’t random — they’re <em>proven</em> to get 3x more likes, comments, and saves.  
@@ -473,7 +474,7 @@
 
               <div id="templateTeaser">
                 <p style="font-size: .9rem; color: #92400e; font-style: italic; margin-top: 1rem;">
-                  <strong>Unlock 20 Pro Templates</strong> — only available in <strong>Pro</strong>.
+                  <strong>Unlock 20 Viral Swipe File Structures</strong> — only available in <strong>Pro</strong>.
                 </p>
                 <button id="unlockTemplatesBtn" style="
                   background: #f59e0b; color: white; border: none; padding: .6rem 1.2rem;
@@ -485,7 +486,7 @@
 
             <div id="paywall" class="paywall hidden">
               <h3>Upgrade to Pro!</h3>
-              <p>You've used your 3 free generations. <strong>Unlimited + 20 Pro Templates</strong> for <strong>$7/month</strong>.</p>
+              <p>You've used your 3 free generations. <strong>Unlimited + 20 Viral Swipe File Structures</strong> for <strong>$7/month</strong>.</p>
               <button id="subscribeBtn">Subscribe Now</button>
             </div>
             
@@ -495,15 +496,6 @@
                 <label for="competitorUrl">Competitor Post URL</label>
                 <input type="url" id="competitorUrl" placeholder="e.g. https://instagram.com/p/B..." required />
                 
-                <label for="analyzePlatform">Platform</label>
-                <select id="analyzePlatform" required>
-                    <option value="" disabled selected data-placeholder>Choose platform</option>
-                    <option value="Instagram">Instagram</option>
-                    <option value="Twitter">Twitter</option>
-                    <option value="LinkedIn">LinkedIn</option>
-                    <option value="TikTok">TikTok</option>
-                </select>
-
                 <button type="submit" id="analyzeBtn">Analyze Post Structure</button>
             </form>
 
@@ -512,13 +504,14 @@
                 <div id="analysisScore" class="analysis-score">95</div>
                 
                 <div id="analysisDetails" class="analysis-detail">
-                    <p><strong>Hook Score:</strong> High urgency, uses specific number. 🔥</p>
+                    <p><strong>Platform Detected:</strong> Instagram</p>
+                    <p><strong>Hook Score:</strong> High urgency, clear value proposition. 🔥</p>
                     <p><strong>Readability:</strong> Excellent use of line breaks (4 lines/paragraph). ✅</p>
                     <p><strong>Hashtags:</strong> Highly relevant, 90% niche-specific. 🎯</p>
                     <p><strong>Core CTA:</strong> Clear call-to-save (`🔖`).</p>
                 </div>
 
-                <button id="replicateBtn">Replicate & Generate NEW Caption</button>
+                <button id="analyzeAgainBtn">Analyze Another Post</button>
             </div>
             
             <div id="analysisPaywall" class="paywall hidden" style="margin-top: 1rem;">
@@ -616,8 +609,10 @@
       const competitorUrlInput = document.getElementById('competitorUrl');
       const analyzeBtn = document.getElementById('analyzeBtn');
       const analysisResult = document.getElementById('analysisResult');
-      const replicateBtn = document.getElementById('replicateBtn');
+      // Updated variable name
+      const analyzeAgainBtn = document.getElementById('analyzeAgainBtn'); 
       const ideaInput = document.getElementById('idea');
+      const platformSelect = document.getElementById('platform');
       
       let currentTab = 'generateContent';
 
@@ -665,8 +660,18 @@
       subscribeAnalyzeBtn.addEventListener('click', async () => {
         subscribeBtn.click();
       });
-
-      // Placeholder for Analysis Logic
+      
+      // --- Platform Auto-Detection Function ---
+      function detectPlatform(url) {
+          url = url.toLowerCase();
+          if (url.includes('instagram.com')) return 'Instagram';
+          if (url.includes('twitter.com') || url.includes('x.com')) return 'Twitter';
+          if (url.includes('linkedin.com')) return 'LinkedIn';
+          if (url.includes('tiktok.com')) return 'TikTok';
+          return 'Instagram'; // Default fallback
+      }
+      
+      // Updated Analysis Logic
       analyzeForm.addEventListener('submit', (e) => {
           e.preventDefault();
           if (!isPro) return;
@@ -674,19 +679,24 @@
           loading.classList.remove('hidden');
           analysisResult.classList.add('hidden');
           
+          const url = competitorUrlInput.value.trim();
+          const platform = detectPlatform(url); // Auto-detect the platform
+          
           // --- SIMULATED AI ANALYSIS ---
           setTimeout(() => {
               loading.classList.add('hidden');
               
-              // Mock Data based on the logic described in the chat
+              // Mock Data generation
               const score = Math.floor(Math.random() * (99 - 65 + 1)) + 65;
               const hook = score > 85 ? 'High urgency, clear value proposition.' : 'Decent hook, could be more specific.';
               const readability = score > 75 ? 'Excellent use of line breaks (4 lines/paragraph).' : 'Dense text, only uses two breaks.';
               const hashtags = score > 80 ? 'Highly relevant, 90% niche-specific.' : 'Too generic, mostly use broad tags.';
               const cta = score > 70 ? 'Clear call-to-action to save and comment.' : 'Vague CTA, needs more direction.';
               
+              // Display results
               document.getElementById('analysisScore').textContent = score;
               document.getElementById('analysisDetails').innerHTML = `
+                  <p><strong>Platform Detected:</strong> ${platform}</p>
                   <p><strong>Hook Score:</strong> ${hook} ${score > 85 ? '🔥' : '👍'}</p>
                   <p><strong>Readability:</strong> ${readability} ${score > 75 ? '✅' : '⚠️'}</p>
                   <p><strong>Hashtags:</strong> ${hashtags} ${score > 80 ? '🎯' : '💡'}</p>
@@ -697,19 +707,13 @@
           }, 1500); // Simulate network latency
       });
       
-      // Replicate button now generates a clean, structured prompt
-      replicateBtn.addEventListener('click', () => {
-          const platform = document.getElementById('analyzePlatform').value;
-          
-          // 1. Set the Platform dropdown.
-          document.getElementById('platform').value = platform;
-          
-          // 2. Set the Idea input to a simple call-to-action.
-          document.getElementById('idea').value = `Now, what is *your* idea for a ${platform} post?`;
-          
-          // 3. Switch tab and focus.
-          showTab('generateContent');
-          ideaInput.focus();
+      // NEW: Analyze Again button listener (Simple clear function)
+      analyzeAgainBtn.addEventListener('click', () => {
+          competitorUrlInput.value = '';
+          analysisResult.classList.add('hidden');
+          competitorUrlInput.focus();
+          // Optionally clear analysis details for a clean slate
+          document.getElementById('analysisDetails').innerHTML = ''; 
       });
 
       // === PRO TEMPLATES PAGINATION LOGIC ===
@@ -958,7 +962,7 @@
         paywall.classList.add('hidden');
         analysisPaywall.classList.add('hidden');
         form.querySelector('button[type="submit"]').disabled = false;
-        alert('Welcome to Pro! Unlimited generations + 20 Pro Templates + Content Analyzer unlocked.');
+        alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
         window.history.replaceState({}, document.title, window.location.pathname);
         location.reload();
       }
