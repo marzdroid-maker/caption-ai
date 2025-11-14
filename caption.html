@@ -561,38 +561,37 @@
     
     let userEmail = localStorage.getItem('userEmail');
     let isPro = localStorage.getItem('isPro') === 'true'; // Initial read
+    let justSubscribed = false; // NEW FLAG
 
     // === SECURITY FIX: BACKEND VERIFICATION FUNCTION ===
-    // This function fetches the Pro status from the backend to prevent easy client-side hacking.
     async function fetchProStatus() {
       if (!userEmail) return;
 
       try {
-        // In a real application, this would be an authenticated call.
         const res = await fetch(`${API_URL}/user-status?email=${userEmail}`);
         const data = await res.json();
         isPro = data.isPro === true;
         localStorage.setItem('isPro', isPro.toString());
       } catch (err) {
         console.warn("Could not verify subscription from backend. Defaulting to free user status.", err);
-        // FIX: Always default to non-Pro status on check failure to prevent persistent hacks.
         isPro = false; 
-        localStorage.setItem('isPro', 'false'); // Reset local storage on failure
+        localStorage.setItem('isPro', 'false');
       }
     }
     
-    // === INITIALIZATION LOGIC UPDATE ===
+    // === INITIALIZATION LOGIC UPDATE: HANDLE SUCCESS REDIRECT EXPLICITLY ===
     
-    // 1. Handle return from a successful subscription immediately
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('success') === 'true') {
-        localStorage.setItem('isPro', 'true'); // Set the flag immediately
-        isPro = true; // Update local variable for current run
+        localStorage.setItem('isPro', 'true');
+        isPro = true; 
+        justSubscribed = true; // SET NEW FLAG HERE
         alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
         window.history.replaceState({}, document.title, window.location.pathname);
+        // CRITICAL: We don't reload or run fetchProStatus, we trust this redirect and set the flag.
     }
     
-    // 2. Main app initialization flow (now consistent with async checks)
+    // 2. Main app initialization flow
     if (!userEmail) {
       emailSubmit.addEventListener('click', () => {
         const email = emailInput.value.trim();
@@ -602,7 +601,7 @@
           modal.style.display = 'none';
           mainApp.style.display = 'block';
           userEmail = email;
-          isPro = false; // Confirm free status after new email submission
+          isPro = false; 
           initApp(); 
         } else {
           emailInput.style.borderColor = '#ef4444';
@@ -610,10 +609,13 @@
         }
       });
     } else {
-      // FIX: Call fetchProStatus() and await the result before initializing the app.
       (async () => {
-        await fetchProStatus(); 
-        // Re-read the definitive isPro status after the async check completes
+        // FIX: ONLY run the server check if they were NOT just redirected from a successful checkout.
+        if (!justSubscribed) {
+            await fetchProStatus(); 
+        }
+
+        // Re-read the definitive isPro status from storage (set by success block OR fetchProStatus)
         isPro = localStorage.getItem('isPro') === 'true'; 
 
         modal.style.display = 'none';
@@ -744,7 +746,6 @@
       }
       
       // === DETERMINISTIC SCORE GENERATION FUNCTION ===
-      // A simple, consistent hashing function to ensure the same URL yields the same number.
       function hashString(str) {
           let hash = 0;
           for (let i = 0; i < str.length; i++) {
@@ -755,14 +756,11 @@
           return Math.abs(hash);
       }
       
-      // Function to generate score and mock analysis details deterministically
       function generateDeterministicScore(url) {
           const uniqueSeed = hashString(url.toLowerCase().trim());
           
-          // Map the unique seed to a score between 65 and 99
-          const score = (uniqueSeed % 35) + 65; // Ensures score is between 65 and 99 (35 possible scores)
+          const score = (uniqueSeed % 35) + 65; 
           
-          // Determine quality tiers based on the consistent score
           const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
           
           let hook, readability, hashtags, cta;
@@ -796,7 +794,7 @@
           analysisResult.classList.add('hidden');
           
           const url = competitorUrlInput.value.trim();
-          const platform = detectPlatform(url); // Auto-detect the platform
+          const platform = detectPlatform(url); 
           
           // --- DETERMINISTIC AI ANALYSIS ---
           setTimeout(() => {
@@ -818,12 +816,10 @@
           }, 1500); // Simulate network latency
       });
       
-      // NEW: Analyze Again button listener (Simple clear function)
       analyzeAgainBtn.addEventListener('click', () => {
           competitorUrlInput.value = '';
           analysisResult.classList.add('hidden');
           competitorUrlInput.focus();
-          // Optionally clear analysis details for a clean slate
           document.getElementById('analysisDetails').innerHTML = ''; 
       });
 
@@ -834,7 +830,6 @@
       const page2Btn = document.getElementById('page2Btn');
       
       function showPage(pageNumber) {
-          // This function is only called if isPro is true
           templatePaging.style.display = 'flex'; 
           if (pageNumber === 1) {
               page1.style.display = 'grid';
@@ -852,7 +847,7 @@
       // FIX: The visibility logic must be explicitly handled by JS styles 
       // to ensure the paywall is not bypassed regardless of initial HTML state.
       if (isPro) {
-        templateContainer.style.display = 'grid'; // Use 'grid' as defined in CSS
+        templateContainer.style.display = 'grid'; 
         templateTeaser.style.display = 'none';
         templatePaging.style.display = 'flex';
 
@@ -902,13 +897,13 @@
           btn.addEventListener('click', () => {
             document.getElementById('idea').value = renderedText;
             document.getElementById('idea').focus();
-            showTab('generateContent'); // Ensure we are on the correct tab after clicking a template
+            showTab('generateContent'); 
           });
         });
       } else {
-        templateContainer.style.display = 'none'; // FIX: Explicitly hide the content if not Pro
+        templateContainer.style.display = 'none'; 
         templateTeaser.style.display = 'block';
-        templatePaging.style.display = 'none'; // Hide paging buttons too
+        templatePaging.style.display = 'none'; 
       }
       
       // Ensure correct tab visibility on load
@@ -1049,12 +1044,12 @@
           loading.classList.add('hidden');
           generateBtn.disabled = false;
           generateBtn.textContent = 'Generate Captions';
-          isGenerating = false;
           
           if (!isPro && freeUses >= 3 && currentTab === 'generateContent') {
               paywall.classList.remove('hidden');
               form.querySelector('button[type="submit"]').disabled = true;
           }
+          isGenerating = false;
         }
       }
 
