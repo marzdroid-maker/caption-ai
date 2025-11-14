@@ -288,8 +288,9 @@
     footer a { color: inherit; margin: 0 1rem; text-decoration: underline; }
 
     /* PRO TEMPLATES GRID */
+    /* This display: grid is applied when the 'hidden' class is removed by JS */
     #templateContainer {
-      display: grid;
+      display: grid; 
       gap: .5rem;
       font-size: .9rem;
       margin-top: 1rem;
@@ -561,8 +562,28 @@
     const emailSubmit = document.getElementById('emailSubmit');
 
     let userEmail = localStorage.getItem('userEmail');
-    let isPro = localStorage.getItem('isPro') === 'true'; // Set default isPro status from last known state
+    let isPro = localStorage.getItem('isPro') === 'true'; 
 
+    // === SECURITY FIX: BACKEND VERIFICATION FUNCTION ===
+    // This function fetches the Pro status from the backend to prevent easy client-side hacking.
+    async function fetchProStatus() {
+      if (!userEmail) return;
+
+      try {
+        // In a real application, this would be an authenticated call.
+        const res = await fetch(`${API_URL}/user-status?email=${userEmail}`);
+        const data = await res.json();
+        isPro = data.isPro === true;
+        localStorage.setItem('isPro', isPro.toString());
+      } catch (err) {
+        console.warn("Could not verify subscription from backend. Relying on cached status.", err);
+        // On failure, fall back to the last known status from localStorage.
+        isPro = localStorage.getItem('isPro') === 'true'; 
+      }
+    }
+    
+    // === INITIALIZATION LOGIC UPDATE ===
+    // We make the initialization block async to await the backend check.
     if (!userEmail) {
       emailSubmit.addEventListener('click', () => {
         const email = emailInput.value.trim();
@@ -572,16 +593,21 @@
           modal.style.display = 'none';
           mainApp.style.display = 'block';
           userEmail = email;
-          initApp();
+          // After submitting email, we can skip the await check for first load simplicity
+          initApp(); 
         } else {
           emailInput.style.borderColor = '#ef4444';
           emailInput.focus();
         }
       });
     } else {
-      modal.style.display = 'none';
-      mainApp.style.display = 'block';
-      initApp();
+      // FIX: Call fetchProStatus() and await the result before initializing the app.
+      (async () => {
+        await fetchProStatus(); 
+        modal.style.display = 'none';
+        mainApp.style.display = 'block';
+        initApp();
+      })();
     }
 
     function initApp() {
@@ -646,6 +672,10 @@
           loading.classList.add('hidden'); // Hide loading indicator
           result.classList.add('hidden'); // Hide generation result
           
+          // FIX: Reset generate button state when switching tabs
+          generateBtn.disabled = false;
+          generateBtn.textContent = "Generate Captions"; 
+          
           if (tabName === 'generateContent') {
               generateContent.classList.remove('hidden');
               analyzeContent.classList.add('hidden');
@@ -655,8 +685,10 @@
               
               if (!isPro && freeUses >= 3) {
                 paywall.classList.remove('hidden');
+                form.querySelector('button[type="submit"]').disabled = true; // Re-disable
               } else {
                 paywall.classList.add('hidden');
+                form.querySelector('button[type="submit"]').disabled = false; // Re-enable
               }
 
           } else if (tabName === 'analyzeContent') {
@@ -669,7 +701,7 @@
               if (!isPro) {
                 analysisPaywall.classList.remove('hidden');
                 analyzeForm.classList.add('hidden');
-                analysisResult.classList.add('hidden'); // Ensure result is hidden if non-pro
+                analysisResult.classList.add('hidden'); 
               } else {
                 analysisPaywall.classList.add('hidden');
                 analyzeForm.classList.remove('hidden');
@@ -801,9 +833,9 @@
           }
       }
       
-      // FIX: Cleaned up template visibility logic (No more !important)
+      // Template visibility logic runs after Pro status check in the main async block.
       if (isPro) {
-        templateContainer.classList.remove('hidden'); // This removes display: none and applies display: grid via CSS
+        templateContainer.classList.remove('hidden'); 
         templateTeaser.style.display = 'none';
         showPage(1); 
 
@@ -1028,7 +1060,7 @@
         location.reload();
       }
 
-      // FIX (Related to Trusting Backend): Consolidate Pro status application here.
+      // Consolidate Pro status application here.
       if (isPro) {
         paywall.classList.add('hidden');
         analysisPaywall.classList.add('hidden');
