@@ -580,6 +580,7 @@
       let debounceTimer;
       let isGenerating = false;
       let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
+      let isPro = localStorage.getItem('isPro') === 'true'; // Re-read isPro status
 
       // === EMOJI MAP ===
       const emojiMap = {
@@ -623,7 +624,7 @@
           analysisResult.classList.add('hidden'); // Hide analysis results when switching tabs
           loading.classList.add('hidden'); // Hide loading indicator
           result.classList.add('hidden'); // Hide generation result
-
+          
           if (tabName === 'generateContent') {
               generateContent.classList.remove('hidden');
               analyzeContent.classList.add('hidden');
@@ -647,6 +648,7 @@
               if (!isPro) {
                 analysisPaywall.classList.remove('hidden');
                 analyzeForm.classList.add('hidden');
+                analysisResult.classList.add('hidden'); // Ensure result is hidden if non-pro
               } else {
                 analysisPaywall.classList.add('hidden');
                 analyzeForm.classList.remove('hidden');
@@ -657,15 +659,16 @@
       generateTabBtn.addEventListener('click', () => showTab('generateContent'));
       analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
       
-      // Analysis Paywall Subscribe Button (Redirects to same subscription)
-      subscribeAnalyzeBtn.addEventListener('click', () => {
-        subscribeBtn.click(); // Reuse existing subscription logic
+      // FIX: Analysis Paywall Subscribe Button now correctly triggers the main subscription logic
+      subscribeAnalyzeBtn.addEventListener('click', async () => {
+        // Reuse existing subscription logic (subscribeBtn)
+        subscribeBtn.click();
       });
 
       // Placeholder for Analysis Logic
       analyzeForm.addEventListener('submit', (e) => {
           e.preventDefault();
-          if (!isPro) return; // Should be blocked by paywall visibility, but safe guard.
+          if (!isPro) return;
           
           loading.classList.remove('hidden');
           analysisResult.classList.add('hidden');
@@ -779,6 +782,7 @@
           btn.addEventListener('click', () => {
             document.getElementById('idea').value = renderedText;
             document.getElementById('idea').focus();
+            showTab('generateContent'); // Ensure we are on the correct tab after clicking a template
           });
         });
       } else {
@@ -857,7 +861,8 @@
       });
 
       async function tryGenerate(forceFull = false) {
-        if (isGenerating || !userEmail || currentTab !== 'generateContent') return;
+        // FIX: Removed "currentTab !== 'generateContent'" check. We generate based on the main form, regardless of the active tab.
+        if (isGenerating || !userEmail) return; 
 
         const idea = document.getElementById('idea').value.trim();
         const platform = document.getElementById('platform').value;
@@ -925,7 +930,7 @@
           generateBtn.disabled = false;
           generateBtn.textContent = 'Generate Captions';
           isGenerating = false;
-          // After generation, check if the main paywall needs to be shown again
+          
           if (!isPro && freeUses >= 3 && currentTab === 'generateContent') {
               paywall.classList.remove('hidden');
               form.querySelector('button[type="submit"]').disabled = true;
@@ -948,6 +953,7 @@
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('success') === 'true') {
         localStorage.setItem('isPro', 'true');
+        isPro = true; // Update local variable
         paywall.classList.add('hidden');
         analysisPaywall.classList.add('hidden');
         form.querySelector('button[type="submit"]').disabled = false;
@@ -956,7 +962,7 @@
         location.reload();
       }
 
-      if (localStorage.getItem('isPro') === 'true') {
+      if (isPro) {
         paywall.classList.add('hidden');
         form.querySelector('button[type="submit"]').disabled = false;
       }
