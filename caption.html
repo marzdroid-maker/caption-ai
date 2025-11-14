@@ -486,7 +486,7 @@
 
             <div id="paywall" class="paywall hidden">
               <h3>Upgrade to Pro!</h3>
-              <p>You've used your 3 free generations. <strong>Unlimited + 25-Post Content Waterfall</strong> for <strong>$7/month</strong>.</p>
+              <p>You've used your 3 free generations. <strong>Unlimited + 20 Viral Swipe File Structures</strong> for <strong>$7/month</strong>.</p>
               <button id="subscribeBtn">Subscribe Now</button>
             </div>
             
@@ -648,8 +648,8 @@
               } else {
                 paywall.classList.add('hidden');
               }
-              // Update button text on tab switch
-              generateBtn.textContent = isPro ? 'Generate Content Waterfall' : 'Generate Captions';
+              // Set button text back to default
+              generateBtn.textContent = 'Generate Captions'; 
 
 
           } else if (tabName === 'analyzeContent') {
@@ -907,7 +907,7 @@
         }
       });
 
-      // === GENERATION LOGIC ===
+      // === GENERATION LOGIC (Reverted to 5 Captions) ===
       const inputs = ['idea', 'platform', 'tone'];
       inputs.forEach(id => {
         document.getElementById(id).addEventListener('input', () => {
@@ -946,75 +946,30 @@
         result.classList.add('hidden');
         paywall.classList.add('hidden');
         generateBtn.disabled = true;
-        
-        // **[CHANGE 1: Update button text based on Pro status]**
-        generateBtn.textContent = isPro ? 'Generating Waterfall...' : 'Generating Captions...';
-
+        generateBtn.textContent = 'Generating Captions...'; // Revert button text
 
         try {
           // ***
-          // NOTE: In a real app, the API call would change here to fetch 25 captions.
-          // Since we are mocking the backend, we will use a simulated fetch delay
-          // and then generate the output locally.
+          // NOTE: API call and mock logic is reverted to generate only 5 captions
           // ***
           
           await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
 
           let generatedOutput = '';
-          const fallbackBase = `[${platform} Post] Idea: ${idea}. Tone: ${tone}.`;
 
-          if (isPro) {
-            // **[CHANGE 2: PRO Content Waterfall Generation]**
-            
-            // Function to generate unique-looking mock captions based on the idea
-            const generateCaptions = (count, prefix, suffix) => {
-                let captions = [];
-                for(let i = 1; i <= count; i++) {
-                    // Simple deterministic variation for mock content
-                    const variation = hashString(`${idea}${i}${prefix}`) % 100;
-                    captions.push(`- ${prefix} "${idea}" variation ${variation}. ${suffix}`);
-                }
-                return captions.join('\n');
-            };
+          // Reverted to FREE Standard 5 Caption Generation (same output for both Pro/Free in mock)
+          generatedOutput = `
+            ## Captions
+            1. "Try this ${tone} approach to your ${idea} ${emojiMap['Light Bulb']}"
+            2. "The one thing you must know about ${idea} ${emojiMap['Thinking Face']}"
+            3. "Looking for the best way to handle ${idea}? Here it is! ${emojiMap['Check Mark']}"
+            4. "Don't miss this crucial update on ${idea} ${emojiMap['Megaphone']}"
+            5. "If you like ${idea}, save this post ${emojiMap['Bookmark']}"
 
-            const waterfall = [
-              { title: '🚀 5x Hard Sell / Conversion Hooks', prefix: 'Act fast before this disappears:', suffix: 'Tap the link in bio NOW.' },
-              { title: '💡 5x Soft Sell / Value Education', prefix: 'Here is the key insight on', suffix: 'Save this for your future success.' },
-              { title: '💬 5x Engagement Starters / Polls', prefix: 'Tell us your thoughts on', suffix: 'Comment YES or NO below!' },
-              { title: '📖 5x Storytelling / Narrative Hooks', prefix: 'The shocking truth about my journey with', prefix: 'The shocking truth about my journey with', suffix: 'What was your biggest setback?' },
-              { title: '⚡ 5x Short / Viral Scroll-Stoppers', prefix: 'You need to see this now:', suffix: '(WATCH TO THE END)' }
-            ];
+            ## Hashtags
+            #${platform}Tips #${tone}Vibes #SmallBusinessSuccess #ContentCreator ${emojiMap['Sparkles']}
+          `.trim();
 
-            generatedOutput = `
-              ### 🌊 Content Waterfall (25 Posts)
-
-              ${waterfall.map(item => `
-                #### ${item.title}
-                ${generateCaptions(5, item.prefix, item.suffix)}
-              `).join('\n').trim()}
-
-              ---
-              
-              ## Hashtags
-              #${platform.replace(/\s/g, '')}Content #ViralStructure #${tone}Creator #ContentBatching #ProTips
-            `.trim();
-
-          } else {
-            // **[CHANGE 3: FREE Standard 5 Caption Generation]**
-            generatedOutput = `
-              ## Captions
-              1. "Try this ${tone} approach to your ${idea} ${emojiMap['Light Bulb']}"
-              2. "The one thing you must know about ${idea} ${emojiMap['Thinking Face']}"
-              3. "Looking for the best way to handle ${idea}? Here it is! ${emojiMap['Check Mark']}"
-              4. "Don't miss this crucial update on ${idea} ${emojiMap['Megaphone']}"
-              5. "If you like ${idea}, save this post ${emojiMap['Bookmark']}"
-
-              ## Hashtags
-              #${platform}Tips #${tone}Vibes #SmallBusinessSuccess #ContentCreator ${emojiMap['Sparkles']}
-            `.trim();
-          }
-
-          // **[CHANGE 4: Update free uses count]**
           if (!isPro) {
             freeUses++;
             localStorage.setItem('freeUses', freeUses.toString());
@@ -1026,9 +981,7 @@
           copyBtn.classList.remove('copied');
           copyBtn.textContent = 'Copy All';
 
-
         } catch (err) {
-          // Standard error handling, uses the simple free fallback logic
           if (forceFull) {
             const fallback = `## Captions\n1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"\n2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love ${emojiMap['Leaf']}"\n5. "Come say hi! ${emojiMap['Hand Wave']}"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
             output.textContent = fallback;
@@ -1041,7 +994,7 @@
         } finally {
           loading.classList.add('hidden');
           generateBtn.disabled = false;
-          generateBtn.textContent = isPro ? 'Generate Content Waterfall' : 'Generate Captions'; // Reset button text
+          generateBtn.textContent = 'Generate Captions'; // Final reset button text
           isGenerating = false;
           
           if (!isPro && freeUses >= 3 && currentTab === 'generateContent') {
@@ -1062,7 +1015,7 @@
         });
       });
 
-      // === SUCCESS URL HANDLING ===
+      // === SUCCESS URL HANDLING (Reverted alert text) ===
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('success') === 'true') {
         localStorage.setItem('isPro', 'true');
@@ -1071,7 +1024,7 @@
         analysisPaywall.classList.add('hidden');
         analyzeForm.classList.remove('hidden'); // Show the form now that they are Pro
         form.querySelector('button[type="submit"]').disabled = false;
-        alert('Welcome to Pro! Unlimited generations + 25-Post Content Waterfall + Content Analyzer unlocked.');
+        alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.'); // Revert alert text
         window.history.replaceState({}, document.title, window.location.pathname);
         location.reload();
       }
