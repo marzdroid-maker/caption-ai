@@ -389,7 +389,7 @@
                 Just click, edit, generate. <strong>Instant viral edge.</strong>
               </p>
 
-              <div id="templateContainer" class="hidden" style="display: none !important;">
+              <div id="templateContainer" class="hidden">
                 
                 <div id="templatePage1">
                     <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">
@@ -561,7 +561,7 @@
     const emailSubmit = document.getElementById('emailSubmit');
 
     let userEmail = localStorage.getItem('userEmail');
-    let isPro = localStorage.getItem('isPro') === 'true'; // Set default isPro status
+    let isPro = localStorage.getItem('isPro') === 'true'; // Set default isPro status from last known state
 
     if (!userEmail) {
       emailSubmit.addEventListener('click', () => {
@@ -800,10 +800,10 @@
               page2Btn.classList.add('active');
           }
       }
-
+      
+      // FIX: Cleaned up template visibility logic (No more !important)
       if (isPro) {
-        templateContainer.classList.remove('hidden');
-        templateContainer.style.display = 'block'; 
+        templateContainer.classList.remove('hidden'); // This removes display: none and applies display: grid via CSS
         templateTeaser.style.display = 'none';
         showPage(1); 
 
@@ -855,7 +855,7 @@
           });
         });
       } else {
-        templateContainer.style.display = 'none';
+        templateContainer.classList.add('hidden'); // Ensure it is hidden if not Pro
         templateTeaser.style.display = 'block';
       }
       
@@ -1022,15 +1022,13 @@
       if (urlParams.get('success') === 'true') {
         localStorage.setItem('isPro', 'true');
         isPro = true; // Update local variable
-        paywall.classList.add('hidden');
-        analysisPaywall.classList.add('hidden');
-        analyzeForm.classList.remove('hidden'); // Show the form now that they are Pro
-        form.querySelector('button[type="submit"]').disabled = false;
+        // Reloads and runs initApp again, which applies the Pro logic below.
         alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
         window.history.replaceState({}, document.title, window.location.pathname);
         location.reload();
       }
 
+      // FIX (Related to Trusting Backend): Consolidate Pro status application here.
       if (isPro) {
         paywall.classList.add('hidden');
         analysisPaywall.classList.add('hidden');
