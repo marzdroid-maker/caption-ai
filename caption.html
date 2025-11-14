@@ -20,10 +20,8 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      /* Background FIX: Removed SVG noise/circles. Reverting to a clean, simple linear gradient. */
-      background-image: 
-        linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-      background-attachment: fixed; 
+      /* Background FIX: Simplified to single background property to eliminate potential SVG issues and ensure gradient is the only background. */
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) fixed;
       /* End Background FIX */
       color: #111;
       min-height: 100vh;
