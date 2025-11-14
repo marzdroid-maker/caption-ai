@@ -352,6 +352,143 @@
                 
                 <button type="submit" id="generateBtn">Generate Captions</button>
             </form>
+            
+            <div class="emoji-picker-container">
+              <button type="button" id="emojiPickerBtn">Add Emojis</button>
+              <div id="emojiPicker">
+                <p style="margin-bottom: .75rem; font-weight: 600;">Pick Emojis</p>
+                <div id="emojiGrid"></div>
+                <button id="closePicker">Close</button>
+              </div>
+            </div>
+            
+            <div id="loading" class="loading hidden">Generating magic...</div>
+
+            <div id="result" class="result hidden">
+              <h3>Your AI Captions</h3>
+              <pre id="output"></pre>
+              <button type="button" id="copyBtn">Copy All</button>
+            </div>
+
+            <div id="proTemplates">
+              <h3>Pro Templates (Click to Use)</h3>
+              <p style="margin: 1rem 0 .75rem; font-size: .95rem; color: #065f46; line-height: 1.5;">
+                <strong>Steal the exact captions used by 6-figure creators.</strong>  
+                These aren’t random — they’re <em>proven</em> to get 3x more likes, comments, and saves.  
+                Just click, edit, generate. <strong>Instant viral edge.</strong>
+              </p>
+
+              <div id="templateContainer" class="hidden" style="display: none !important;">
+                
+                <div id="templatePage1">
+                    <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">
+                    Just hit [X] followers! Grateful for every one of you ❤️ ✨
+                    </button>
+
+                    <button class="templateBtn" data-text="Behind the scenes of [your idea] Camera Film">
+                    Behind the scenes of [your idea] 📸 🎬
+                    </button>
+
+                    <button class="templateBtn" data-text="Tag a friend who needs this! Hand Point Down">
+                    Tag a friend who needs this! 👇
+                    </button>
+
+                    <button class="templateBtn" data-text="New drop alert! Link in bio Shopping Bag Fire">
+                    New drop alert! Link in bio 🛍️ 🔥
+                    </button>
+
+                    <button class="templateBtn" data-text="Your daily dose of [topic] Coffee Mug Light Bulb">
+                    Your daily dose of [topic] ☕ 💡
+                    </button>
+
+                    <button class="templateBtn" data-text="Reply with YES or NO: [question]? Question Mark Thinking Face">
+                    Reply with YES or NO: [question]? ❓ 🤔
+                    </button>
+
+                    <button class="templateBtn" data-text="Save this for later — you’ll thank me! Bookmark Sparkles">
+                    Save this for later — you’ll thank me! 🔖 ✨
+                    </button>
+
+                    <button class="templateBtn" data-text="Free [resource] in bio! Don’t miss it Gift Rocket">
+                    Free [resource] in bio! Don’t miss it 🎁 🚀
+                    </button>
+
+                    <button class="templateBtn" data-text="Swipe up to see the full story! Hand Point Up Film">
+                    Swipe up to see the full story! 👆 🎬
+                    </button>
+
+                    <button class="templateBtn" data-text="'Changed my [niche] game!' – @username Star Speech Bubble">
+                    "Changed my [niche] game!" – @username ⭐ 💬
+                    </button>
+                </div>
+                
+                <div id="templatePage2">
+                    <button class="templateBtn" data-text="You think [Product] is too expensive? Here's the ROI breakdown. Money Bag Chart Increasing">
+                    You think [Product] is too expensive? Here's the ROI breakdown. 💸 📈
+                    </button>
+                    
+                    <button class="templateBtn" data-text="Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. Crying Face Check Mark">
+                    Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. 😫 ✅
+                    </button>
+                    
+                    <button class="templateBtn" data-text="6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. Thinking Face Light Bulb">
+                    6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. 🤯 💡
+                    </button>
+                    
+                    <button class="templateBtn" data-text="How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. Toolbox Target">
+                    How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. 🛠️ 🎯
+                    </button>
+                    
+                    <button class="templateBtn" data-text="Unpopular opinion: [Common Belief] is completely wrong. Here's why. Speech Bubble Cross Mark">
+                    Unpopular opinion: [Common Belief] is completely wrong. Here's why. 🗣️ ❌
+                    </button>
+                    
+                    <button class="templateBtn" data-text="Get the exact checklist I use to [Goal]! Click the link that says Link Bookmark">
+                    Get the exact checklist I use to [Goal]! Click the link that says "Free Guide." 🔗 🔖
+                    </button>
+                    
+                    <button class="templateBtn" data-text="Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? Smiling Face 100 Score">
+                    Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? 😮 💯
+                    </button>
+                    
+                    <button class="templateBtn" data-text="Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. User Rocket">
+                    Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. 👤 🚀
+                    </button>
+                    
+                    <button class="templateBtn" data-text="My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. Alarm Clock Flexed Biceps">
+                    My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. ⏰ 💪
+                    </button>
+                    
+                    <button class="templateBtn" data-text="[Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. Balance Scale Magnifying Glass">
+                    [Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. ⚖️ 🧐
+                    </button>
+                </div>
+
+                <div id="templatePaging">
+                    <button id="page1Btn" class="active">Page 1</button>
+                    <button id="page2Btn">Page 2</button>
+                </div>
+
+              </div>
+
+              <div id="templateTeaser">
+                <p style="font-size: .9rem; color: #92400e; font-style: italic; margin-top: 1rem;">
+                  <strong>Unlock 20 Pro Templates</strong> — only available in <strong>Pro</strong>.
+                </p>
+                <button id="unlockTemplatesBtn" style="
+                  background: #f59e0b; color: white; border: none; padding: .6rem 1.2rem;
+                  border-radius: .5rem; font-size: .9rem; font-weight: 600; cursor: pointer;
+                  margin-top: .5rem;
+                ">Upgrade to Pro</button>
+              </div>
+            </div>
+
+            <div id="paywall" class="paywall hidden">
+              <h3>Upgrade to Pro!</h3>
+              <p>You've used your 3 free generations. <strong>Unlimited + 20 Pro Templates</strong> for <strong>$7/month</strong>.</p>
+              <button id="subscribeBtn">Subscribe Now</button>
+            </div>
+            
         </div>
         <div id="analyzeContent" class="tab-content hidden">
             <form id="analyzeForm">
@@ -375,10 +512,10 @@
                 <div id="analysisScore" class="analysis-score">95</div>
                 
                 <div id="analysisDetails" class="analysis-detail">
-                    <p><strong>Hook:</strong> High urgency, uses specific number. 🔥</p>
+                    <p><strong>Hook Score:</strong> High urgency, uses specific number. 🔥</p>
                     <p><strong>Readability:</strong> Excellent use of line breaks (4 lines/paragraph). ✅</p>
                     <p><strong>Hashtags:</strong> Highly relevant, 90% niche-specific. 🎯</p>
-                    <p><strong>CTA:</strong> Clear call-to-save (`🔖`).</p>
+                    <p><strong>Core CTA:</strong> Clear call-to-save (`🔖`).</p>
                 </div>
 
                 <button id="replicateBtn">Replicate & Generate NEW Caption</button>
@@ -391,142 +528,6 @@
             </div>
         </div>
         </div>
-    <div class="emoji-picker-container">
-      <button type="button" id="emojiPickerBtn">Add Emojis</button>
-      <div id="emojiPicker">
-        <p style="margin-bottom: .75rem; font-weight: 600;">Pick Emojis</p>
-        <div id="emojiGrid"></div>
-        <button id="closePicker">Close</button>
-      </div>
-    </div>
-    
-    <div id="loading" class="loading hidden">Generating magic...</div>
-
-    <div id="result" class="result hidden">
-      <h3>Your AI Captions</h3>
-      <pre id="output"></pre>
-      <button type="button" id="copyBtn">Copy All</button>
-    </div>
-
-    <div id="proTemplates">
-      <h3>Pro Templates (Click to Use)</h3>
-      <p style="margin: 1rem 0 .75rem; font-size: .95rem; color: #065f46; line-height: 1.5;">
-        <strong>Steal the exact captions used by 6-figure creators.</strong>  
-        These aren’t random — they’re <em>proven</em> to get 3x more likes, comments, and saves.  
-        Just click, edit, generate. <strong>Instant viral edge.</strong>
-      </p>
-
-      <div id="templateContainer" class="hidden" style="display: none !important;">
-        
-        <div id="templatePage1">
-            <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">
-            Just hit [X] followers! Grateful for every one of you ❤️ ✨
-            </button>
-
-            <button class="templateBtn" data-text="Behind the scenes of [your idea] Camera Film">
-            Behind the scenes of [your idea] 📸 🎬
-            </button>
-
-            <button class="templateBtn" data-text="Tag a friend who needs this! Hand Point Down">
-            Tag a friend who needs this! 👇
-            </button>
-
-            <button class="templateBtn" data-text="New drop alert! Link in bio Shopping Bag Fire">
-            New drop alert! Link in bio 🛍️ 🔥
-            </button>
-
-            <button class="templateBtn" data-text="Your daily dose of [topic] Coffee Mug Light Bulb">
-            Your daily dose of [topic] ☕ 💡
-            </button>
-
-            <button class="templateBtn" data-text="Reply with YES or NO: [question]? Question Mark Thinking Face">
-            Reply with YES or NO: [question]? ❓ 🤔
-            </button>
-
-            <button class="templateBtn" data-text="Save this for later — you’ll thank me! Bookmark Sparkles">
-            Save this for later — you’ll thank me! 🔖 ✨
-            </button>
-
-            <button class="templateBtn" data-text="Free [resource] in bio! Don’t miss it Gift Rocket">
-            Free [resource] in bio! Don’t miss it 🎁 🚀
-            </button>
-
-            <button class="templateBtn" data-text="Swipe up to see the full story! Hand Point Up Film">
-            Swipe up to see the full story! 👆 🎬
-            </button>
-
-            <button class="templateBtn" data-text="'Changed my [niche] game!' – @username Star Speech Bubble">
-            "Changed my [niche] game!" – @username ⭐ 💬
-            </button>
-        </div>
-        
-        <div id="templatePage2">
-            <button class="templateBtn" data-text="You think [Product] is too expensive? Here's the ROI breakdown. Money Bag Chart Increasing">
-            You think [Product] is too expensive? Here's the ROI breakdown. 💸 📈
-            </button>
-            
-            <button class="templateBtn" data-text="Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. Crying Face Check Mark">
-            Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. 😫 ✅
-            </button>
-            
-            <button class="templateBtn" data-text="6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. Thinking Face Light Bulb">
-            6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. 🤯 💡
-            </button>
-            
-            <button class="templateBtn" data-text="How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. Toolbox Target">
-            How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. 🛠️ 🎯
-            </button>
-            
-            <button class="templateBtn" data-text="Unpopular opinion: [Common Belief] is completely wrong. Here's why. Speech Bubble Cross Mark">
-            Unpopular opinion: [Common Belief] is completely wrong. Here's why. 🗣️ ❌
-            </button>
-            
-            <button class="templateBtn" data-text="Get the exact checklist I use to [Goal]! Click the link that says Link Bookmark">
-            Get the exact checklist I use to [Goal]! Click the link that says "Free Guide." 🔗 🔖
-            </button>
-            
-            <button class="templateBtn" data-text="Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? Smiling Face 100 Score">
-            Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? 😮 💯
-            </button>
-            
-            <button class="templateBtn" data-text="Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. User Rocket">
-            Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. 👤 🚀
-            </button>
-            
-            <button class="templateBtn" data-text="My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. Alarm Clock Flexed Biceps">
-            My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. ⏰ 💪
-            </button>
-            
-            <button class="templateBtn" data-text="[Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. Balance Scale Magnifying Glass">
-            [Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. ⚖️ 🧐
-            </button>
-        </div>
-
-        <div id="templatePaging">
-            <button id="page1Btn" class="active">Page 1</button>
-            <button id="page2Btn">Page 2</button>
-        </div>
-
-      </div>
-
-      <div id="templateTeaser">
-        <p style="font-size: .9rem; color: #92400e; font-style: italic; margin-top: 1rem;">
-          <strong>Unlock 20 Pro Templates</strong> — only available in <strong>Pro</strong>.
-        </p>
-        <button id="unlockTemplatesBtn" style="
-          background: #f59e0b; color: white; border: none; padding: .6rem 1.2rem;
-          border-radius: .5rem; font-size: .9rem; font-weight: 600; cursor: pointer;
-          margin-top: .5rem;
-        ">Upgrade to Pro</button>
-      </div>
-    </div>
-
-    <div id="paywall" class="paywall hidden">
-      <h3>Upgrade to Pro!</h3>
-      <p>You've used your 3 free generations. <strong>Unlimited + 20 Pro Templates</strong> for <strong>$7/month</strong>.</p>
-      <button id="subscribeBtn">Subscribe Now</button>
-    </div>
-
     <footer>
       <a href="/terms.html">Terms</a>
       <a href="/privacy.html">Privacy</a>
@@ -542,6 +543,7 @@
     const emailSubmit = document.getElementById('emailSubmit');
 
     let userEmail = localStorage.getItem('userEmail');
+    let isPro = localStorage.getItem('isPro') === 'true'; // Set default isPro status
 
     if (!userEmail) {
       emailSubmit.addEventListener('click', () => {
@@ -575,12 +577,12 @@
       const copyBtn = document.getElementById('copyBtn');
       const analysisPaywall = document.getElementById('analysisPaywall');
       const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
-
+      const emojiPickerBtn = document.getElementById('emojiPickerBtn');
 
       let debounceTimer;
       let isGenerating = false;
       let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
-      let isPro = localStorage.getItem('isPro') === 'true'; // Re-read isPro status
+
 
       // === EMOJI MAP ===
       const emojiMap = {
@@ -659,9 +661,8 @@
       generateTabBtn.addEventListener('click', () => showTab('generateContent'));
       analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
       
-      // FIX: Analysis Paywall Subscribe Button now correctly triggers the main subscription logic
+      // Analysis Paywall Subscribe Button now correctly triggers the main subscription logic
       subscribeAnalyzeBtn.addEventListener('click', async () => {
-        // Reuse existing subscription logic (subscribeBtn)
         subscribeBtn.click();
       });
 
@@ -696,16 +697,33 @@
           }, 1500); // Simulate network latency
       });
       
-      // Replicate button copies analysis info to main form and switches tab
+      // Replicate button now generates a clean, structured prompt
       replicateBtn.addEventListener('click', () => {
           const platform = document.getElementById('analyzePlatform').value;
           const score = document.getElementById('analysisScore').textContent;
+          const analysisDetailsEl = document.getElementById('analysisDetails');
           
-          // Prefill idea input with instructions for AI
-          ideaInput.value = `Generate a caption/hashtag set for [YOUR IDEA HERE]. Use the structure of a high-scoring post (Score: ${score}). Focus on: ${document.getElementById('analysisDetails').textContent.replace(/\s\s+/g, ' ').trim()}.`;
+          // 1. Extract and Clean Details: Get text content and split it by paragraphs/lines
+          const detailElements = analysisDetailsEl.querySelectorAll('p');
+          let cleanDetails = "";
+          detailElements.forEach(p => {
+              // Remove <strong> tags and HTML entities, then trim
+              let text = p.innerHTML.replace(/<[^>]*>/g, '').trim();
+              
+              // Remove the trailing emoji/icon, and then remove the analysis type (e.g., 'Hook Score:')
+              const parts = text.split(':');
+              if (parts.length > 1) {
+                  // Keep only the descriptive part of the analysis (e.g., "High urgency, clear value proposition.")
+                  cleanDetails += parts[1].trim() + ". ";
+              }
+          });
           
-          // Set platform and switch back to generate tab
+          // 2. Construct the high-quality prompt for the AI
+          const cleanPrompt = `Generate a high-performing caption and hashtag set for [YOUR IDEA HERE]. Use the structure and tone recommended by this analysis (Score: ${score}). Specifically, ensure the content: ${cleanDetails.trim()} Retain the call-to-action type identified.`;
+
+          // 3. Set the form values and switch tab
           document.getElementById('platform').value = platform;
+          ideaInput.value = cleanPrompt;
           showTab('generateContent');
           ideaInput.focus();
       });
@@ -861,7 +879,6 @@
       });
 
       async function tryGenerate(forceFull = false) {
-        // FIX: Removed "currentTab !== 'generateContent'" check. We generate based on the main form, regardless of the active tab.
         if (isGenerating || !userEmail) return; 
 
         const idea = document.getElementById('idea').value.trim();
