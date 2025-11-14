@@ -492,8 +492,33 @@
             
         </div>
         <div id="analyzeContent" class="tab-content hidden">
-            <form id="analyzeForm">
-                <label for="competitorUrl">Competitor Post URL</label>
+            
+            <div id="analysisDescription" style="
+                background: #f0f9ff; 
+                border: 1px solid #bae6fd; 
+                padding: 1.2rem; 
+                border-radius: .75rem; 
+                margin-bottom: 1.5rem;
+                font-size: .95rem;
+                line-height: 1.5;
+                color: #0369a1;
+            ">
+                <h4 style="margin-bottom: .5rem; color: #075985; font-size: 1.1rem;">
+                    **Reverse-Engineer Viral Success** 🔬
+                </h4>
+                Paste *any* competitor's post URL (Instagram, Twitter, etc.) and our AI will **deconstruct their strategy**. 
+                Get an instant **Content Score** and a detailed breakdown of their **hook**, **CTA**, and **hashtag usage**. 
+                This is your competitive edge to go viral faster.
+            </div>
+
+            <div id="analysisPaywall" class="paywall hidden" style="margin-top: 1rem;">
+                <h3>Unlock Analysis!</h3>
+                <p>Content Scoring is an exclusive **Pro** feature. **Unlimited Access** for **$7/month**.</p>
+                <button id="subscribeAnalyzeBtn">Upgrade to Pro</button>
+            </div>
+
+
+            <form id="analyzeForm" class="hidden"> <label for="competitorUrl">Competitor Post URL</label>
                 <input type="url" id="competitorUrl" placeholder="e.g. https://instagram.com/p/B..." required />
                 
                 <button type="submit" id="analyzeBtn">Analyze Post Structure</button>
@@ -501,24 +526,14 @@
 
             <div id="analysisResult" class="analysis-card hidden">
                 <p style="text-align: center; font-size: 1.2rem; font-weight: 600; margin-bottom: 0;">Content Score</p>
-                <div id="analysisScore" class="analysis-score">95</div>
+                <div id="analysisScore" class="analysis-score">--</div>
                 
                 <div id="analysisDetails" class="analysis-detail">
-                    <p><strong>Platform Detected:</strong> Instagram</p>
-                    <p><strong>Hook Score:</strong> High urgency, clear value proposition. 🔥</p>
-                    <p><strong>Readability:</strong> Excellent use of line breaks (4 lines/paragraph). ✅</p>
-                    <p><strong>Hashtags:</strong> Highly relevant, 90% niche-specific. 🎯</p>
-                    <p><strong>Core CTA:</strong> Clear call-to-save (`🔖`).</p>
-                </div>
+                    </div>
 
                 <button id="analyzeAgainBtn">Analyze Another Post</button>
             </div>
             
-            <div id="analysisPaywall" class="paywall hidden" style="margin-top: 1rem;">
-                <h3>Unlock Analysis!</h3>
-                <p>Content Scoring is an exclusive **Pro** feature. **Unlimited Access** for **$7/month**.</p>
-                <button id="subscribeAnalyzeBtn">Upgrade to Pro</button>
-            </div>
         </div>
         </div>
     <footer>
@@ -609,7 +624,6 @@
       const competitorUrlInput = document.getElementById('competitorUrl');
       const analyzeBtn = document.getElementById('analyzeBtn');
       const analysisResult = document.getElementById('analysisResult');
-      // Updated variable name
       const analyzeAgainBtn = document.getElementById('analyzeAgainBtn'); 
       const ideaInput = document.getElementById('idea');
       const platformSelect = document.getElementById('platform');
@@ -671,6 +685,50 @@
           return 'Instagram'; // Default fallback
       }
       
+      // === DETERMINISTIC SCORE GENERATION FUNCTION ===
+      // A simple, consistent hashing function to ensure the same URL yields the same number.
+      function hashString(str) {
+          let hash = 0;
+          for (let i = 0; i < str.length; i++) {
+              const char = str.charCodeAt(i);
+              hash = ((hash << 5) - hash) + char;
+              hash |= 0; // Convert to 32bit integer
+          }
+          return Math.abs(hash);
+      }
+      
+      // Function to generate score and mock analysis details deterministically
+      function generateDeterministicScore(url) {
+          const uniqueSeed = hashString(url.toLowerCase().trim());
+          
+          // Map the unique seed to a score between 65 and 99
+          const score = (uniqueSeed % 35) + 65; // Ensures score is between 65 and 99 (35 possible scores)
+          
+          // Determine quality tiers based on the consistent score
+          const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
+          
+          let hook, readability, hashtags, cta;
+
+          if (quality === 'High') {
+              hook = 'High urgency, clear value proposition. 🔥';
+              readability = 'Excellent use of line breaks (4 lines/paragraph). ✅';
+              hashtags = 'Highly relevant, 90% niche-specific. 🎯';
+              cta = 'Clear call-to-action to save and comment. 💬';
+          } else if (quality === 'Medium') {
+              hook = 'Decent hook, could be more specific and engaging. 👍';
+              readability = 'Good structure, but a few blocks are too dense. ⚠️';
+              hashtags = 'Mix of niche and broad tags (50/50). 💡';
+              cta = 'General CTA, needs more direction. ❓';
+          } else { // Low
+              hook = 'Vague hook, lacks clear value proposition. 👎';
+              readability = 'Dense wall of text, poor line break usage. ❌';
+              hashtags = 'Too generic, mostly use broad tags. 💡';
+              cta = 'No clear CTA, relying on vague engagement. ❓';
+          }
+
+          return { score, hook, readability, hashtags, cta };
+      }
+
       // Updated Analysis Logic
       analyzeForm.addEventListener('submit', (e) => {
           e.preventDefault();
@@ -682,25 +740,20 @@
           const url = competitorUrlInput.value.trim();
           const platform = detectPlatform(url); // Auto-detect the platform
           
-          // --- SIMULATED AI ANALYSIS ---
+          // --- DETERMINISTIC AI ANALYSIS ---
           setTimeout(() => {
               loading.classList.add('hidden');
               
-              // Mock Data generation
-              const score = Math.floor(Math.random() * (99 - 65 + 1)) + 65;
-              const hook = score > 85 ? 'High urgency, clear value proposition.' : 'Decent hook, could be more specific.';
-              const readability = score > 75 ? 'Excellent use of line breaks (4 lines/paragraph).' : 'Dense text, only uses two breaks.';
-              const hashtags = score > 80 ? 'Highly relevant, 90% niche-specific.' : 'Too generic, mostly use broad tags.';
-              const cta = score > 70 ? 'Clear call-to-action to save and comment.' : 'Vague CTA, needs more direction.';
+              const analysisData = generateDeterministicScore(url);
               
               // Display results
-              document.getElementById('analysisScore').textContent = score;
+              document.getElementById('analysisScore').textContent = analysisData.score;
               document.getElementById('analysisDetails').innerHTML = `
                   <p><strong>Platform Detected:</strong> ${platform}</p>
-                  <p><strong>Hook Score:</strong> ${hook} ${score > 85 ? '🔥' : '👍'}</p>
-                  <p><strong>Readability:</strong> ${readability} ${score > 75 ? '✅' : '⚠️'}</p>
-                  <p><strong>Hashtags:</strong> ${hashtags} ${score > 80 ? '🎯' : '💡'}</p>
-                  <p><strong>Core CTA:</strong> ${cta} ${score > 70 ? '💬' : '❓'}</p>
+                  <p><strong>Hook Score:</strong> ${analysisData.hook}</p>
+                  <p><strong>Readability:</strong> ${analysisData.readability}</p>
+                  <p><strong>Hashtags:</strong> ${analysisData.hashtags}</p>
+                  <p><strong>Core CTA:</strong> ${analysisData.cta}</p>
               `;
               
               analysisResult.classList.remove('hidden');
@@ -961,6 +1014,7 @@
         isPro = true; // Update local variable
         paywall.classList.add('hidden');
         analysisPaywall.classList.add('hidden');
+        analyzeForm.classList.remove('hidden'); // Show the form now that they are Pro
         form.querySelector('button[type="submit"]').disabled = false;
         alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -969,6 +1023,8 @@
 
       if (isPro) {
         paywall.classList.add('hidden');
+        analysisPaywall.classList.add('hidden');
+        analyzeForm.classList.remove('hidden');
         form.querySelector('button[type="submit"]').disabled = false;
       }
     }
