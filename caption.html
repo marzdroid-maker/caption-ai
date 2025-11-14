@@ -558,9 +558,9 @@
     const mainApp = document.getElementById('mainApp');
     const emailInput = document.getElementById('emailInput');
     const emailSubmit = document.getElementById('emailSubmit');
-
+    
     let userEmail = localStorage.getItem('userEmail');
-    let isPro = localStorage.getItem('isPro') === 'true'; 
+    let isPro = localStorage.getItem('isPro') === 'true'; // Initial read
 
     // === SECURITY FIX: BACKEND VERIFICATION FUNCTION ===
     // This function fetches the Pro status from the backend to prevent easy client-side hacking.
@@ -582,7 +582,17 @@
     }
     
     // === INITIALIZATION LOGIC UPDATE ===
-    // We make the initialization block async to await the backend check.
+    
+    // 1. Handle return from a successful subscription immediately
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+        localStorage.setItem('isPro', 'true'); // Set the flag immediately
+        isPro = true; // Update local variable for current run
+        alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    // 2. Main app initialization flow (now consistent with async checks)
     if (!userEmail) {
       emailSubmit.addEventListener('click', () => {
         const email = emailInput.value.trim();
@@ -592,7 +602,7 @@
           modal.style.display = 'none';
           mainApp.style.display = 'block';
           userEmail = email;
-          // After submitting email, we can skip the await check for first load simplicity
+          isPro = false; // Confirm free status after new email submission
           initApp(); 
         } else {
           emailInput.style.borderColor = '#ef4444';
@@ -603,12 +613,16 @@
       // FIX: Call fetchProStatus() and await the result before initializing the app.
       (async () => {
         await fetchProStatus(); 
+        // Re-read the definitive isPro status after the async check completes
+        isPro = localStorage.getItem('isPro') === 'true'; 
+
         modal.style.display = 'none';
         mainApp.style.display = 'block';
         initApp();
       })();
     }
 
+    // Pass isPro to initApp to ensure all features are correctly rendered.
     function initApp() {
       const form = document.getElementById('captionForm');
       const generateBtn = document.getElementById('generateBtn');
@@ -621,7 +635,11 @@
       const analysisPaywall = document.getElementById('analysisPaywall');
       const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
       const emojiPickerBtn = document.getElementById('emojiPickerBtn');
-
+      const templateContainer = document.getElementById('templateContainer');
+      const templateTeaser = document.getElementById('templateTeaser');
+      const templatePaging = document.getElementById('templatePaging');
+      const analyzeForm = document.getElementById('analyzeForm');
+      
       let debounceTimer;
       let isGenerating = false;
       let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
@@ -655,7 +673,6 @@
       const analyzeTabBtn = document.getElementById('analyzeTabBtn');
       const generateContent = document.getElementById('generateContent');
       const analyzeContent = document.getElementById('analyzeContent');
-      const analyzeForm = document.getElementById('analyzeForm');
       const competitorUrlInput = document.getElementById('competitorUrl');
       const analyzeBtn = document.getElementById('analyzeBtn');
       const analysisResult = document.getElementById('analysisResult');
@@ -671,7 +688,7 @@
           loading.classList.add('hidden'); // Hide loading indicator
           result.classList.add('hidden'); // Hide generation result
           
-          // FIX: Reset generate button state when switching tabs
+          // Reset generate button state when switching tabs
           generateBtn.disabled = false;
           generateBtn.textContent = "Generate Captions"; 
           
@@ -684,10 +701,10 @@
               
               if (!isPro && freeUses >= 3) {
                 paywall.classList.remove('hidden');
-                form.querySelector('button[type="submit"]').disabled = true; // Re-disable
+                form.querySelector('button[type="submit"]').disabled = true; 
               } else {
                 paywall.classList.add('hidden');
-                form.querySelector('button[type="submit"]').disabled = false; // Re-enable
+                form.querySelector('button[type="submit"]').disabled = false; 
               }
 
           } else if (tabName === 'analyzeContent') {
@@ -811,9 +828,6 @@
       });
 
       // === PRO TEMPLATES PAGINATION LOGIC ===
-      const templateContainer = document.getElementById('templateContainer');
-      const templateTeaser = document.getElementById('templateTeaser');
-      const templatePaging = document.getElementById('templatePaging');
       const page1 = document.getElementById('templatePage1');
       const page2 = document.getElementById('templatePage2');
       const page1Btn = document.getElementById('page1Btn');
@@ -840,6 +854,8 @@
       if (isPro) {
         templateContainer.style.display = 'grid'; // Use 'grid' as defined in CSS
         templateTeaser.style.display = 'none';
+        templatePaging.style.display = 'flex';
+
         showPage(1); 
 
         page1Btn.addEventListener('click', () => showPage(1));
@@ -1052,32 +1068,6 @@
           }, 2000);
         });
       });
-
-      // === SUCCESS URL HANDLING ===
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('success') === 'true') {
-        localStorage.setItem('isPro', 'true');
-        isPro = true; // Update local variable
-        // Reloads and runs initApp again, which applies the Pro logic below.
-        alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
-        window.history.replaceState({}, document.title, window.location.pathname);
-        location.reload();
-      }
-
-      // Consolidate Pro status application here.
-      if (isPro) {
-        paywall.classList.add('hidden');
-        analysisPaywall.classList.add('hidden');
-        analyzeForm.classList.remove('hidden');
-        form.querySelector('button[type="submit"]').disabled = false;
-        // Template visibility is handled above
-      } else {
-        // Ensure non-pro visibility is correctly enforced here for the main paywall flow
-        if (freeUses >= 3 && currentTab === 'generateContent') {
-            paywall.classList.remove('hidden');
-        }
-        // Template visibility is handled above
-      }
     }
   </script>
 </body>
