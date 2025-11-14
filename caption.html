@@ -576,9 +576,10 @@
         isPro = data.isPro === true;
         localStorage.setItem('isPro', isPro.toString());
       } catch (err) {
-        console.warn("Could not verify subscription from backend. Relying on cached status.", err);
-        // On failure, fall back to the last known status from localStorage.
-        isPro = localStorage.getItem('isPro') === 'true'; 
+        console.warn("Could not verify subscription from backend. Defaulting to free user status.", err);
+        // FIX: Always default to non-Pro status on check failure to prevent persistent hacks.
+        isPro = false; 
+        localStorage.setItem('isPro', 'false'); // Reset local storage on failure
       }
     }
     
@@ -1066,6 +1067,11 @@
         analysisPaywall.classList.add('hidden');
         analyzeForm.classList.remove('hidden');
         form.querySelector('button[type="submit"]').disabled = false;
+      } else {
+        // Ensure non-pro visibility is correctly enforced here for the main paywall flow
+        if (freeUses >= 3 && currentTab === 'generateContent') {
+            paywall.classList.remove('hidden');
+        }
       }
     }
   </script>
