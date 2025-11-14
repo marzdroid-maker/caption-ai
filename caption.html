@@ -1,1041 +1,1013 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AI Caption + Hashtag Generator</title>
-  <style>
-    :root {
-      --primary: #3b82f6;
-      --primary-dark: #2563eb;
-      --gray: #6b7280;
-      --light: #f3f4f6;
-      --border: #e5e7eb;
-      --placeholder: #9ca3af;
-      --success: #10b981;
-      --success-dark: #059669;
-      --error: #ef4444;
-      --warning: #f59e0b;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-      color: #111;
-      min-height: 100vh;
-      padding: 2rem 1rem;
-    }
-    .container { max-width: 600px; margin: 0 auto; }
-    h1 { font-size: 2.25rem; font-weight: 700; text-align: center; margin-bottom: .5rem; }
-    p.subtitle { text-align: center; color: var(--gray); margin-bottom: 1.5rem; font-size: 1.1rem; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Caption + Hashtag Generator</title>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --gray: #6b7280;
+      --light: #f3f4f6;
+      --border: #e5e7eb;
+      --placeholder: #9ca3af;
+      --success: #10b981;
+      --success-dark: #059669;
+      --error: #ef4444;
+      --warning: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      color: #111;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+    .container { max-width: 600px; margin: 0 auto; }
+    h1 { font-size: 2.25rem; font-weight: 700; text-align: center; margin-bottom: .5rem; }
+    p.subtitle { text-align: center; color: var(--gray); margin-bottom: 1.5rem; font-size: 1.1rem; }
 
-    .proof {
-      background: #ecfdf5;
-      border: 1px solid #a7f3d0;
-      padding: 1rem;
-      border-radius: .75rem;
-      text-align: center;
-      margin-bottom: 1.5rem;
-      font-size: .95rem;
-      color: #065f46;
-    }
-    .proof strong { font-weight: 600; }
+    .proof {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      padding: 1rem;
+      border-radius: .75rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: .95rem;
+      color: #065f46;
+    }
+    .proof strong { font-weight: 600; }
 
-    #emailModal {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7); display: flex; align-items: center;
-      justify-content: center; z-index: 9999;
-    }
-    .modal-content {
-      background: white; padding: 2rem; border-radius: 1rem;
-      width: 90%; max-width: 400px; text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-    .modal-content h2 { margin-bottom: 1rem; font-size: 1.5rem; }
-    .modal-content p { margin-bottom: 1.5rem; color: #555; }
-    .modal-content input {
-      width: 100%; padding: .75rem; border: 2px solid #e5e7eb;
-      border-radius: .5rem; font-size: 1rem; margin-bottom: 1rem;
-    }
-    .modal-content button {
-      background: var(--primary); color: white; border: none;
-      padding: .75rem 1.5rem; border-radius: .5rem; font-weight: 600;
-      cursor: pointer; width: 100%;
-    }
+    #emailModal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7); display: flex; align-items: center;
+      justify-content: center; z-index: 9999;
+    }
+    .modal-content {
+      background: white; padding: 2rem; border-radius: 1rem;
+      width: 90%; max-width: 400px; text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .modal-content h2 { margin-bottom: 1rem; font-size: 1.5rem; }
+    .modal-content p { margin-bottom: 1.5rem; color: #555; }
+    .modal-content input {
+      width: 100%; padding: .75rem; border: 2px solid #e5e7eb;
+      border-radius: .5rem; font-size: 1rem; margin-bottom: 1rem;
+    }
+    .modal-content button {
+      background: var(--primary); color: white; border: none;
+      padding: .75rem 1.5rem; border-radius: .5rem; font-weight: 600;
+      cursor: pointer; width: 100%;
+    }
 
-    label { display: block; margin-bottom: .5rem; font-weight: 600; color: #111; }
-    input, select {
-      width: 100%; padding: .75rem 1rem; border: 2px solid var(--border);
-      border-radius: .5rem; font-size: 1rem; margin-bottom: 1rem;
-      transition: border .2s;
-    }
-    input:focus, select:focus { outline: none; border-color: var(--primary); }
-    input::placeholder { color: var(--placeholder); font-style: italic; }
+    label { display: block; margin-bottom: .5rem; font-weight: 600; color: #111; }
+    input, select {
+      width: 100%; padding: .75rem 1rem; border: 2px solid var(--border);
+      border-radius: .5rem; font-size: 1rem; margin-bottom: 1rem;
+      transition: border .2s;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--primary); }
+    input::placeholder { color: var(--placeholder); font-style: italic; }
 
-    select option[disabled] { display: none; }
-    select option[data-placeholder] { color: var(--placeholder); font-style: italic; }
-    select:invalid { color: var(--placeholder); }
-    select:valid { color: #111; }
+    select option[disabled] { display: none; }
+    select option[data-placeholder] { color: var(--placeholder); font-style: italic; }
+    select:invalid { color: var(--placeholder); }
+    select:valid { color: #111; }
 
-    button {
-      width: 100%; background: var(--primary); color: white; border: none;
-      padding: 1rem; font-size: 1.1rem; font-weight: 600; border-radius: .5rem;
-      cursor: pointer; transition: background .2s;
-    }
-    button:hover { background: var(--primary-dark); }
-    button:disabled { background: #93c5fd; cursor: not-allowed; }
-    
-    /* New Tab Styles */
-    #tabHeader {
-        display: flex;
-        margin-bottom: 1.5rem;
-        border-bottom: 2px solid var(--border);
-    }
-    .tab-btn {
-        flex: 1;
-        padding: 0.75rem 0;
-        background: none;
-        border: none;
-        font-weight: 600;
-        cursor: pointer;
-        color: var(--gray);
-        font-size: 1.1rem;
-        border-bottom: 3px solid transparent;
-        transition: color 0.2s, border-bottom 0.2s;
-        border-radius: 0;
-        width: auto; /* Override button width */
-    }
-    .tab-btn.active {
-        color: var(--primary);
-        border-bottom: 3px solid var(--primary);
-    }
-    .tab-content {
-        padding: 0; /* Remove padding from tab content wrapper */
-    }
-    /* Analysis Result Box */
-    .analysis-card {
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: .75rem;
-        padding: 1.5rem;
-        margin-top: 1.5rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,.05);
-    }
-    .analysis-score {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: var(--primary);
-        text-align: center;
-        margin-bottom: .5rem;
-    }
-    .analysis-detail {
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px dashed var(--border);
-    }
-    .analysis-detail p {
-        margin-bottom: .5rem;
-        line-height: 1.4;
-    }
-    .analysis-detail strong {
-        color: #111;
-        font-weight: 700;
-    }
-    /* Updated button styling */
-    #analyzeAgainBtn { 
-        background: var(--primary);
-        margin-top: 1rem;
-        width: 100%;
-        font-size: 1rem;
-    }
-    /* End New Tab Styles */
+    button {
+      width: 100%; background: var(--primary); color: white; border: none;
+      padding: 1rem; font-size: 1.1rem; font-weight: 600; border-radius: .5rem;
+      cursor: pointer; transition: background .2s;
+    }
+    button:hover { background: var(--primary-dark); }
+    button:disabled { background: #93c5fd; cursor: not-allowed; }
+    
+    /* New Tab Styles */
+    #tabHeader {
+        display: flex;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border);
+    }
+    .tab-btn {
+        flex: 1;
+        padding: 0.75rem 0;
+        background: none;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        color: var(--gray);
+        font-size: 1.1rem;
+        border-bottom: 3px solid transparent;
+        transition: color 0.2s, border-bottom 0.2s;
+        border-radius: 0;
+        width: auto; /* Override button width */
+    }
+    .tab-btn.active {
+        color: var(--primary);
+        border-bottom: 3px solid var(--primary);
+    }
+    .tab-content {
+        padding: 0; /* Remove padding from tab content wrapper */
+    }
+    /* Analysis Result Box */
+    .analysis-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: .75rem;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,.05);
+    }
+    .analysis-score {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        text-align: center;
+        margin-bottom: .5rem;
+    }
+    .analysis-detail {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px dashed var(--border);
+    }
+    .analysis-detail p {
+        margin-bottom: .5rem;
+        line-height: 1.4;
+    }
+    .analysis-detail strong {
+        color: #111;
+        font-weight: 700;
+    }
+    /* Updated button styling */
+    #analyzeAgainBtn { 
+        background: var(--primary);
+        margin-top: 1rem;
+        width: 100%;
+        font-size: 1rem;
+    }
+    /* End New Tab Styles */
 
 
-    #emojiPickerBtn {
-      background: var(--warning); margin: 1rem 0; width: auto; padding: .5rem 1rem; font-size: .9rem;
-    }
+    #emojiPickerBtn {
+      background: var(--warning); margin: 1rem 0; width: auto; padding: .5rem 1rem; font-size: .9rem;
+    }
 
-    .emoji-picker-container {
-      position: relative; 
-      text-align: left; 
-      display: flex;
-      justify-content: center;
-    }
+    .emoji-picker-container {
+      position: relative; 
+      text-align: left; 
+      display: flex;
+      justify-content: center;
+    }
 
-    #emojiPicker {
-      display: none; 
-      position: absolute; 
-      background: white; 
-      border: 1px solid #e5e7eb;
-      border-radius: .75rem; 
-      padding: 1rem; 
-      max-width: 300px; 
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-      z-index: 100; 
-      text-align: center;
-      max-height: 350px; 
-      flex-direction: column;
-      right: 0; 
-      top: 100%; 
-      transform: translateY(5px);
-    }
+    #emojiPicker {
+      display: none; 
+      position: absolute; 
+      background: white; 
+      border: 1px solid #e5e7eb;
+      border-radius: .75rem; 
+      padding: 1rem; 
+      max-width: 300px; 
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      z-index: 100; 
+      text-align: center;
+      max-height: 350px; 
+      flex-direction: column;
+      right: 0; 
+      top: 100%; 
+      transform: translateY(5px);
+    }
 
-    #emojiGrid {
-      display: grid; 
-      grid-template-columns: repeat(6, 1fr); 
-      gap: .5rem; 
-      font-size: 1.5rem;
-      margin: .75rem 0;
-      overflow-y: auto; 
-      padding-right: 5px; 
-    }
-    #emojiGrid button {
-      background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0;
-    }
-    #closePicker {
-      margin-top: .5rem; background: #6b7280; color: white; padding: .5rem 1rem;
-      border-radius: .5rem; font-size: .8rem; width: auto;
-    }
+    #emojiGrid {
+      display: grid; 
+      grid-template-columns: repeat(6, 1fr); 
+      gap: .5rem; 
+      font-size: 1.5rem;
+      margin: .75rem 0;
+      overflow-y: auto; 
+      padding-right: 5px; 
+    }
+    #emojiGrid button {
+      background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0;
+    }
+    #closePicker {
+      margin-top: .5rem; background: #6b7280; color: white; padding: .5rem 1rem;
+      border-radius: .5rem; font-size: .8rem; width: auto;
+    }
 
-    .result {
-      margin-top: 2rem; padding: 1.5rem; background: white; border-radius: .75rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,.05); position: relative;
-    }
-    .result h3 { margin-bottom: .75rem; color: var(--primary); }
-    .result pre {
-      white-space: pre-wrap; font-family: inherit; line-height: 1.6; margin-bottom: 1rem;
-    }
-    #copyBtn {
-      position: absolute; top: 1rem; right: 1rem; background: var(--success);
-      color: white; padding: .5rem 1rem; border: none; border-radius: .5rem;
-      font-size: .9rem; cursor: pointer; transition: background .2s;
-    }
-    #copyBtn:hover { background: var(--success-dark); }
-    #copyBtn.copied { background: #059669; }
+    .result {
+      margin-top: 2rem; padding: 1.5rem; background: white; border-radius: .75rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,.05); position: relative;
+    }
+    .result h3 { margin-bottom: .75rem; color: var(--primary); }
+    .result pre {
+      white-space: pre-wrap; font-family: inherit; line-height: 1.6; margin-bottom: 1rem;
+    }
+    #copyBtn {
+      position: absolute; top: 1rem; right: 1rem; background: var(--success);
+      color: white; padding: .5rem 1rem; border: none; border-radius: .5rem;
+      font-size: .9rem; cursor: pointer; transition: background .2s;
+    }
+    #copyBtn:hover { background: var(--success-dark); }
+    #copyBtn.copied { background: #059669; }
 
-    #proTemplates {
-      margin-top: 2rem; padding: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: .75rem;
-    }
-    .templateBtn {
-      text-align: left;
-      padding: .75rem;
-      background: white;
-      border: 1px solid #d1d5db;
-      border-radius: .5rem;
-      font-size: .9rem;
-      margin-bottom: .5rem;
-      cursor: pointer;
-      color: #111 !important;
-      line-height: 1.4;
-      display: block; /* Ensure buttons take full width */
-    }
-    .templateBtn:hover {
-      background: #f9fafb;
-      color: #111 !important;
-    }
-    
-    /* Template Paging Styles */
-    #templatePaging {
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-    #templatePaging button {
-        width: auto;
-        padding: .5rem 1.2rem;
-        background: #9ca3af; /* Gray for inactive */
-        font-weight: 500;
-        font-size: .9rem;
-    }
-    #templatePaging button.active {
-        background: var(--primary); /* Blue for active */
-        font-weight: 700;
-    }
-    #templatePaging button:hover {
-        background: var(--primary-dark);
-    }
-    /* End Template Paging Styles */
+    #proTemplates {
+      margin-top: 2rem; padding: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: .75rem;
+    }
+    .templateBtn {
+      text-align: left;
+      padding: .75rem;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: .5rem;
+      font-size: .9rem;
+      margin-bottom: .5rem;
+      cursor: pointer;
+      color: #111 !important;
+      line-height: 1.4;
+      display: block; /* Ensure buttons take full width */
+    }
+    .templateBtn:hover {
+      background: #f9fafb;
+      color: #111 !important;
+    }
+    
+    /* Template Paging Styles */
+    #templatePaging {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    #templatePaging button {
+        width: auto;
+        padding: .5rem 1.2rem;
+        background: #9ca3af; /* Gray for inactive */
+        font-weight: 500;
+        font-size: .9rem;
+    }
+    #templatePaging button.active {
+        background: var(--primary); /* Blue for active */
+        font-weight: 700;
+    }
+    #templatePaging button:hover {
+        background: var(--primary-dark);
+    }
+    /* End Template Paging Styles */
 
-    .paywall {
-      margin-top: 2rem; padding: 2rem; background: #fefce8; border-radius: .75rem;
-      text-align: center; border: 2px solid #fde68a;
-    }
-    .paywall h3 { margin-bottom: .5rem; font-size: 1.5rem; }
-    .paywall p { color: #92400e; margin-bottom: 1rem; }
-    .paywall button {
-      background: #16a34a; padding: .75rem 1.5rem; font-size: 1rem;
-      width: auto; display: inline-block;
-    }
-    .paywall button:hover { background: #15803d; }
+    .paywall {
+      margin-top: 2rem; padding: 2rem; background: #fefce8; border-radius: .75rem;
+      text-align: center; border: 2px solid #fde68a;
+    }
+    .paywall h3 { margin-bottom: .5rem; font-size: 1.5rem; }
+    .paywall p { color: #92400e; margin-bottom: 1rem; }
+    .paywall button {
+      background: #16a34a; padding: .75rem 1.5rem; font-size: 1rem;
+      width: auto; display: inline-block;
+    }
+    .paywall button:hover { background: #15803d; }
 
-    .hidden { display: none; }
-    .loading { text-align: center; margin: 1rem 0; color: var(--gray); font-style: italic; }
+    .hidden { display: none; }
+    .loading { text-align: center; margin: 1rem 0; color: var(--gray); font-style: italic; }
 
-    footer {
-      margin-top: 3rem; text-align: center; color: #6b7280; font-size: 0.875rem;
-    }
-    footer a { color: inherit; margin: 0 1rem; text-decoration: underline; }
+    footer {
+      margin-top: 3rem; text-align: center; color: #6b7280; font-size: 0.875rem;
+    }
+    footer a { color: inherit; margin: 0 1rem; text-decoration: underline; }
 
-    /* PRO TEMPLATES GRID */
-    #templateContainer {
-      display: grid;
-      gap: .5rem;
-      font-size: .9rem;
-      margin-top: 1rem;
-    }
-    /* Hide the second page initially */
-    #templatePage2 {
-        display: none;
-    }
+    /* PRO TEMPLATES GRID */
+    #templateContainer {
+      display: grid;
+      gap: .5rem;
+      font-size: .9rem;
+      margin-top: 1rem;
+    }
+    /* Hide the second page initially */
+    #templatePage2 {
+        display: none;
+    }
 
-    @media (max-width: 480px) {
-      h1 { font-size: 1.75rem; }
-      .container { padding: 0 1rem; }
-      #copyBtn { position: static; margin-top: 1rem; width: 100%; }
-      #emojiGrid { grid-template-columns: repeat(5, 1fr); }
-      #emojiPicker { 
-        right: auto;
-        left: 50%;
-        transform: translateX(-50%) translateY(5px);
-      }
-    }
-  </style>
+    @media (max-width: 480px) {
+      h1 { font-size: 1.75rem; }
+      .container { padding: 0 1rem; }
+      #copyBtn { position: static; margin-top: 1rem; width: 100%; }
+      #emojiGrid { grid-template-columns: repeat(5, 1fr); }
+      #emojiPicker { 
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%) translateY(5px);
+      }
+    }
+  </style>
 </head>
 <body>
 
-  <div id="emailModal">
-    <div class="modal-content">
-      <h2>Welcome!</h2>
-      <p>Enter your email to get <strong>3 free generations</strong>.</p>
-      <input type="email" id="emailInput" placeholder="you@example.com" required />
-      <button id="emailSubmit">Start Generating</button>
-    </div>
-  </div>
-
-  <div class="container" id="mainApp" style="display: none;">
-    <h1>AI Caption + Hashtag Generator</h1>
-    <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
-
-    <div class="proof">
-      <strong>Trusted by 50+ creators, solopreneurs, and small businesses</strong>
-    </div>
-
-    <div id="tabContainer">
-        <div id="tabHeader">
-            <button id="generateTabBtn" class="tab-btn active" data-target="generateContent">Generate Content</button>
-            <button id="analyzeTabBtn" class="tab-btn" data-target="analyzeContent">Analyze Competitor (Pro)</button>
-        </div>
-
-        <div id="generateContent" class="tab-content">
-            <form id="captionForm">
-                <label for="idea">Post Idea</label>
-                <input type="text" id="idea" placeholder="e.g. Just launched my coffee shop" required />
-
-                <label for="platform">Platform</label>
-                <select id="platform" required>
-                    <option value="" disabled selected data-placeholder>Choose platform</option>
-                    <option value="Instagram">Instagram</option>
-                    <option value="Twitter">Twitter</option>
-                    <option value="LinkedIn">LinkedIn</option>
-                    <option value="TikTok">TikTok</option>
-                </select>
-
-                <label for="tone">Tone</label>
-                <select id="tone" required>
-                    <option value="" disabled selected data-placeholder>Choose tone</option>
-                    <option value="Professional">Professional</option>
-                    <option value="Fun & Playful">Fun & Playful</option>
-                    <option value="Inspirational">Inspirational</option>
-                    <option value="Bold & Confident">Bold & Confident</option>
-                    <option value="Casual & Friendly">Casual & Friendly</option>
-                </select>
-                
-                <button type="submit" id="generateBtn">Generate Captions</button>
-            </form>
-            
-            <div class="emoji-picker-container">
-              <button type="button" id="emojiPickerBtn">Add Emojis</button>
-              <div id="emojiPicker">
-                <p style="margin-bottom: .75rem; font-weight: 600;">Pick Emojis</p>
-                <div id="emojiGrid"></div>
-                <button id="closePicker">Close</button>
-              </div>
-            </div>
-            
-            <div id="loading" class="loading hidden">Generating magic...</div>
-
-            <div id="result" class="result hidden">
-              <h3>Your AI Captions</h3>
-              <pre id="output"></pre>
-              <button type="button" id="copyBtn">Copy All</button>
-            </div>
-
-            <div id="proTemplates">
-              <h3>The Viral Swipe File: Proven 6-Figure Post Structures</h3>
-              <p style="margin: 1rem 0 .75rem; font-size: .95rem; color: #065f46; line-height: 1.5;">
-                <strong>Steal the exact captions used by 6-figure creators.</strong>  
-                These aren’t random — they’re <em>proven</em> to get 3x more likes, comments, and saves.  
-                Just click, edit, generate. <strong>Instant viral edge.</strong>
-              </p>
-
-              <div id="templateContainer" class="hidden" style="display: none !important;">
-                
-                <div id="templatePage1">
-                    <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">
-                    Just hit [X] followers! Grateful for every one of you ❤️ ✨
-                    </button>
-
-                    <button class="templateBtn" data-text="Behind the scenes of [your idea] Camera Film">
-                    Behind the scenes of [your idea] 📸 🎬
-                    </button>
-
-                    <button class="templateBtn" data-text="Tag a friend who needs this! Hand Point Down">
-                    Tag a friend who needs this! 👇
-                    </button>
-
-                    <button class="templateBtn" data-text="New drop alert! Link in bio Shopping Bag Fire">
-                    New drop alert! Link in bio 🛍️ 🔥
-                    </button>
-
-                    <button class="templateBtn" data-text="Your daily dose of [topic] Coffee Mug Light Bulb">
-                    Your daily dose of [topic] ☕ 💡
-                    </button>
-
-                    <button class="templateBtn" data-text="Reply with YES or NO: [question]? Question Mark Thinking Face">
-                    Reply with YES or NO: [question]? ❓ 🤔
-                    </button>
-
-                    <button class="templateBtn" data-text="Save this for later — you’ll thank me! Bookmark Sparkles">
-                    Save this for later — you’ll thank me! 🔖 ✨
-                    </button>
-
-                    <button class="templateBtn" data-text="Free [resource] in bio! Don’t miss it Gift Rocket">
-                    Free [resource] in bio! Don’t miss it 🎁 🚀
-                    </button>
-
-                    <button class="templateBtn" data-text="Swipe up to see the full story! Hand Point Up Film">
-                    Swipe up to see the full story! 👆 🎬
-                    </button>
-
-                    <button class="templateBtn" data-text="'Changed my [niche] game!' – @username Star Speech Bubble">
-                    "Changed my [niche] game!" – @username ⭐ 💬
-                    </button>
-                </div>
-                
-                <div id="templatePage2">
-                    <button class="templateBtn" data-text="You think [Product] is too expensive? Here's the ROI breakdown. Money Bag Chart Increasing">
-                    You think [Product] is too expensive? Here's the ROI breakdown. 💸 📈
-                    </button>
-                    
-                    <button class="templateBtn" data-text="Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. Crying Face Check Mark">
-                    Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. 😫 ✅
-                    </button>
-                    
-                    <button class="templateBtn" data-text="6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. Thinking Face Light Bulb">
-                    6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. 🤯 💡
-                    </button>
-                    
-                    <button class="templateBtn" data-text="How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. Toolbox Target">
-                    How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. 🛠️ 🎯
-                    </button>
-                    
-                    <button class="templateBtn" data-text="Unpopular opinion: [Common Belief] is completely wrong. Here's why. Speech Bubble Cross Mark">
-                    Unpopular opinion: [Common Belief] is completely wrong. Here's why. 🗣️ ❌
-                    </button>
-                    
-                    <button class="templateBtn" data-text="Get the exact checklist I use to [Goal]! Click the link that says Link Bookmark">
-                    Get the exact checklist I use to [Goal]! Click the link that says "Free Guide." 🔗 🔖
-                    </button>
-                    
-                    <button class="templateBtn" data-text="Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? Smiling Face 100 Score">
-                    Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? 😮 💯
-                    </button>
-                    
-                    <button class="templateBtn" data-text="Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. User Rocket">
-                    Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. 👤 🚀
-                    </button>
-                    
-                    <button class="templateBtn" data-text="My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. Alarm Clock Flexed Biceps">
-                    My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. ⏰ 💪
-                    </button>
-                    
-                    <button class="templateBtn" data-text="[Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. Balance Scale Magnifying Glass">
-                    [Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. ⚖️ 🧐
-                    </button>
-                </div>
-
-                <div id="templatePaging">
-                    <button id="page1Btn" class="active">Page 1</button>
-                    <button id="page2Btn">Page 2</button>
-                </div>
-
-              </div>
-
-              <div id="templateTeaser">
-                <p style="font-size: .9rem; color: #92400e; font-style: italic; margin-top: 1rem;">
-                  <strong>Unlock 20 Viral Swipe File Structures</strong> — only available in <strong>Pro</strong>.
-                </p>
-                <button id="unlockTemplatesBtn" style="
-                  background: #f59e0b; color: white; border: none; padding: .6rem 1.2rem;
-                  border-radius: .5rem; font-size: .9rem; font-weight: 600; cursor: pointer;
-                  margin-top: .5rem;
-                ">Upgrade to Pro</button>
-              </div>
-            </div>
-
-            <div id="paywall" class="paywall hidden">
-              <h3>Upgrade to Pro!</h3>
-              <p>You've used your 3 free generations. <strong>Unlimited + 20 Viral Swipe File Structures</strong> for <strong>$7/month</strong>.</p>
-              <button id="subscribeBtn">Subscribe Now</button>
-            </div>
-            
-        </div>
-        <div id="analyzeContent" class="tab-content hidden">
-            
-            <div id="analysisDescription" style="
-                background: #f0f9ff; 
-                border: 1px solid #bae6fd; 
-                padding: 1.2rem; 
-                border-radius: .75rem; 
-                margin-bottom: 1.5rem;
-                font-size: .95rem;
-                line-height: 1.5;
-                color: #0369a1;
-            ">
-                <h4 style="margin-bottom: .5rem; color: #075985; font-size: 1.1rem;">
-                    **Reverse-Engineer Viral Success** 🔬
-                </h4>
-                Paste *any* competitor's post URL (Instagram, Twitter, etc.) and our AI will **deconstruct their strategy**. 
-                Get an instant **Content Score** and a detailed breakdown of their **hook**, **CTA**, and **hashtag usage**. 
-                This is your competitive edge to go viral faster.
-            </div>
-
-            <div id="analysisPaywall" class="paywall hidden" style="margin-top: 1rem;">
-                <h3>Unlock Analysis!</h3>
-                <p>Content Scoring is an exclusive **Pro** feature. **Unlimited Access** for **$7/month**.</p>
-                <button id="subscribeAnalyzeBtn">Upgrade to Pro</button>
-            </div>
-
-
-            <form id="analyzeForm" class="hidden"> <label for="competitorUrl">Competitor Post URL</label>
-                <input type="url" id="competitorUrl" placeholder="e.g. https://instagram.com/p/B..." required />
-                
-                <button type="submit" id="analyzeBtn">Analyze Post Structure</button>
-            </form>
-
-            <div id="analysisResult" class="analysis-card hidden">
-                <p style="text-align: center; font-size: 1.2rem; font-weight: 600; margin-bottom: 0;">Content Score</p>
-                <div id="analysisScore" class="analysis-score">--</div>
-                
-                <div id="analysisDetails" class="analysis-detail">
-                    </div>
-
-                <button id="analyzeAgainBtn">Analyze Another Post</button>
-            </div>
-            
-        </div>
-        </div>
-    <footer>
-      <a href="/terms.html">Terms</a>
-      <a href="/privacy.html">Privacy</a>
-      <span>© 2025 Caption AI</span>
-    </footer>
-  </div>
-
-  <script>
-    const API_URL = 'https://caption-ai-ze13.onrender.com';
-    const modal = document.getElementById('emailModal');
-    const mainApp = document.getElementById('mainApp');
-    const emailInput = document.getElementById('emailInput');
-    const emailSubmit = document.getElementById('emailSubmit');
-
-    let userEmail = localStorage.getItem('userEmail');
-    let isPro = localStorage.getItem('isPro') === 'true'; // Set default isPro status
-
-    if (!userEmail) {
-      emailSubmit.addEventListener('click', () => {
-        const email = emailInput.value.trim();
-        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          localStorage.setItem('userEmail', email);
-          localStorage.setItem('freeUses', '0');
-          modal.style.display = 'none';
-          mainApp.style.display = 'block';
-          userEmail = email;
-          initApp();
-        } else {
-          emailInput.style.borderColor = '#ef4444';
-          emailInput.focus();
-        }
-      });
-    } else {
-      modal.style.display = 'none';
-      mainApp.style.display = 'block';
-      initApp();
-    }
-
-    function initApp() {
-      const form = document.getElementById('captionForm');
-      const generateBtn = document.getElementById('generateBtn');
-      const loading = document.getElementById('loading');
-      const result = document.getElementById('result');
-      const output = document.getElementById('output');
-      const paywall = document.getElementById('paywall');
-      const subscribeBtn = document.getElementById('subscribeBtn');
-      const copyBtn = document.getElementById('copyBtn');
-      const analysisPaywall = document.getElementById('analysisPaywall');
-      const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
-      const emojiPickerBtn = document.getElementById('emojiPickerBtn');
-
-      let debounceTimer;
-      let isGenerating = false;
-      let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
-
-
-      // === EMOJI MAP ===
-      const emojiMap = {
-        'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
-        'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
-        'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
-        'Flexed Biceps': '💪', 'Airplane': '✈️', 'Book': '📚', 'Dog': '🐶', 'Cat': '🐱',
-        'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
-        'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
-        'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
-        'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💸', 
-        'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
-        'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
-        'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
-        'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😫', 
-        'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
-        'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
-        'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
-        'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
-        'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🛠️', 'Graduation Cap': '🎓',
-        'Bookmark': '🔖', 'Gift': '🎁', 'Hand Point Up': '👆',
-        'Link': '🔗', 'Balance Scale': '⚖️', 'Magnifying Glass': '🧐', 'User': '👤' 
-      };
-
-      // === TAB LOGIC FOR NEW FEATURE ===
-      const generateTabBtn = document.getElementById('generateTabBtn');
-      const analyzeTabBtn = document.getElementById('analyzeTabBtn');
-      const generateContent = document.getElementById('generateContent');
-      const analyzeContent = document.getElementById('analyzeContent');
-      const analyzeForm = document.getElementById('analyzeForm');
-      const competitorUrlInput = document.getElementById('competitorUrl');
-      const analyzeBtn = document.getElementById('analyzeBtn');
-      const analysisResult = document.getElementById('analysisResult');
-      const analyzeAgainBtn = document.getElementById('analyzeAgainBtn'); 
-      const ideaInput = document.getElementById('idea');
-      const platformSelect = document.getElementById('platform');
-      
-      let currentTab = 'generateContent';
-
-      function showTab(tabName) {
-          currentTab = tabName;
-          analysisResult.classList.add('hidden'); // Hide analysis results when switching tabs
-          loading.classList.add('hidden'); // Hide loading indicator
-          result.classList.add('hidden'); // Hide generation result
-          
-          if (tabName === 'generateContent') {
-              generateContent.classList.remove('hidden');
-              analyzeContent.classList.add('hidden');
-              generateTabBtn.classList.add('active');
-              analyzeTabBtn.classList.remove('active');
-              analysisPaywall.classList.add('hidden');
-              
-              if (!isPro && freeUses >= 3) {
-                paywall.classList.remove('hidden');
-              } else {
-                paywall.classList.add('hidden');
-              }
-              // Set button text back to default
-              generateBtn.textContent = 'Generate Captions'; 
-
-
-          } else if (tabName === 'analyzeContent') {
-              generateContent.classList.add('hidden');
-              analyzeContent.classList.remove('hidden');
-              generateTabBtn.classList.remove('active');
-              analyzeTabBtn.classList.add('active');
-              paywall.classList.add('hidden'); // Hide main paywall in analysis tab
-
-              if (!isPro) {
-                analysisPaywall.classList.remove('hidden');
-                analyzeForm.classList.add('hidden');
-                analysisResult.classList.add('hidden'); // Ensure result is hidden if non-pro
-              } else {
-                analysisPaywall.classList.add('hidden');
-                analyzeForm.classList.remove('hidden');
-              }
-          }
-      }
-
-      generateTabBtn.addEventListener('click', () => showTab('generateContent'));
-      analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
-      
-      // Analysis Paywall Subscribe Button now correctly triggers the main subscription logic
-      subscribeAnalyzeBtn.addEventListener('click', async () => {
-        subscribeBtn.click();
-      });
-      
-      // --- Platform Auto-Detection Function ---
-      function detectPlatform(url) {
-          url = url.toLowerCase();
-          if (url.includes('instagram.com')) return 'Instagram';
-          if (url.includes('twitter.com') || url.includes('x.com')) return 'Twitter';
-          if (url.includes('linkedin.com')) return 'LinkedIn';
-          if (url.includes('tiktok.com')) return 'TikTok';
-          return 'Instagram'; // Default fallback
-      }
-      
-      // === DETERMINISTIC SCORE GENERATION FUNCTION ===
-      // A simple, consistent hashing function to ensure the same URL yields the same number.
-      function hashString(str) {
-          let hash = 0;
-          for (let i = 0; i < str.length; i++) {
-              const char = str.charCodeAt(i);
-              hash = ((hash << 5) - hash) + char;
-              hash |= 0; // Convert to 32bit integer
-          }
-          return Math.abs(hash);
-      }
-      
-      // Function to generate score and mock analysis details deterministically
-      function generateDeterministicScore(url) {
-          const uniqueSeed = hashString(url.toLowerCase().trim());
-          
-          // Map the unique seed to a score between 65 and 99
-          const score = (uniqueSeed % 35) + 65; // Ensures score is between 65 and 99 (35 possible scores)
-          
-          // Determine quality tiers based on the consistent score
-          const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
-          
-          let hook, readability, hashtags, cta;
-
-          if (quality === 'High') {
-              hook = 'High urgency, clear value proposition. 🔥';
-              readability = 'Excellent use of line breaks (4 lines/paragraph). ✅';
-              hashtags = 'Highly relevant, 90% niche-specific. 🎯';
-              cta = 'Clear call-to-action to save and comment. 💬';
-          } else if (quality === 'Medium') {
-              hook = 'Decent hook, could be more specific and engaging. 👍';
-              readability = 'Good structure, but a few blocks are too dense. ⚠️';
-              hashtags = 'Mix of niche and broad tags (50/50). 💡';
-              cta = 'General CTA, needs more direction. ❓';
-          } else { // Low
-              hook = 'Vague hook, lacks clear value proposition. 👎';
-              readability = 'Dense wall of text, poor line break usage. ❌';
-              hashtags = 'Too generic, mostly use broad tags. 💡';
-              cta = 'No clear CTA, relying on vague engagement. ❓';
-          }
-
-          return { score, hook, readability, hashtags, cta };
-      }
-
-      // Updated Analysis Logic
-      analyzeForm.addEventListener('submit', (e) => {
-          e.preventDefault();
-          if (!isPro) return;
-          
-          loading.classList.remove('hidden');
-          analysisResult.classList.add('hidden');
-          
-          const url = competitorUrlInput.value.trim();
-          const platform = detectPlatform(url); // Auto-detect the platform
-          
-          // --- DETERMINISTIC AI ANALYSIS ---
-          setTimeout(() => {
-              loading.classList.add('hidden');
-              
-              const analysisData = generateDeterministicScore(url);
-              
-              // Display results
-              document.getElementById('analysisScore').textContent = analysisData.score;
-              document.getElementById('analysisDetails').innerHTML = `
-                  <p><strong>Platform Detected:</strong> ${platform}</p>
-                  <p><strong>Hook Score:</strong> ${analysisData.hook}</p>
-                  <p><strong>Readability:</strong> ${analysisData.readability}</p>
-                  <p><strong>Hashtags:</strong> ${analysisData.hashtags}</p>
-                  <p><strong>Core CTA:</strong> ${analysisData.cta}</p>
-              `;
-              
-              analysisResult.classList.remove('hidden');
-          }, 1500); // Simulate network latency
-      });
-      
-      // NEW: Analyze Again button listener (Simple clear function)
-      analyzeAgainBtn.addEventListener('click', () => {
-          competitorUrlInput.value = '';
-          analysisResult.classList.add('hidden');
-          competitorUrlInput.focus();
-          // Optionally clear analysis details for a clean slate
-          document.getElementById('analysisDetails').innerHTML = ''; 
-      });
-
-      // === PRO TEMPLATES PAGINATION LOGIC ===
-      const templateContainer = document.getElementById('templateContainer');
-      const templateTeaser = document.getElementById('templateTeaser');
-      const page1 = document.getElementById('templatePage1');
-      const page2 = document.getElementById('templatePage2');
-      const page1Btn = document.getElementById('page1Btn');
-      const page2Btn = document.getElementById('page2Btn');
-      
-      function showPage(pageNumber) {
-          if (pageNumber === 1) {
-              page1.style.display = 'grid';
-              page2.style.display = 'none';
-              page1Btn.classList.add('active');
-              page2Btn.classList.remove('active');
-          } else if (pageNumber === 2) {
-              page1.style.display = 'none';
-              page2.style.display = 'grid';
-              page1Btn.classList.remove('active');
-              page2Btn.classList.add('active');
-          }
-      }
-
-      if (isPro) {
-        templateContainer.classList.remove('hidden');
-        templateContainer.style.display = 'block'; 
-        templateTeaser.style.display = 'none';
-        showPage(1); 
-
-        page1Btn.addEventListener('click', () => showPage(1));
-        page2Btn.addEventListener('click', () => showPage(2));
-
-        document.querySelectorAll('.templateBtn').forEach(btn => {
-          const raw = btn.getAttribute('data-text');
-          
-          const processTemplateText = (text) => {
-              text = text.replace('Camera Film', emojiMap['Camera'] + ' ' + emojiMap['Film']);
-              text = text.replace('Coffee Mug Light Bulb', emojiMap['Coffee Mug'] + ' ' + emojiMap['Light Bulb']);
-              text = text.replace('Question Mark Thinking Face', emojiMap['Question Mark'] + ' ' + emojiMap['Thinking Face']);
-              text = text.replace('Bookmark Sparkles', emojiMap['Bookmark'] + ' ' + emojiMap['Sparkles']);
-              text = text.replace('Gift Rocket', emojiMap['Gift'] + ' ' + emojiMap['Rocket']);
-              text = text.replace('Hand Point Up Film', emojiMap['Hand Point Up'] + ' ' + emojiMap['Film']);
-              text = text.replace('Star Speech Bubble', emojiMap['Star'] + ' ' + emojiMap['Speech Bubble']);
-              text = text.replace('Money Bag Chart Increasing', emojiMap['Money Bag'] + ' ' + emojiMap['Chart Increasing']);
-              text = text.replace('Crying Face Check Mark', emojiMap['Crying Face'] + ' ' + emojiMap['Check Mark']);
-              text = text.replace('Thinking Face Light Bulb', emojiMap['Thinking Face'] + ' ' + emojiMap['Light Bulb']);
-              text = text.replace('Toolbox Target', emojiMap['Toolbox'] + ' ' + emojiMap['Target']);
-              text = text.replace('Speech Bubble Cross Mark', emojiMap['Speech Bubble'] + ' ' + emojiMap['Cross Mark']);
-              text = text.replace('Link Bookmark', emojiMap['Link'] + ' ' + emojiMap['Bookmark']);
-              text = text.replace('Smiling Face 100 Score', emojiMap['Smiling Face'] + ' ' + emojiMap['100 Score']);
-              text = text.replace('User Rocket', emojiMap['User'] + ' ' + emojiMap['Rocket']);
-              text = text.replace('Alarm Clock Flexed Biceps', emojiMap['Alarm Clock'] + ' ' + emojiMap['Flexed Biceps']);
-              text = text.replace('Balance Scale Magnifying Glass', emojiMap['Balance Scale'] + ' ' + emojiMap['Magnifying Glass']);
-
-
-              text = text.replace('Heart', emojiMap['Heart']);
-              text = text.replace('Sparkles', emojiMap['Sparkles']);
-              text = text.replace('Hand Point Down', emojiMap['Hand Point Down']);
-              text = text.replace('Shopping Bag', emojiMap['Shopping Bag']);
-              text = text.replace('Fire', emojiMap['Fire']);
-              text = text.replace('Light Bulb', emojiMap['Light Bulb']);
-              text = text.replace('Film', emojiMap['Film']); 
-              text = text.replace('Camera', emojiMap['Camera']); 
-              text = text.replace('Gift snake', emojiMap['Gift']); 
-
-              return text.replace(/\[\w+\]/g, (match) => match); 
-          };
-
-          const renderedText = processTemplateText(raw);
-          
-          btn.addEventListener('click', () => {
-            document.getElementById('idea').value = renderedText;
-            document.getElementById('idea').focus();
-            showTab('generateContent'); // Ensure we are on the correct tab after clicking a template
-          });
-        });
-      } else {
-        templateContainer.style.display = 'none';
-        templateTeaser.style.display = 'block';
-      }
-      
-      // Ensure correct tab visibility on load
-      showTab(currentTab); 
-
-      document.getElementById('unlockTemplatesBtn').addEventListener('click', () => {
-        paywall.classList.remove('hidden');
-        paywall.scrollIntoView({ behavior: 'smooth' });
-      });
-
-      // === SUBSCRIBE BUTTON ===
-      subscribeBtn.addEventListener('click', async () => {
-        try {
-          const res = await fetch(`${API_URL}/create-checkout-session`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: userEmail })
-          });
-          const { url } = await res.json();
-          window.location.href = url;
-        } catch (err) {
-          alert('Checkout failed. Please try again.');
-        }
-      });
-
-      // === EMOJI PICKER ===
-      const emojiBtn = document.getElementById('emojiPickerBtn');
-      const picker = document.getElementById('emojiPicker');
-      const grid = document.getElementById('emojiGrid');
-      const closePicker = document.getElementById('closePicker');
-
-      const commonEmojis = Object.keys(emojiMap).filter(k => !['Coffee Mug', 'Hand Wave'].includes(k));
-      grid.innerHTML = '';
-      commonEmojis.forEach(name => {
-        const btn = document.createElement('button');
-        btn.textContent = emojiMap[name];
-        btn.title = name;
-        btn.addEventListener('click', () => {
-          document.getElementById('idea').value += ' ' + emojiMap[name];
-          document.getElementById('idea').focus();
-        });
-        grid.appendChild(btn);
-      });
-
-      emojiBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
-      });
-
-      closePicker.addEventListener('click', () => picker.style.display = 'none');
-
-      document.addEventListener('click', (e) => {
-        if (!picker.contains(e.target) && e.target !== emojiBtn) {
-          picker.style.display = 'none';
-        }
-      });
-
-      // === GENERATION LOGIC (Reverted to 5 Captions) ===
-      const inputs = ['idea', 'platform', 'tone'];
-      inputs.forEach(id => {
-        document.getElementById(id).addEventListener('input', () => {
-          clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(tryGenerate, 800);
-        });
-      });
-
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        clearTimeout(debounceTimer);
-        tryGenerate(true);
-      });
-
-      async function tryGenerate(forceFull = false) {
-        if (isGenerating || !userEmail) return; 
-
-        const idea = document.getElementById('idea').value.trim();
-        const platform = document.getElementById('platform').value;
-        const tone = document.getElementById('tone').value;
-
-        if (!idea || !platform || !tone) {
-          result.classList.add('hidden');
-          paywall.classList.add('hidden');
-          return;
-        }
-
-        if (!isPro && freeUses >= 3) {
-          paywall.classList.remove('hidden');
-          result.classList.add('hidden');
-          return;
-        }
-
-        isGenerating = true;
-        loading.classList.remove('hidden');
-        result.classList.add('hidden');
-        paywall.classList.add('hidden');
-        generateBtn.disabled = true;
-        generateBtn.textContent = 'Generating Captions...'; // Revert button text
-
-        try {
-          // ***
-          // NOTE: API call and mock logic is reverted to generate only 5 captions
-          // ***
-          
-          await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
-
-          let generatedOutput = '';
-
-          // Reverted to FREE Standard 5 Caption Generation (same output for both Pro/Free in mock)
-          generatedOutput = `
-            ## Captions
-            1. "Try this ${tone} approach to your ${idea} ${emojiMap['Light Bulb']}"
-            2. "The one thing you must know about ${idea} ${emojiMap['Thinking Face']}"
-            3. "Looking for the best way to handle ${idea}? Here it is! ${emojiMap['Check Mark']}"
-            4. "Don't miss this crucial update on ${idea} ${emojiMap['Megaphone']}"
-            5. "If you like ${idea}, save this post ${emojiMap['Bookmark']}"
-
-            ## Hashtags
-            #${platform}Tips #${tone}Vibes #SmallBusinessSuccess #ContentCreator ${emojiMap['Sparkles']}
-          `.trim();
-
-          if (!isPro) {
-            freeUses++;
-            localStorage.setItem('freeUses', freeUses.toString());
-          }
-          
-          output.textContent = generatedOutput;
-          result.classList.remove('hidden');
-          paywall.classList.add('hidden');
-          copyBtn.classList.remove('copied');
-          copyBtn.textContent = 'Copy All';
-
-        } catch (err) {
-          if (forceFull) {
-            const fallback = `## Captions\n1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"\n2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love ${emojiMap['Leaf']}"\n5. "Come say hi! ${emojiMap['Hand Wave']}"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
-            output.textContent = fallback;
-            result.classList.remove('hidden');
-            if (!isPro) {
-              freeUses++;
-              localStorage.setItem('freeUses', freeUses.toString());
-            }
-          }
-        } finally {
-          loading.classList.add('hidden');
-          generateBtn.disabled = false;
-          generateBtn.textContent = 'Generate Captions'; // Final reset button text
-          isGenerating = false;
-          
-          if (!isPro && freeUses >= 3 && currentTab === 'generateContent') {
-              paywall.classList.remove('hidden');
-              form.querySelector('button[type="submit"]').disabled = true;
-          }
-        }
-      }
-
-      copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(output.textContent).then(() => {
-          copyBtn.textContent = 'Copied!';
-          copyBtn.classList.add('copied');
-          setTimeout(() => {
-            copyBtn.textContent = 'Copy All';
-            copyBtn.classList.remove('copied');
-          }, 2000);
-        });
-      });
-
-      // === SUCCESS URL HANDLING (Reverted alert text) ===
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('success') === 'true') {
-        localStorage.setItem('isPro', 'true');
-        isPro = true; // Update local variable
-        paywall.classList.add('hidden');
-        analysisPaywall.classList.add('hidden');
-        analyzeForm.classList.remove('hidden'); // Show the form now that they are Pro
-        form.querySelector('button[type="submit"]').disabled = false;
-        alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.'); // Revert alert text
-        window.history.replaceState({}, document.title, window.location.pathname);
-        location.reload();
-      }
-
-      if (isPro) {
-        paywall.classList.add('hidden');
-        analysisPaywall.classList.add('hidden');
-        analyzeForm.classList.remove('hidden');
-        form.querySelector('button[type="submit"]').disabled = false;
-      }
-    }
-  </script>
+  <div id="emailModal">
+    <div class="modal-content">
+      <h2>Welcome!</h2>
+      <p>Enter your email to get <strong>3 free generations</strong>.</p>
+      <input type="email" id="emailInput" placeholder="you@example.com" required />
+      <button id="emailSubmit">Start Generating</button>
+    </div>
+  </div>
+
+  <div class="container" id="mainApp" style="display: none;">
+    <h1>AI Caption + Hashtag Generator</h1>
+    <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
+
+    <div class="proof">
+      <strong>Trusted by 50+ creators, solopreneurs, and small businesses</strong>
+    </div>
+
+    <div id="tabContainer">
+        <div id="tabHeader">
+            <button id="generateTabBtn" class="tab-btn active" data-target="generateContent">Generate Content</button>
+            <button id="analyzeTabBtn" class="tab-btn" data-target="analyzeContent">Analyze Competitor (Pro)</button>
+        </div>
+
+        <div id="generateContent" class="tab-content">
+            <form id="captionForm">
+                <label for="idea">Post Idea</label>
+                <input type="text" id="idea" placeholder="e.g. Just launched my coffee shop" required />
+
+                <label for="platform">Platform</label>
+                <select id="platform" required>
+                    <option value="" disabled selected data-placeholder>Choose platform</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="Twitter">Twitter</option>
+                    <option value="LinkedIn">LinkedIn</option>
+                    <option value="TikTok">TikTok</option>
+                </select>
+
+                <label for="tone">Tone</label>
+                <select id="tone" required>
+                    <option value="" disabled selected data-placeholder>Choose tone</option>
+                    <option value="Professional">Professional</option>
+                    <option value="Fun & Playful">Fun & Playful</option>
+                    <option value="Inspirational">Inspirational</option>
+                    <option value="Bold & Confident">Bold & Confident</option>
+                    <option value="Casual & Friendly">Casual & Friendly</option>
+                </select>
+                
+                <button type="submit" id="generateBtn">Generate Captions</button>
+            </form>
+            
+            <div class="emoji-picker-container">
+              <button type="button" id="emojiPickerBtn">Add Emojis</button>
+              <div id="emojiPicker">
+                <p style="margin-bottom: .75rem; font-weight: 600;">Pick Emojis</p>
+                <div id="emojiGrid"></div>
+                <button id="closePicker">Close</button>
+              </div>
+            </div>
+            
+            <div id="loading" class="loading hidden">Generating magic...</div>
+
+            <div id="result" class="result hidden">
+              <h3>Your AI Captions</h3>
+              <pre id="output"></pre>
+              <button type="button" id="copyBtn">Copy All</button>
+            </div>
+
+            <div id="proTemplates">
+              <h3>The Viral Swipe File: Proven 6-Figure Post Structures</h3>
+              <p style="margin: 1rem 0 .75rem; font-size: .95rem; color: #065f46; line-height: 1.5;">
+                <strong>Steal the exact captions used by 6-figure creators.</strong>  
+                These aren’t random — they’re <em>proven</em> to get 3x more likes, comments, and saves.  
+                Just click, edit, generate. <strong>Instant viral edge.</strong>
+              </p>
+
+              <div id="templateContainer" class="hidden" style="display: none !important;">
+                
+                <div id="templatePage1">
+                    <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">
+                    Just hit [X] followers! Grateful for every one of you ❤️ ✨
+                    </button>
+
+                    <button class="templateBtn" data-text="Behind the scenes of [your idea] Camera Film">
+                    Behind the scenes of [your idea] 📸 🎬
+                    </button>
+
+                    <button class="templateBtn" data-text="Tag a friend who needs this! Hand Point Down">
+                    Tag a friend who needs this! 👇
+                    </button>
+
+                    <button class="templateBtn" data-text="New drop alert! Link in bio Shopping Bag Fire">
+                    New drop alert! Link in bio 🛍️ 🔥
+                    </button>
+
+                    <button class="templateBtn" data-text="Your daily dose of [topic] Coffee Mug Light Bulb">
+                    Your daily dose of [topic] ☕ 💡
+                    </button>
+
+                    <button class="templateBtn" data-text="Reply with YES or NO: [question]? Question Mark Thinking Face">
+                    Reply with YES or NO: [question]? ❓ 🤔
+                    </button>
+
+                    <button class="templateBtn" data-text="Save this for later — you’ll thank me! Bookmark Sparkles">
+                    Save this for later — you’ll thank me! 🔖 ✨
+                    </button>
+
+                    <button class="templateBtn" data-text="Free [resource] in bio! Don’t miss it Gift Rocket">
+                    Free [resource] in bio! Don’t miss it 🎁 🚀
+                    </button>
+
+                    <button class="templateBtn" data-text="Swipe up to see the full story! Hand Point Up Film">
+                    Swipe up to see the full story! 👆 🎬
+                    </button>
+
+                    <button class="templateBtn" data-text="'Changed my [niche] game!' – @username Star Speech Bubble">
+                    "Changed my [niche] game!" – @username ⭐ 💬
+                    </button>
+                </div>
+                
+                <div id="templatePage2">
+                    <button class="templateBtn" data-text="You think [Product] is too expensive? Here's the ROI breakdown. Money Bag Chart Increasing">
+                    You think [Product] is too expensive? Here's the ROI breakdown. 💸 📈
+                    </button>
+                    
+                    <button class="templateBtn" data-text="Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. Crying Face Check Mark">
+                    Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. 😫 ✅
+                    </button>
+                    
+                    <button class="templateBtn" data-text="6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. Thinking Face Light Bulb">
+                    6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. 🤯 💡
+                    </button>
+                    
+                    <button class="templateBtn" data-text="How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. Toolbox Target">
+                    How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. 🛠️ 🎯
+                    </button>
+                    
+                    <button class="templateBtn" data-text="Unpopular opinion: [Common Belief] is completely wrong. Here's why. Speech Bubble Cross Mark">
+                    Unpopular opinion: [Common Belief] is completely wrong. Here's why. 🗣️ ❌
+                    </button>
+                    
+                    <button class="templateBtn" data-text="Get the exact checklist I use to [Goal]! Click the link that says Link Bookmark">
+                    Get the exact checklist I use to [Goal]! Click the link that says "Free Guide." 🔗 🔖
+                    </button>
+                    
+                    <button class="templateBtn" data-text="Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? Smiling Face 100 Score">
+                    Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? 😮 💯
+                    </button>
+                    
+                    <button class="templateBtn" data-text="Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. User Rocket">
+                    Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. 👤 🚀
+                    </button>
+                    
+                    <button class="templateBtn" data-text="My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. Alarm Clock Flexed Biceps">
+                    My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. ⏰ 💪
+                    </button>
+                    
+                    <button class="templateBtn" data-text="[Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. Balance Scale Magnifying Glass">
+                    [Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. ⚖️ 🧐
+                    </button>
+                </div>
+
+                <div id="templatePaging">
+                    <button id="page1Btn" class="active">Page 1</button>
+                    <button id="page2Btn">Page 2</button>
+                </div>
+
+              </div>
+
+              <div id="templateTeaser">
+                <p style="font-size: .9rem; color: #92400e; font-style: italic; margin-top: 1rem;">
+                  <strong>Unlock 20 Viral Swipe File Structures</strong> — only available in <strong>Pro</strong>.
+                </p>
+                <button id="unlockTemplatesBtn" style="
+                  background: #f59e0b; color: white; border: none; padding: .6rem 1.2rem;
+                  border-radius: .5rem; font-size: .9rem; font-weight: 600; cursor: pointer;
+                  margin-top: .5rem;
+                ">Upgrade to Pro</button>
+              </div>
+            </div>
+
+            <div id="paywall" class="paywall hidden">
+              <h3>Upgrade to Pro!</h3>
+              <p>You've used your 3 free generations. <strong>Unlimited + 20 Viral Swipe File Structures</strong> for <strong>$7/month</strong>.</p>
+              <button id="subscribeBtn">Subscribe Now</button>
+            </div>
+            
+        </div>
+        <div id="analyzeContent" class="tab-content hidden">
+            
+            <div id="analysisDescription" style="
+                background: #f0f9ff; 
+                border: 1px solid #bae6fd; 
+                padding: 1.2rem; 
+                border-radius: .75rem; 
+                margin-bottom: 1.5rem;
+                font-size: .95rem;
+                line-height: 1.5;
+                color: #0369a1;
+            ">
+                <h4 style="margin-bottom: .5rem; color: #075985; font-size: 1.1rem;">
+                    **Reverse-Engineer Viral Success** 🔬
+                </h4>
+                Paste *any* competitor's post URL (Instagram, Twitter, etc.) and our AI will **deconstruct their strategy**. 
+                Get an instant **Content Score** and a detailed breakdown of their **hook**, **CTA**, and **hashtag usage**. 
+                This is your competitive edge to go viral faster.
+            </div>
+
+            <div id="analysisPaywall" class="paywall hidden" style="margin-top: 1rem;">
+                <h3>Unlock Analysis!</h3>
+                <p>Content Scoring is an exclusive **Pro** feature. **Unlimited Access** for **$7/month**.</p>
+                <button id="subscribeAnalyzeBtn">Upgrade to Pro</button>
+            </div>
+
+
+            <form id="analyzeForm" class="hidden"> <label for="competitorUrl">Competitor Post URL</label>
+                <input type="url" id="competitorUrl" placeholder="e.g. https://instagram.com/p/B..." required />
+                
+                <button type="submit" id="analyzeBtn">Analyze Post Structure</button>
+            </form>
+
+            <div id="analysisResult" class="analysis-card hidden">
+                <p style="text-align: center; font-size: 1.2rem; font-weight: 600; margin-bottom: 0;">Content Score</p>
+                <div id="analysisScore" class="analysis-score">--</div>
+                
+                <div id="analysisDetails" class="analysis-detail">
+                    </div>
+
+                <button id="analyzeAgainBtn">Analyze Another Post</button>
+            </div>
+            
+        </div>
+        </div>
+    <footer>
+      <a href="/terms.html">Terms</a>
+      <a href="/privacy.html">Privacy</a>
+      <span>© 2025 Caption AI</span>
+    </footer>
+  </div>
+
+  <script>
+    const API_URL = 'https://caption-ai-ze13.onrender.com';
+    const modal = document.getElementById('emailModal');
+    const mainApp = document.getElementById('mainApp');
+    const emailInput = document.getElementById('emailInput');
+    const emailSubmit = document.getElementById('emailSubmit');
+
+    let userEmail = localStorage.getItem('userEmail');
+    let isPro = localStorage.getItem('isPro') === 'true'; // Set default isPro status
+
+    if (!userEmail) {
+      emailSubmit.addEventListener('click', () => {
+        const email = emailInput.value.trim();
+        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          localStorage.setItem('userEmail', email);
+          localStorage.setItem('freeUses', '0');
+          modal.style.display = 'none';
+          mainApp.style.display = 'block';
+          userEmail = email;
+          initApp();
+        } else {
+          emailInput.style.borderColor = '#ef4444';
+          emailInput.focus();
+        }
+      });
+    } else {
+      modal.style.display = 'none';
+      mainApp.style.display = 'block';
+      initApp();
+    }
+
+    function initApp() {
+      const form = document.getElementById('captionForm');
+      const generateBtn = document.getElementById('generateBtn');
+      const loading = document.getElementById('loading');
+      const result = document.getElementById('result');
+      const output = document.getElementById('output');
+      const paywall = document.getElementById('paywall');
+      const subscribeBtn = document.getElementById('subscribeBtn');
+      const copyBtn = document.getElementById('copyBtn');
+      const analysisPaywall = document.getElementById('analysisPaywall');
+      const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
+      const emojiPickerBtn = document.getElementById('emojiPickerBtn');
+
+      let debounceTimer;
+      let isGenerating = false;
+      let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
+
+
+      // === EMOJI MAP ===
+      const emojiMap = {
+        'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
+        'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
+        'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
+        'Flexed Biceps': '💪', 'Airplane': '✈️', 'Book': '📚', 'Dog': '🐶', 'Cat': '🐱',
+        'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
+        'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
+        'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
+        'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💸', 
+        'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
+        'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
+        'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
+        'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😫', 
+        'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
+        'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
+        'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
+        'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
+        'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🛠️', 'Graduation Cap': '🎓',
+        'Bookmark': '🔖', 'Gift': '🎁', 'Hand Point Up': '👆',
+        'Link': '🔗', 'Balance Scale': '⚖️', 'Magnifying Glass': '🧐', 'User': '👤' 
+      };
+
+      // === TAB LOGIC FOR NEW FEATURE ===
+      const generateTabBtn = document.getElementById('generateTabBtn');
+      const analyzeTabBtn = document.getElementById('analyzeTabBtn');
+      const generateContent = document.getElementById('generateContent');
+      const analyzeContent = document.getElementById('analyzeContent');
+      const analyzeForm = document.getElementById('analyzeForm');
+      const competitorUrlInput = document.getElementById('competitorUrl');
+      const analyzeBtn = document.getElementById('analyzeBtn');
+      const analysisResult = document.getElementById('analysisResult');
+      const analyzeAgainBtn = document.getElementById('analyzeAgainBtn'); 
+      const ideaInput = document.getElementById('idea');
+      const platformSelect = document.getElementById('platform');
+      
+      let currentTab = 'generateContent';
+
+      function showTab(tabName) {
+          currentTab = tabName;
+          analysisResult.classList.add('hidden'); // Hide analysis results when switching tabs
+          loading.classList.add('hidden'); // Hide loading indicator
+          result.classList.add('hidden'); // Hide generation result
+          
+          if (tabName === 'generateContent') {
+              generateContent.classList.remove('hidden');
+              analyzeContent.classList.add('hidden');
+              generateTabBtn.classList.add('active');
+              analyzeTabBtn.classList.remove('active');
+              analysisPaywall.classList.add('hidden');
+              
+              if (!isPro && freeUses >= 3) {
+                paywall.classList.remove('hidden');
+              } else {
+                paywall.classList.add('hidden');
+              }
+
+          } else if (tabName === 'analyzeContent') {
+              generateContent.classList.add('hidden');
+              analyzeContent.classList.remove('hidden');
+              generateTabBtn.classList.remove('active');
+              analyzeTabBtn.classList.add('active');
+              paywall.classList.add('hidden'); // Hide main paywall in analysis tab
+
+              if (!isPro) {
+                analysisPaywall.classList.remove('hidden');
+                analyzeForm.classList.add('hidden');
+                analysisResult.classList.add('hidden'); // Ensure result is hidden if non-pro
+              } else {
+                analysisPaywall.classList.add('hidden');
+                analyzeForm.classList.remove('hidden');
+              }
+          }
+      }
+
+      generateTabBtn.addEventListener('click', () => showTab('generateContent'));
+      analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
+      
+      // Analysis Paywall Subscribe Button now correctly triggers the main subscription logic
+      subscribeAnalyzeBtn.addEventListener('click', async () => {
+        subscribeBtn.click();
+      });
+      
+      // --- Platform Auto-Detection Function ---
+      function detectPlatform(url) {
+          url = url.toLowerCase();
+          if (url.includes('instagram.com')) return 'Instagram';
+          if (url.includes('twitter.com') || url.includes('x.com')) return 'Twitter';
+          if (url.includes('linkedin.com')) return 'LinkedIn';
+          if (url.includes('tiktok.com')) return 'TikTok';
+          return 'Instagram'; // Default fallback
+      }
+      
+      // === DETERMINISTIC SCORE GENERATION FUNCTION ===
+      // A simple, consistent hashing function to ensure the same URL yields the same number.
+      function hashString(str) {
+          let hash = 0;
+          for (let i = 0; i < str.length; i++) {
+              const char = str.charCodeAt(i);
+              hash = ((hash << 5) - hash) + char;
+              hash |= 0; // Convert to 32bit integer
+          }
+          return Math.abs(hash);
+      }
+      
+      // Function to generate score and mock analysis details deterministically
+      function generateDeterministicScore(url) {
+          const uniqueSeed = hashString(url.toLowerCase().trim());
+          
+          // Map the unique seed to a score between 65 and 99
+          const score = (uniqueSeed % 35) + 65; // Ensures score is between 65 and 99 (35 possible scores)
+          
+          // Determine quality tiers based on the consistent score
+          const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
+          
+          let hook, readability, hashtags, cta;
+
+          if (quality === 'High') {
+              hook = 'High urgency, clear value proposition. 🔥';
+              readability = 'Excellent use of line breaks (4 lines/paragraph). ✅';
+              hashtags = 'Highly relevant, 90% niche-specific. 🎯';
+              cta = 'Clear call-to-action to save and comment. 💬';
+          } else if (quality === 'Medium') {
+              hook = 'Decent hook, could be more specific and engaging. 👍';
+              readability = 'Good structure, but a few blocks are too dense. ⚠️';
+              hashtags = 'Mix of niche and broad tags (50/50). 💡';
+              cta = 'General CTA, needs more direction. ❓';
+          } else { // Low
+              hook = 'Vague hook, lacks clear value proposition. 👎';
+              readability = 'Dense wall of text, poor line break usage. ❌';
+              hashtags = 'Too generic, mostly use broad tags. 💡';
+              cta = 'No clear CTA, relying on vague engagement. ❓';
+          }
+
+          return { score, hook, readability, hashtags, cta };
+      }
+
+      // Updated Analysis Logic
+      analyzeForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          if (!isPro) return;
+          
+          loading.classList.remove('hidden');
+          analysisResult.classList.add('hidden');
+          
+          const url = competitorUrlInput.value.trim();
+          const platform = detectPlatform(url); // Auto-detect the platform
+          
+          // --- DETERMINISTIC AI ANALYSIS ---
+          setTimeout(() => {
+              loading.classList.add('hidden');
+              
+              const analysisData = generateDeterministicScore(url);
+              
+              // Display results
+              document.getElementById('analysisScore').textContent = analysisData.score;
+              document.getElementById('analysisDetails').innerHTML = `
+                  <p><strong>Platform Detected:</strong> ${platform}</p>
+                  <p><strong>Hook Score:</strong> ${analysisData.hook}</p>
+                  <p><strong>Readability:</strong> ${analysisData.readability}</p>
+                  <p><strong>Hashtag Usage:</strong> ${analysisData.hashtags}</p>
+                  <p><strong>Call to Action:</strong> ${analysisData.cta}</p>
+              `;
+              
+              analysisResult.classList.remove('hidden');
+              analyzeForm.classList.add('hidden');
+          }, 1500); // Simulate API call delay
+      });
+      
+      // Analyze Again button
+      analyzeAgainBtn.addEventListener('click', () => {
+          analysisResult.classList.add('hidden');
+          analyzeForm.classList.remove('hidden');
+          competitorUrlInput.value = '';
+          competitorUrlInput.focus();
+      });
+      
+      // Ensure correct tab is shown on initialization
+      showTab(currentTab);
+
+
+      // === FORM SUBMISSION LOGIC ===
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (isGenerating) return;
+        
+        // Check free usage limit
+        if (!isPro && freeUses >= 3) {
+          paywall.classList.remove('hidden');
+          generateBtn.disabled = true;
+          return;
+        }
+
+        isGenerating = true;
+        generateBtn.disabled = true;
+        loading.classList.remove('hidden');
+        result.classList.add('hidden');
+
+        const idea = document.getElementById('idea').value;
+        const platform = document.getElementById('platform').value;
+        const tone = document.getElementById('tone').value;
+
+        try {
+          // Simulate API call
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Mock generation logic
+          const mockCaptions = generateMockCaptions(idea, platform, tone);
+          output.textContent = mockCaptions;
+
+          result.classList.remove('hidden');
+          
+          if (!isPro) {
+            freeUses++;
+            localStorage.setItem('freeUses', freeUses.toString());
+            if (freeUses >= 3) {
+              paywall.classList.remove('hidden');
+              generateBtn.disabled = true;
+            }
+          }
+        } catch (error) {
+          console.error('Generation error:', error);
+          alert('Failed to generate captions. Please try again.');
+        } finally {
+          isGenerating = false;
+          loading.classList.add('hidden');
+          if (!paywall.classList.contains('hidden')) {
+            generateBtn.disabled = true;
+          } else {
+            generateBtn.disabled = false;
+          }
+        }
+      });
+      
+      // Mock Generation Function
+      function generateMockCaptions(idea, platform, tone) {
+          const baseHashtags = [
+            '#socialmediamarketing', '#contentcreator', '#entrepreneur', '#smallbusiness',
+            '#digitalmarketing', '#viral', '#growthhacks', '#inspiration'
+          ];
+          const nicheHashtags = idea.split(' ').map(word => '#' + word.toLowerCase().replace(/[^a-z0-9]/g, '')).filter(tag => tag.length > 1);
+          const finalHashtags = [...new Set([...baseHashtags.slice(0, 5), ...nicheHashtags.slice(0, 5)])].slice(0, 8); // Max 8 unique tags
+
+          const platformSpecificText = {
+            'Instagram': 'Double Tap if you agree!',
+            'Twitter': 'Retweet if this hits home!',
+            'LinkedIn': 'Thoughts? Let\'s discuss in the comments.',
+            'TikTok': 'Hit the + button for more like this!'
+          };
+
+          const toneTemplates = {
+            'Professional': `
+            **Caption 1 (The Authority)**
+            Analyzing the impact of "${idea}" on modern ${platform} strategy. The key takeaway is: innovation drives engagement. What's your top strategy for ${idea}?
+            ${platformSpecificText[platform]}
+
+            **Caption 2 (The Insight)**
+            Data reveals that a focus on "${idea}" yields a 20% increase in lead conversion. Optimize your approach.
+            Link in bio for the full report.
+            `,
+            'Fun & Playful': `
+            **Caption 1 (The Hook)**
+            Obsessed is an understatement. This whole "${idea}" thing? Total game-changer. I mean, seriously. 🤯
+            What's one thing you're obsessed with right now? 👇
+            
+            **Caption 2 (The Vibe)**
+            Good vibes only when I'm working on ${idea}. Let the weekend begin! Who else feels this way? ✨
+            ${platformSpecificText[platform]}
+            `,
+            'Inspirational': `
+            **Caption 1 (The Vision)**
+            Remember why you started. Every great journey begins with a single step, like tackling "${idea}". Keep pushing. 🚀
+            What keeps you going?
+            
+            **Caption 2 (The Mindset)**
+            Mindset shift: view every challenge with ${idea} as an opportunity. Growth happens outside your comfort zone. Let's do this! 💪
+            Save this post for a reminder!
+            `,
+            'Bold & Confident': `
+            **Caption 1 (The Challenge)**
+            Stop settling for mediocre. This is your sign to level up your game with ${idea}. My results speak for themselves. You next?
+            
+            **Caption 2 (The Claim)**
+            I cracked the code on "${idea}". It's simpler than you think, but you have to put in the work. No secret, just dedication.
+            Check out the link in bio for the full walkthrough.
+            `,
+            'Casual & Friendly': `
+            **Caption 1 (The Daily Life)**
+            Just a little reminder that focusing on ${idea} can make your day so much better. How are you spending your day? ☀️
+            
+            **Caption 2 (The Question)**
+            Honestly, this "${idea}" thing has been a life saver. Curious, what's everyone else's favorite part about it? Drop a comment!
+            ${platformSpecificText[platform]}
+            `
+          };
+
+          let captionText = toneTemplates[tone] || toneTemplates['Casual & Friendly'];
+          captionText = captionText.trim() + '\n\n' + finalHashtags.join(' ');
+          
+          // Add a third generic caption for variety
+          captionText += `\n\n**Caption 3 (The Engagement)**\nWhat's the #1 thing you struggle with when it comes to "${idea}"? Tell me below! 👇`;
+          
+          return captionText;
+      }
+
+      // === COPY BUTTON LOGIC ===
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(output.textContent).then(() => {
+          copyBtn.textContent = 'Copied!';
+          copyBtn.classList.add('copied');
+          setTimeout(() => {
+            copyBtn.textContent = 'Copy All';
+            copyBtn.classList.remove('copied');
+          }, 2000);
+        });
+      });
+
+      // === UPGRADE TO PRO (MOCK SUBSCRIPTION) ===
+      subscribeBtn.addEventListener('click', () => {
+        // Mock successful subscription
+        localStorage.setItem('isPro', 'true');
+        isPro = true;
+        paywall.classList.add('hidden');
+        analysisPaywall.classList.add('hidden');
+        generateBtn.disabled = false;
+        alert('Subscription successful! You now have Pro access.');
+        // Re-evaluate and show/hide elements for Pro access
+        showTab(currentTab);
+        checkProTemplatesAccess();
+      });
+      
+      document.getElementById('unlockTemplatesBtn').addEventListener('click', () => {
+        subscribeBtn.click(); // Uses the main subscribe logic
+      });
+
+      // === PRO TEMPLATE LOGIC ===
+      const templateContainer = document.getElementById('templateContainer');
+      const templateTeaser = document.getElementById('templateTeaser');
+      const templateBtns = document.querySelectorAll('.templateBtn');
+      const ideaInputTemplate = document.getElementById('idea');
+
+      function checkProTemplatesAccess() {
+          if (isPro) {
+              templateContainer.style.display = 'grid'; // Override inline style to show
+              templateContainer.classList.remove('hidden');
+              templateTeaser.classList.add('hidden');
+          } else {
+              templateContainer.style.display = 'none !important'; // Hide using inline style
+              templateContainer.classList.add('hidden');
+              templateTeaser.classList.remove('hidden');
+          }
+      }
+
+      // Apply template text to idea input and trigger generation
+      templateBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+              if (!isPro) {
+                  alert('Upgrade to Pro to use the Viral Swipe File Templates!');
+                  return;
+              }
+              const templateText = btn.getAttribute('data-text');
+              // Heuristic to convert simple text + emoji names into a coherent prompt idea
+              const idea = templateText.replace(/ \b(?:Camera|Heart|Sparkles|Coffee|Shopping Bag|Rocket|Fire|Trophy|Briefcase|Handshake|Laptop|Sunrise|Moon|Pizza|Leaf|Flexed Biceps|Airplane|Book|Dog|Cat|Birthday Cake|Party Popper|Star|Film|Musical Notes|Dancer|Play Button|New|Sale|Check Mark|Cross Mark|Hand Point Down|Coffee Mug|Hand Wave|Light Bulb|Thinking Face|100 Score|Money Bag|Chart Increasing|Target|Alarm Clock|Question Mark|Speech Bubble|Crown|Diamond|Robot|Globe|Mountain|Pin|Megaphone|Writing Hand|Open Book|Smiling Face|Crying Face|Clapping Hands|Winking Face|Red Apple|Grapes|Donut|Taco|Beer Mug|Martini Glass|Car|Bicycle|Train|Boat|Fingers Crossed|Poo|Ghost|Alien|Lock|Key|Toolbox|Graduation Cap|Bookmark|Gift|Hand Point Up|Link|Balance Scale|Magnifying Glass|User)\b(?: |$)/g, '').trim();
+              ideaInputTemplate.value = idea;
+              // Suggest the user update the placeholders manually and generate
+              alert('Template applied! Fill in the [placeholders] and click "Generate Captions."');
+          });
+      });
+
+      // Template Paging Logic
+      const page1 = document.getElementById('templatePage1');
+      const page2 = document.getElementById('templatePage2');
+      const page1Btn = document.getElementById('page1Btn');
+      const page2Btn = document.getElementById('page2Btn');
+
+      page1Btn.addEventListener('click', () => {
+          page1.style.display = 'grid';
+          page2.style.display = 'none';
+          page1Btn.classList.add('active');
+          page2Btn.classList.remove('active');
+      });
+
+      page2Btn.addEventListener('click', () => {
+          page1.style.display = 'none';
+          page2.style.display = 'grid';
+          page1Btn.classList.remove('active');
+          page2Btn.classList.add('active');
+      });
+
+      checkProTemplatesAccess(); // Initial check for templates
+      
+      // === EMOJI PICKER LOGIC ===
+      const emojiPicker = document.getElementById('emojiPicker');
+      const emojiGrid = document.getElementById('emojiGrid');
+      const closePicker = document.getElementById('closePicker');
+
+      // Populate the emoji grid
+      Object.values(emojiMap).forEach(emoji => {
+          const button = document.createElement('button');
+          button.textContent = emoji;
+          button.type = 'button';
+          button.addEventListener('click', () => {
+              ideaInput.value += emoji;
+              ideaInput.focus();
+          });
+          emojiGrid.appendChild(button);
+      });
+
+      emojiPickerBtn.addEventListener('click', () => {
+          emojiPicker.style.display = 'flex';
+      });
+
+      closePicker.addEventListener('click', () => {
+          emojiPicker.style.display = 'none';
+      });
+    }
+  </script>
 </body>
 </html>
