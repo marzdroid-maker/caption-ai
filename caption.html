@@ -20,9 +20,9 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      /* Background Enhancement: Subtle noise/grain texture over the gradient */
+      /* Background Enhancement: Subtle noise/grain texture over the gradient (Increased size r='2') */
       background-image: 
-        url("data:image/svg+xml,%3Csvg viewBox='0 0 50 50' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='25' cy='25' r='1' fill='rgba(0,0,0,0.02)'/%3E%3C/svg%3E"), 
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 50 50' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='25' cy='25' r='2' fill='rgba(0,0,0,0.05)'/%3E%3C/svg%3E"), 
         linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
       background-attachment: fixed; 
       /* End Background Enhancement */
@@ -557,7 +557,8 @@
 
     let userEmail = localStorage.getItem('userEmail');
     let isPro = localStorage.getItem('isPro') === 'true'; // Set default isPro status
-
+    
+    // Check if user is logged in
     if (!userEmail) {
       emailSubmit.addEventListener('click', () => {
         const email = emailInput.value.trim();
@@ -723,7 +724,7 @@
               hook = 'Decent hook, could be more specific and engaging. 👍';
               readability = 'Good structure, but a few blocks are too dense. ⚠️';
               hashtags = 'Mix of niche and broad tags (50/50). 💡';
-              cta = 'General CTA, needs more direction. ❓';
+              cta = 'General CTA, needs more direction.❓';
           } else { // Low
               hook = 'Vague hook, lacks clear value proposition. 👎';
               readability = 'Dense wall of text, poor line break usage. ❌';
