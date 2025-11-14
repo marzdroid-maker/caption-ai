@@ -84,6 +84,71 @@
     }
     button:hover { background: var(--primary-dark); }
     button:disabled { background: #93c5fd; cursor: not-allowed; }
+    
+    /* New Tab Styles */
+    #tabHeader {
+        display: flex;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border);
+    }
+    .tab-btn {
+        flex: 1;
+        padding: 0.75rem 0;
+        background: none;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        color: var(--gray);
+        font-size: 1.1rem;
+        border-bottom: 3px solid transparent;
+        transition: color 0.2s, border-bottom 0.2s;
+        border-radius: 0;
+        width: auto; /* Override button width */
+    }
+    .tab-btn.active {
+        color: var(--primary);
+        border-bottom: 3px solid var(--primary);
+    }
+    .tab-content {
+        padding: 0; /* Remove padding from tab content wrapper */
+    }
+    /* Analysis Result Box */
+    .analysis-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: .75rem;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,.05);
+    }
+    .analysis-score {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        text-align: center;
+        margin-bottom: .5rem;
+    }
+    .analysis-detail {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px dashed var(--border);
+    }
+    .analysis-detail p {
+        margin-bottom: .5rem;
+        line-height: 1.4;
+    }
+    .analysis-detail strong {
+        color: #111;
+        font-weight: 700;
+    }
+    #replicateBtn {
+        background: var(--success);
+        margin-top: 1rem;
+        width: 100%;
+        font-size: 1rem;
+    }
+    /* End New Tab Styles */
+
 
     #emojiPickerBtn {
       background: var(--warning); margin: 1rem 0; width: auto; padding: .5rem 1rem; font-size: .9rem;
@@ -255,32 +320,77 @@
       <strong>Trusted by 50+ creators, solopreneurs, and small businesses</strong>
     </div>
 
-    <form id="captionForm">
-      <label for="idea">Post Idea</label>
-      <input type="text" id="idea" placeholder="e.g. Just launched my coffee shop" required />
+    <div id="tabContainer">
+        <div id="tabHeader">
+            <button id="generateTabBtn" class="tab-btn active" data-target="generateContent">Generate Content</button>
+            <button id="analyzeTabBtn" class="tab-btn" data-target="analyzeContent">Analyze Competitor (Pro)</button>
+        </div>
 
-      <label for="platform">Platform</label>
-      <select id="platform" required>
-        <option value="" disabled selected data-placeholder>Choose platform</option>
-        <option value="Instagram">Instagram</option>
-        <option value="Twitter">Twitter</option>
-        <option value="LinkedIn">LinkedIn</option>
-        <option value="TikTok">TikTok</option>
-      </select>
+        <div id="generateContent" class="tab-content">
+            <form id="captionForm">
+                <label for="idea">Post Idea</label>
+                <input type="text" id="idea" placeholder="e.g. Just launched my coffee shop" required />
 
-      <label for="tone">Tone</label>
-      <select id="tone" required>
-        <option value="" disabled selected data-placeholder>Choose tone</option>
-        <option value="Professional">Professional</option>
-        <option value="Fun & Playful">Fun & Playful</option>
-        <option value="Inspirational">Inspirational</option>
-        <option value="Bold & Confident">Bold & Confident</option>
-        <option value="Casual & Friendly">Casual & Friendly</option>
-      </select>
-      
-      <button type="submit" id="generateBtn">Generate Captions</button>
-    </form>
+                <label for="platform">Platform</label>
+                <select id="platform" required>
+                    <option value="" disabled selected data-placeholder>Choose platform</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="Twitter">Twitter</option>
+                    <option value="LinkedIn">LinkedIn</option>
+                    <option value="TikTok">TikTok</option>
+                </select>
 
+                <label for="tone">Tone</label>
+                <select id="tone" required>
+                    <option value="" disabled selected data-placeholder>Choose tone</option>
+                    <option value="Professional">Professional</option>
+                    <option value="Fun & Playful">Fun & Playful</option>
+                    <option value="Inspirational">Inspirational</option>
+                    <option value="Bold & Confident">Bold & Confident</option>
+                    <option value="Casual & Friendly">Casual & Friendly</option>
+                </select>
+                
+                <button type="submit" id="generateBtn">Generate Captions</button>
+            </form>
+        </div>
+        <div id="analyzeContent" class="tab-content hidden">
+            <form id="analyzeForm">
+                <label for="competitorUrl">Competitor Post URL</label>
+                <input type="url" id="competitorUrl" placeholder="e.g. https://instagram.com/p/B..." required />
+                
+                <label for="analyzePlatform">Platform</label>
+                <select id="analyzePlatform" required>
+                    <option value="" disabled selected data-placeholder>Choose platform</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="Twitter">Twitter</option>
+                    <option value="LinkedIn">LinkedIn</option>
+                    <option value="TikTok">TikTok</option>
+                </select>
+
+                <button type="submit" id="analyzeBtn">Analyze Post Structure</button>
+            </form>
+
+            <div id="analysisResult" class="analysis-card hidden">
+                <p style="text-align: center; font-size: 1.2rem; font-weight: 600; margin-bottom: 0;">Content Score</p>
+                <div id="analysisScore" class="analysis-score">95</div>
+                
+                <div id="analysisDetails" class="analysis-detail">
+                    <p><strong>Hook:</strong> High urgency, uses specific number. 🔥</p>
+                    <p><strong>Readability:</strong> Excellent use of line breaks (4 lines/paragraph). ✅</p>
+                    <p><strong>Hashtags:</strong> Highly relevant, 90% niche-specific. 🎯</p>
+                    <p><strong>CTA:</strong> Clear call-to-save (`🔖`).</p>
+                </div>
+
+                <button id="replicateBtn">Replicate & Generate NEW Caption</button>
+            </div>
+            
+            <div id="analysisPaywall" class="paywall hidden" style="margin-top: 1rem;">
+                <h3>Unlock Analysis!</h3>
+                <p>Content Scoring is an exclusive **Pro** feature. **Unlimited Access** for **$7/month**.</p>
+                <button id="subscribeAnalyzeBtn">Upgrade to Pro</button>
+            </div>
+        </div>
+        </div>
     <div class="emoji-picker-container">
       <button type="button" id="emojiPickerBtn">Add Emojis</button>
       <div id="emojiPicker">
@@ -463,6 +573,9 @@
       const paywall = document.getElementById('paywall');
       const subscribeBtn = document.getElementById('subscribeBtn');
       const copyBtn = document.getElementById('copyBtn');
+      const analysisPaywall = document.getElementById('analysisPaywall');
+      const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
+
 
       let debounceTimer;
       let isGenerating = false;
@@ -477,22 +590,124 @@
         'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
         'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
         'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
-        'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💸', // Money Bag changed to bank/money with wings
+        'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💸', 
         'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
         'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
         'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
-        'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😫', // Crying face changed to tired face for pain point
+        'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😫', 
         'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
         'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
         'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
         'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
         'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🛠️', 'Graduation Cap': '🎓',
         'Bookmark': '🔖', 'Gift': '🎁', 'Hand Point Up': '👆',
-        'Link': '🔗', 'Balance Scale': '⚖️', 'Magnifying Glass': '🧐', 'User': '👤' // Added new emojis for new templates
+        'Link': '🔗', 'Balance Scale': '⚖️', 'Magnifying Glass': '🧐', 'User': '👤' 
       };
 
+      // === TAB LOGIC FOR NEW FEATURE ===
+      const generateTabBtn = document.getElementById('generateTabBtn');
+      const analyzeTabBtn = document.getElementById('analyzeTabBtn');
+      const generateContent = document.getElementById('generateContent');
+      const analyzeContent = document.getElementById('analyzeContent');
+      const analyzeForm = document.getElementById('analyzeForm');
+      const competitorUrlInput = document.getElementById('competitorUrl');
+      const analyzeBtn = document.getElementById('analyzeBtn');
+      const analysisResult = document.getElementById('analysisResult');
+      const replicateBtn = document.getElementById('replicateBtn');
+      const ideaInput = document.getElementById('idea');
+      
+      let currentTab = 'generateContent';
+
+      function showTab(tabName) {
+          currentTab = tabName;
+          analysisResult.classList.add('hidden'); // Hide analysis results when switching tabs
+          loading.classList.add('hidden'); // Hide loading indicator
+          result.classList.add('hidden'); // Hide generation result
+
+          if (tabName === 'generateContent') {
+              generateContent.classList.remove('hidden');
+              analyzeContent.classList.add('hidden');
+              generateTabBtn.classList.add('active');
+              analyzeTabBtn.classList.remove('active');
+              analysisPaywall.classList.add('hidden');
+              
+              if (!isPro && freeUses >= 3) {
+                paywall.classList.remove('hidden');
+              } else {
+                paywall.classList.add('hidden');
+              }
+
+          } else if (tabName === 'analyzeContent') {
+              generateContent.classList.add('hidden');
+              analyzeContent.classList.remove('hidden');
+              generateTabBtn.classList.remove('active');
+              analyzeTabBtn.classList.add('active');
+              paywall.classList.add('hidden'); // Hide main paywall in analysis tab
+
+              if (!isPro) {
+                analysisPaywall.classList.remove('hidden');
+                analyzeForm.classList.add('hidden');
+              } else {
+                analysisPaywall.classList.add('hidden');
+                analyzeForm.classList.remove('hidden');
+              }
+          }
+      }
+
+      generateTabBtn.addEventListener('click', () => showTab('generateContent'));
+      analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
+      
+      // Analysis Paywall Subscribe Button (Redirects to same subscription)
+      subscribeAnalyzeBtn.addEventListener('click', () => {
+        subscribeBtn.click(); // Reuse existing subscription logic
+      });
+
+      // Placeholder for Analysis Logic
+      analyzeForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          if (!isPro) return; // Should be blocked by paywall visibility, but safe guard.
+          
+          loading.classList.remove('hidden');
+          analysisResult.classList.add('hidden');
+          
+          // --- SIMULATED AI ANALYSIS ---
+          setTimeout(() => {
+              loading.classList.add('hidden');
+              
+              // Mock Data based on the logic described in the chat
+              const score = Math.floor(Math.random() * (99 - 65 + 1)) + 65;
+              const hook = score > 85 ? 'High urgency, clear value proposition.' : 'Decent hook, could be more specific.';
+              const readability = score > 75 ? 'Excellent use of line breaks (4 lines/paragraph).' : 'Dense text, only uses two breaks.';
+              const hashtags = score > 80 ? 'Highly relevant, 90% niche-specific.' : 'Too generic, mostly use broad tags.';
+              const cta = score > 70 ? 'Clear call-to-action to save and comment.' : 'Vague CTA, needs more direction.';
+              
+              document.getElementById('analysisScore').textContent = score;
+              document.getElementById('analysisDetails').innerHTML = `
+                  <p><strong>Hook Score:</strong> ${hook} ${score > 85 ? '🔥' : '👍'}</p>
+                  <p><strong>Readability:</strong> ${readability} ${score > 75 ? '✅' : '⚠️'}</p>
+                  <p><strong>Hashtags:</strong> ${hashtags} ${score > 80 ? '🎯' : '💡'}</p>
+                  <p><strong>Core CTA:</strong> ${cta} ${score > 70 ? '💬' : '❓'}</p>
+              `;
+              
+              analysisResult.classList.remove('hidden');
+          }, 1500); // Simulate network latency
+      });
+      
+      // Replicate button copies analysis info to main form and switches tab
+      replicateBtn.addEventListener('click', () => {
+          const platform = document.getElementById('analyzePlatform').value;
+          const score = document.getElementById('analysisScore').textContent;
+          
+          // Prefill idea input with instructions for AI
+          ideaInput.value = `Generate a caption/hashtag set for [YOUR IDEA HERE]. Use the structure of a high-scoring post (Score: ${score}). Focus on: ${document.getElementById('analysisDetails').textContent.replace(/\s\s+/g, ' ').trim()}.`;
+          
+          // Set platform and switch back to generate tab
+          document.getElementById('platform').value = platform;
+          showTab('generateContent');
+          ideaInput.focus();
+      });
+
       // === PRO TEMPLATES PAGINATION LOGIC ===
-      const isPro = localStorage.getItem('isPro') === 'true';
       const templateContainer = document.getElementById('templateContainer');
       const templateTeaser = document.getElementById('templateTeaser');
       const page1 = document.getElementById('templatePage1');
@@ -500,7 +715,6 @@
       const page1Btn = document.getElementById('page1Btn');
       const page2Btn = document.getElementById('page2Btn');
       
-      // Function to show/hide template pages
       function showPage(pageNumber) {
           if (pageNumber === 1) {
               page1.style.display = 'grid';
@@ -517,22 +731,19 @@
 
       if (isPro) {
         templateContainer.classList.remove('hidden');
-        templateContainer.style.display = 'block'; // Block to contain the pages
+        templateContainer.style.display = 'block'; 
         templateTeaser.style.display = 'none';
-        showPage(1); // Default to page 1
+        showPage(1); 
 
-        // Pagination button listeners
         page1Btn.addEventListener('click', () => showPage(1));
         page2Btn.addEventListener('click', () => showPage(2));
 
         document.querySelectorAll('.templateBtn').forEach(btn => {
           const raw = btn.getAttribute('data-text');
           
-          // Function to process replacement logic for button innerHTML and value
           const processTemplateText = (text) => {
-              // Replace compound names first
               text = text.replace('Camera Film', emojiMap['Camera'] + ' ' + emojiMap['Film']);
-              text = text.replace('Coffee Mug', emojiMap['Coffee Mug']);
+              text = text.replace('Coffee Mug Light Bulb', emojiMap['Coffee Mug'] + ' ' + emojiMap['Light Bulb']);
               text = text.replace('Question Mark Thinking Face', emojiMap['Question Mark'] + ' ' + emojiMap['Thinking Face']);
               text = text.replace('Bookmark Sparkles', emojiMap['Bookmark'] + ' ' + emojiMap['Sparkles']);
               text = text.replace('Gift Rocket', emojiMap['Gift'] + ' ' + emojiMap['Rocket']);
@@ -550,27 +761,22 @@
               text = text.replace('Balance Scale Magnifying Glass', emojiMap['Balance Scale'] + ' ' + emojiMap['Magnifying Glass']);
 
 
-              // Replace single names last
               text = text.replace('Heart', emojiMap['Heart']);
               text = text.replace('Sparkles', emojiMap['Sparkles']);
               text = text.replace('Hand Point Down', emojiMap['Hand Point Down']);
               text = text.replace('Shopping Bag', emojiMap['Shopping Bag']);
               text = text.replace('Fire', emojiMap['Fire']);
               text = text.replace('Light Bulb', emojiMap['Light Bulb']);
-              text = text.replace('Film', emojiMap['Film']); // Safety fallback for Film if not part of a pair
-              text = text.replace('Camera', emojiMap['Camera']); // Safety fallback for Camera if not part of a pair
-              text = text.replace('Gift snake', emojiMap['Gift']); // Handles the old typo/extra word
+              text = text.replace('Film', emojiMap['Film']); 
+              text = text.replace('Camera', emojiMap['Camera']); 
+              text = text.replace('Gift snake', emojiMap['Gift']); 
 
-              return text.replace(/\[\w+\]/g, (match) => match); // Keep placeholders like [X]
+              return text.replace(/\[\w+\]/g, (match) => match); 
           };
 
           const renderedText = processTemplateText(raw);
           
-          // Set the inner HTML to the already rendered text (which was put there manually for initial display)
-          // Since we already put the rendered text in the HTML above, we only need to ensure the click handler works.
-          
           btn.addEventListener('click', () => {
-            // The value put into the input field must be the one with placeholders but correct emojis
             document.getElementById('idea').value = renderedText;
             document.getElementById('idea').focus();
           });
@@ -579,6 +785,9 @@
         templateContainer.style.display = 'none';
         templateTeaser.style.display = 'block';
       }
+      
+      // Ensure correct tab visibility on load
+      showTab(currentTab); 
 
       document.getElementById('unlockTemplatesBtn').addEventListener('click', () => {
         paywall.classList.remove('hidden');
@@ -648,7 +857,7 @@
       });
 
       async function tryGenerate(forceFull = false) {
-        if (isGenerating || !userEmail) return;
+        if (isGenerating || !userEmail || currentTab !== 'generateContent') return;
 
         const idea = document.getElementById('idea').value.trim();
         const platform = document.getElementById('platform').value;
@@ -716,6 +925,11 @@
           generateBtn.disabled = false;
           generateBtn.textContent = 'Generate Captions';
           isGenerating = false;
+          // After generation, check if the main paywall needs to be shown again
+          if (!isPro && freeUses >= 3 && currentTab === 'generateContent') {
+              paywall.classList.remove('hidden');
+              form.querySelector('button[type="submit"]').disabled = true;
+          }
         }
       }
 
@@ -735,8 +949,9 @@
       if (urlParams.get('success') === 'true') {
         localStorage.setItem('isPro', 'true');
         paywall.classList.add('hidden');
+        analysisPaywall.classList.add('hidden');
         form.querySelector('button[type="submit"]').disabled = false;
-        alert('Welcome to Pro! Unlimited generations + 20 Pro Templates unlocked.');
+        alert('Welcome to Pro! Unlimited generations + 20 Pro Templates + Content Analyzer unlocked.');
         window.history.replaceState({}, document.title, window.location.pathname);
         location.reload();
       }
