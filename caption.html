@@ -20,14 +20,22 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      /* Background FIX: Simplified to single background property to eliminate potential SVG issues and ensure gradient is the only background. */
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) fixed;
+      /* Background FIX: Reverting to plain white background to eliminate all issues. */
+      background: white; 
       /* End Background FIX */
       color: #111;
       min-height: 100vh;
       padding: 2rem 1rem;
     }
-    .container { max-width: 600px; margin: 0 auto; }
+    .container { 
+      max-width: 600px; 
+      margin: 0 auto; 
+      /* New subtle design: Adds a card-like effect to the container itself */
+      background: #fdfdfd; 
+      border-radius: 1rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      padding: 1.5rem;
+    }
     h1 { font-size: 2.25rem; font-weight: 700; text-align: center; margin-bottom: .5rem; }
     p.subtitle { text-align: center; color: var(--gray); margin-bottom: 1.5rem; font-size: 1.1rem; }
 
@@ -293,7 +301,7 @@
 
     @media (max-width: 480px) {
       h1 { font-size: 1.75rem; }
-      .container { padding: 0 1rem; }
+      /* Removed padding from container here since it's now in .container */
       #copyBtn { position: static; margin-top: 1rem; width: 100%; }
       #emojiGrid { grid-template-columns: repeat(5, 1fr); }
       #emojiPicker { 
@@ -722,7 +730,7 @@
               hashtags = 'Mix of niche and broad tags (50/50). 💡';
               cta = 'General CTA, needs more direction. ❓';
           } else { // Low
-              hook = 'Vague hook, lacks clear value proposition. 👎';
+              hook = 'Vague hook, lacks clear value proposition.👎';
               readability = 'Dense wall of text, poor line break usage. ❌';
               hashtags = 'Too generic, mostly use broad tags. 💡';
               cta = 'No clear CTA, relying on vague engagement. ❓';
