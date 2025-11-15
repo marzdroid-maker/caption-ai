@@ -20,22 +20,12 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      /* Background FIX: Reverting to plain white background to eliminate all issues. */
-      background: white; 
-      /* End Background FIX */
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
       color: #111;
       min-height: 100vh;
       padding: 2rem 1rem;
     }
-    .container { 
-      max-width: 600px; 
-      margin: 0 auto; 
-      /* New subtle design: Adds a card-like effect to the container itself */
-      background: #fdfdfd; 
-      border-radius: 1rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-      padding: 1.5rem;
-    }
+    .container { max-width: 600px; margin: 0 auto; }
     h1 { font-size: 2.25rem; font-weight: 700; text-align: center; margin-bottom: .5rem; }
     p.subtitle { text-align: center; color: var(--gray); margin-bottom: 1.5rem; font-size: 1.1rem; }
 
@@ -288,9 +278,8 @@
     footer a { color: inherit; margin: 0 1rem; text-decoration: underline; }
 
     /* PRO TEMPLATES GRID */
-    /* This display: grid is applied when the 'hidden' class is removed by JS */
     #templateContainer {
-      display: grid; 
+      display: grid;
       gap: .5rem;
       font-size: .9rem;
       margin-top: 1rem;
@@ -302,7 +291,7 @@
 
     @media (max-width: 480px) {
       h1 { font-size: 1.75rem; }
-      /* Removed padding from container here since it's now in .container */
+      .container { padding: 0 1rem; }
       #copyBtn { position: static; margin-top: 1rem; width: 100%; }
       #emojiGrid { grid-template-columns: repeat(5, 1fr); }
       #emojiPicker { 
@@ -318,7 +307,7 @@
   <div id="emailModal">
     <div class="modal-content">
       <h2>Welcome!</h2>
-      <p>Enter your email to get <strong>3 free generations</strong>.</p>
+      <p>Enter your email to get <strong>10 free generations</strong>.</p>
       <input type="email" id="emailInput" placeholder="you@example.com" required />
       <button id="emailSubmit">Start Generating</button>
     </div>
@@ -329,7 +318,7 @@
     <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
 
     <div class="proof">
-      <strong>Stop guessing and start optimizing. The only AI Caption Generator with a built-in Engagement Score</strong>
+      <strong>Stop guessing and start optimizing. The only AI Caption Generator with a built-in Engagement Score.</strong>
     </div>
 
     <div id="tabContainer">
@@ -390,7 +379,9 @@
                 Just click, edit, generate. <strong>Instant viral edge.</strong>
               </p>
 
-              <div id="templateContainer"> <div id="templatePage1">
+              <div id="templateContainer" class="hidden" style="display: none !important;">
+                
+                <div id="templatePage1">
                     <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">
                     Just hit [X] followers! Grateful for every one of you ❤️ ✨
                     </button>
@@ -495,7 +486,7 @@
 
             <div id="paywall" class="paywall hidden">
               <h3>Upgrade to Pro!</h3>
-              <p>You've used your 3 free generations. <strong>Unlimited + 20 Viral Swipe File Structures</strong> for <strong>$7/month</strong>.</p>
+              <p>You've used your 10 free generations. <strong>Unlimited + 20 Viral Swipe File Structures</strong> for <strong>$7/month</strong>.</p>
               <button id="subscribeBtn">Subscribe Now</button>
             </div>
             
@@ -558,40 +549,10 @@
     const mainApp = document.getElementById('mainApp');
     const emailInput = document.getElementById('emailInput');
     const emailSubmit = document.getElementById('emailSubmit');
-    
+
     let userEmail = localStorage.getItem('userEmail');
-    let isPro = localStorage.getItem('isPro') === 'true'; // Initial read
-    let justSubscribed = false; // NEW FLAG
+    let isPro = localStorage.getItem('isPro') === 'true'; // Set default isPro status
 
-    // === SECURITY FIX: BACKEND VERIFICATION FUNCTION ===
-    async function fetchProStatus() {
-      if (!userEmail) return;
-
-      try {
-        const res = await fetch(`${API_URL}/user-status?email=${userEmail}`);
-        const data = await res.json();
-        isPro = data.isPro === true;
-        localStorage.setItem('isPro', isPro.toString());
-      } catch (err) {
-        console.warn("Could not verify subscription from backend. Defaulting to free user status.", err);
-        isPro = false; 
-        localStorage.setItem('isPro', 'false');
-      }
-    }
-    
-    // === INITIALIZATION LOGIC UPDATE: HANDLE SUCCESS REDIRECT EXPLICITLY ===
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success') === 'true') {
-        localStorage.setItem('isPro', 'true');
-        isPro = true; 
-        justSubscribed = true; // SET NEW FLAG HERE
-        alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
-        window.history.replaceState({}, document.title, window.location.pathname);
-        // CRITICAL: We don't reload or run fetchProStatus, we trust this redirect and set the flag.
-    }
-    
-    // 2. Main app initialization flow
     if (!userEmail) {
       emailSubmit.addEventListener('click', () => {
         const email = emailInput.value.trim();
@@ -601,30 +562,18 @@
           modal.style.display = 'none';
           mainApp.style.display = 'block';
           userEmail = email;
-          isPro = false; 
-          initApp(); 
+          initApp();
         } else {
           emailInput.style.borderColor = '#ef4444';
           emailInput.focus();
         }
       });
     } else {
-      (async () => {
-        // FIX: ONLY run the server check if they were NOT just redirected from a successful checkout.
-        if (!justSubscribed) {
-            await fetchProStatus(); 
-        }
-
-        // Re-read the definitive isPro status from storage (set by success block OR fetchProStatus)
-        isPro = localStorage.getItem('isPro') === 'true'; 
-
-        modal.style.display = 'none';
-        mainApp.style.display = 'block';
-        initApp();
-      })();
+      modal.style.display = 'none';
+      mainApp.style.display = 'block';
+      initApp();
     }
 
-    // Pass isPro to initApp to ensure all features are correctly rendered.
     function initApp() {
       const form = document.getElementById('captionForm');
       const generateBtn = document.getElementById('generateBtn');
@@ -637,11 +586,7 @@
       const analysisPaywall = document.getElementById('analysisPaywall');
       const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
       const emojiPickerBtn = document.getElementById('emojiPickerBtn');
-      const templateContainer = document.getElementById('templateContainer');
-      const templateTeaser = document.getElementById('templateTeaser');
-      const templatePaging = document.getElementById('templatePaging');
-      const analyzeForm = document.getElementById('analyzeForm');
-      
+
       let debounceTimer;
       let isGenerating = false;
       let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
@@ -675,6 +620,7 @@
       const analyzeTabBtn = document.getElementById('analyzeTabBtn');
       const generateContent = document.getElementById('generateContent');
       const analyzeContent = document.getElementById('analyzeContent');
+      const analyzeForm = document.getElementById('analyzeForm');
       const competitorUrlInput = document.getElementById('competitorUrl');
       const analyzeBtn = document.getElementById('analyzeBtn');
       const analysisResult = document.getElementById('analysisResult');
@@ -690,10 +636,6 @@
           loading.classList.add('hidden'); // Hide loading indicator
           result.classList.add('hidden'); // Hide generation result
           
-          // Reset generate button state when switching tabs
-          generateBtn.disabled = false;
-          generateBtn.textContent = "Generate Captions"; 
-          
           if (tabName === 'generateContent') {
               generateContent.classList.remove('hidden');
               analyzeContent.classList.add('hidden');
@@ -701,12 +643,10 @@
               analyzeTabBtn.classList.remove('active');
               analysisPaywall.classList.add('hidden');
               
-              if (!isPro && freeUses >= 3) {
+              if (!isPro && freeUses >= 10) {
                 paywall.classList.remove('hidden');
-                form.querySelector('button[type="submit"]').disabled = true; 
               } else {
                 paywall.classList.add('hidden');
-                form.querySelector('button[type="submit"]').disabled = false; 
               }
 
           } else if (tabName === 'analyzeContent') {
@@ -719,7 +659,7 @@
               if (!isPro) {
                 analysisPaywall.classList.remove('hidden');
                 analyzeForm.classList.add('hidden');
-                analysisResult.classList.add('hidden'); 
+                analysisResult.classList.add('hidden'); // Ensure result is hidden if non-pro
               } else {
                 analysisPaywall.classList.add('hidden');
                 analyzeForm.classList.remove('hidden');
@@ -746,6 +686,7 @@
       }
       
       // === DETERMINISTIC SCORE GENERATION FUNCTION ===
+      // A simple, consistent hashing function to ensure the same URL yields the same number.
       function hashString(str) {
           let hash = 0;
           for (let i = 0; i < str.length; i++) {
@@ -756,11 +697,14 @@
           return Math.abs(hash);
       }
       
+      // Function to generate score and mock analysis details deterministically
       function generateDeterministicScore(url) {
           const uniqueSeed = hashString(url.toLowerCase().trim());
           
-          const score = (uniqueSeed % 35) + 65; 
+          // Map the unique seed to a score between 65 and 99
+          const score = (uniqueSeed % 35) + 65; // Ensures score is between 65 and 99 (35 possible scores)
           
+          // Determine quality tiers based on the consistent score
           const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
           
           let hook, readability, hashtags, cta;
@@ -794,7 +738,7 @@
           analysisResult.classList.add('hidden');
           
           const url = competitorUrlInput.value.trim();
-          const platform = detectPlatform(url); 
+          const platform = detectPlatform(url); // Auto-detect the platform
           
           // --- DETERMINISTIC AI ANALYSIS ---
           setTimeout(() => {
@@ -816,21 +760,24 @@
           }, 1500); // Simulate network latency
       });
       
+      // NEW: Analyze Again button listener (Simple clear function)
       analyzeAgainBtn.addEventListener('click', () => {
           competitorUrlInput.value = '';
           analysisResult.classList.add('hidden');
           competitorUrlInput.focus();
+          // Optionally clear analysis details for a clean slate
           document.getElementById('analysisDetails').innerHTML = ''; 
       });
 
       // === PRO TEMPLATES PAGINATION LOGIC ===
+      const templateContainer = document.getElementById('templateContainer');
+      const templateTeaser = document.getElementById('templateTeaser');
       const page1 = document.getElementById('templatePage1');
       const page2 = document.getElementById('templatePage2');
       const page1Btn = document.getElementById('page1Btn');
       const page2Btn = document.getElementById('page2Btn');
       
       function showPage(pageNumber) {
-          templatePaging.style.display = 'flex'; 
           if (pageNumber === 1) {
               page1.style.display = 'grid';
               page2.style.display = 'none';
@@ -844,13 +791,10 @@
           }
       }
 
-      // FIX: The visibility logic must be explicitly handled by JS styles 
-      // to ensure the paywall is not bypassed regardless of initial HTML state.
       if (isPro) {
-        templateContainer.style.display = 'grid'; 
+        templateContainer.classList.remove('hidden');
+        templateContainer.style.display = 'block'; 
         templateTeaser.style.display = 'none';
-        templatePaging.style.display = 'flex';
-
         showPage(1); 
 
         page1Btn.addEventListener('click', () => showPage(1));
@@ -897,13 +841,12 @@
           btn.addEventListener('click', () => {
             document.getElementById('idea').value = renderedText;
             document.getElementById('idea').focus();
-            showTab('generateContent'); 
+            showTab('generateContent'); // Ensure we are on the correct tab after clicking a template
           });
         });
       } else {
-        templateContainer.style.display = 'none'; 
+        templateContainer.style.display = 'none';
         templateTeaser.style.display = 'block';
-        templatePaging.style.display = 'none'; 
       }
       
       // Ensure correct tab visibility on load
@@ -989,7 +932,7 @@
           return;
         }
 
-        if (!isPro && freeUses >= 3) {
+        if (!isPro && freeUses >= 10) {
           paywall.classList.remove('hidden');
           result.classList.add('hidden');
           return;
@@ -1011,7 +954,7 @@
 
           const data = await res.json();
 
-          if (res.status === 402 || (!isPro && freeUses >= 3)) {
+          if (res.status === 402 || (!isPro && freeUses >= 10)) {
             paywall.classList.remove('hidden');
             result.classList.add('hidden');
           } else if (res.ok) {
@@ -1024,7 +967,7 @@
             if (!isPro) {
               freeUses++;
               localStorage.setItem('freeUses', freeUses.toString());
-              if (freeUses >= 3) {
+              if (freeUses >= 10) {
                 paywall.classList.remove('hidden');
                 form.querySelector('button[type="submit"]').disabled = true;
               }
@@ -1044,12 +987,12 @@
           loading.classList.add('hidden');
           generateBtn.disabled = false;
           generateBtn.textContent = 'Generate Captions';
+          isGenerating = false;
           
-          if (!isPro && freeUses >= 3 && currentTab === 'generateContent') {
+          if (!isPro && freeUses >= 10 && currentTab === 'generateContent') {
               paywall.classList.remove('hidden');
               form.querySelector('button[type="submit"]').disabled = true;
           }
-          isGenerating = false;
         }
       }
 
@@ -1063,6 +1006,27 @@
           }, 2000);
         });
       });
+
+      // === SUCCESS URL HANDLING ===
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('success') === 'true') {
+        localStorage.setItem('isPro', 'true');
+        isPro = true; // Update local variable
+        paywall.classList.add('hidden');
+        analysisPaywall.classList.add('hidden');
+        analyzeForm.classList.remove('hidden'); // Show the form now that they are Pro
+        form.querySelector('button[type="submit"]').disabled = false;
+        alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
+        window.history.replaceState({}, document.title, window.location.pathname);
+        location.reload();
+      }
+
+      if (isPro) {
+        paywall.classList.add('hidden');
+        analysisPaywall.classList.add('hidden');
+        analyzeForm.classList.remove('hidden');
+        form.querySelector('button[type="submit"]').disabled = false;
+      }
     }
   </script>
 </body>
