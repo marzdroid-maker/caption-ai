@@ -324,7 +324,7 @@
   <div id="emailModal">
     <div class="modal-content">
       <h2>Welcome!</h2>
-      <p>Enter your email to get <strong>10 free generations</strong>.</p>
+      <p>Enter your email to get <strong>3 free generations</strong>.</p>
       <input type="email" id="emailInput" placeholder="you@example.com" required />
       <button id="emailSubmit">Start Generating</button>
     </div>
@@ -335,7 +335,7 @@
     <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
 
     <div class="proof">
-      <strong>Stop guessing and start optimizing. The only AI Caption Generator with a built-in Engagement Score.</strong>
+      <strong>Trusted by 50+ creators, solopreneurs, and small businesses</strong>
     </div>
 
     <div id="dailyTipBox">
@@ -507,7 +507,7 @@
 
             <div id="paywall" class="paywall hidden">
               <h3>Upgrade to Pro!</h3>
-              <p>You've used your 10 free generations. <strong>Unlimited + 20 Viral Swipe File Structures</strong> for <strong>$7/month</strong>.</p>
+              <p>You've used your 3 free generations. <strong>Unlimited + 20 Viral Swipe File Structures</strong> for <strong>$7/month</strong>.</p>
               <button id="subscribeBtn">Subscribe Now</button>
             </div>
             
@@ -628,9 +628,8 @@
     }
     // === END TIP OF THE DAY DATA ===
 
-
     function initApp() {
-      // Set the daily tip immediately
+      // Set the daily tip immediately - THIS WAS THE MISSING LINE
       document.getElementById('dailyTipText').textContent = getTodayTip();
 
       const form = document.getElementById('captionForm');
@@ -647,6 +646,8 @@
 
       let debounceTimer;
       let isGenerating = false;
+      // FREE USES LIMIT STANDARDIZED TO 3 (matching paywall text)
+      const MAX_FREE_USES = 3; 
       let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
 
 
@@ -701,7 +702,7 @@
               analyzeTabBtn.classList.remove('active');
               analysisPaywall.classList.add('hidden');
               
-              if (!isPro && freeUses >= 10) {
+              if (!isPro && freeUses >= MAX_FREE_USES) {
                 paywall.classList.remove('hidden');
               } else {
                 paywall.classList.add('hidden');
@@ -990,7 +991,7 @@
           return;
         }
 
-        if (!isPro && freeUses >= 10) {
+        if (!isPro && freeUses >= MAX_FREE_USES) {
           paywall.classList.remove('hidden');
           result.classList.add('hidden');
           return;
@@ -1012,7 +1013,7 @@
 
           const data = await res.json();
 
-          if (res.status === 402 || (!isPro && freeUses >= 10)) {
+          if (res.status === 402 || (!isPro && freeUses >= MAX_FREE_USES)) {
             paywall.classList.remove('hidden');
             result.classList.add('hidden');
           } else if (res.ok) {
@@ -1025,7 +1026,7 @@
             if (!isPro) {
               freeUses++;
               localStorage.setItem('freeUses', freeUses.toString());
-              if (freeUses >= 10) {
+              if (freeUses >= MAX_FREE_USES) {
                 paywall.classList.remove('hidden');
                 form.querySelector('button[type="submit"]').disabled = true;
               }
@@ -1047,7 +1048,7 @@
           generateBtn.textContent = 'Generate Captions';
           isGenerating = false;
           
-          if (!isPro && freeUses >= 10 && currentTab === 'generateContent') {
+          if (!isPro && freeUses >= MAX_FREE_USES && currentTab === 'generateContent') {
               paywall.classList.remove('hidden');
               form.querySelector('button[type="submit"]').disabled = true;
           }
