@@ -7,10 +7,13 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// === CONFIG ===
+const FREE_TIER_LIMIT = 10; // 🔟 free generations per email
+
 // === MIDDLEWARE ===
 app.use(cors());
 
-// Serve static files (caption.html, terms.html, etc.)
+// Serve static files (caption.html, terms, etc.)
 app.use(express.static('.'));
 
 // Parse JSON for all routes EXCEPT /webhook
@@ -24,12 +27,35 @@ app.use((req, res, next) => {
 
 // === IN-MEMORY USAGE TRACKING ===
 const usage = {};
-const MAX_FREE_GENERATIONS = 10;
 
 // === GROQ AI SETUP ===
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
+
+// Small helper to get or init usage record
+function getUserUsage(email) {
+  const key = email.toLowerCase().trim();
+  if (!usage[key]) {
+    usage[key] = { generations: 0, subscribed: false };
+  }
+  return { key, record: usage[key] };
+}
+
+async function refreshStripeSubscriptionStatus(email) {
+  try {
+    const customers = await stripe.customers.list({ email });
+    if (customers.data.length === 0) return false;
+
+    const customer = customers.data[0];
+    const subs = await stripe.subscriptions.list({ customer: customer.id });
+    const activeSub = subs.data.find(s => s.status === 'active');
+    return !!activeSub;
+  } catch (err) {
+    console.error('Stripe subscription check failed:', err.message);
+    return false;
+  }
+}
 
 // === ROUTES ===
 
@@ -40,56 +66,46 @@ app.get('/', (req, res) => {
 
 // Generate captions
 app.post('/generate', async (req, res) => {
-  const { idea, platform, tone, email } = req.body;
+  const { idea, platform, tone, email } = req.body || {};
 
   if (!idea || !platform || !tone || !email) {
     return res.status(400).json({ error: 'All fields required' });
   }
 
-  const key = email.toLowerCase().trim();
-  let user = usage[key] || { generations: 0, subscribed: false };
+  const { key, record } = getUserUsage(email);
 
-  // Check subscription status via Stripe as a fallback
-  try {
-    const customers = await stripe.customers.list({ email });
-    if (customers.data.length > 0) {
-      const customer = customers.data[0];
-      const subs = await stripe.subscriptions.list({ customer: customer.id });
-      if (subs.data.length > 0 && subs.data[0].status === 'active') {
-        user.subscribed = true;
-        usage[key] = user;
-        console.log(`${email} is subscribed (Stripe check)`);
-      }
-    }
-  } catch (err) {
-    console.error('Stripe subscription check failed:', err.message);
+  // Check Stripe subscription (best-effort)
+  const isSubscribed = await refreshStripeSubscriptionStatus(email);
+  if (isSubscribed) {
+    record.subscribed = true;
   }
 
-  // Enforce free tier limit (10 free generations)
-  if (!user.subscribed && user.generations >= MAX_FREE_GENERATIONS) {
+  // Enforce free tier
+  if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
     return res.status(402).json({ error: 'Upgrade required' });
   }
 
-  user.generations++;
-  usage[key] = user;
+  record.generations += 1;
+  usage[key] = record;
 
-  // AI prompt for captions + hashtags
   const prompt = `
 You are a viral social media copywriter.
+
 Platform: ${platform}
 Tone: ${tone}
-Idea: "${idea}"
+Post Idea: "${idea}"
 
 Write:
 - 5 short, punchy captions (under 280 characters each)
 - 30 relevant, trending hashtags
 
-Important:
-- Make the captions scroll-stopping with strong hooks and clear CTAs.
-- Tailor language, style, and emoji usage to the platform and tone.
-- Hashtags should be a mix of broad + niche tags, no duplicates.
+Rules:
+- Keep everything brand-safe.
+- Match the tone and platform norms.
+- Do NOT explain anything.
+- Do NOT number hashtags.
 
-Format exactly as:
+Format exactly:
 
 ## Captions
 1. "..."
@@ -113,49 +129,64 @@ Format exactly as:
     const result = completion.choices[0]?.message?.content || 'No result';
     res.json({ result });
   } catch (err) {
-    console.error('AI Error (generate):', err.message);
+    console.error('AI Error (/generate):', err.message);
     res.status(500).json({ error: 'AI generation failed' });
   }
 });
 
-// Optimize captions for higher engagement (Boost My Score)
+// Optimize / boost captions
 app.post('/optimize', async (req, res) => {
-  const { idea, platform, tone, email, currentText } = req.body;
+  const {
+    idea,
+    platform,
+    tone,
+    email,
+    captions,
+    previousScore,
+  } = req.body || {};
 
-  if (!idea || !platform || !tone || !email || !currentText) {
-    return res.status(400).json({ error: 'All fields required' });
+  if (!idea || !platform || !tone || !email || !captions) {
+    return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const key = email.toLowerCase().trim();
-  let user = usage[key] || { generations: 0, subscribed: false };
-  usage[key] = user; // ensure key exists
+  const { key, record } = getUserUsage(email);
 
-  // NOTE: Boost does NOT consume an extra "generation" count.
-  // It is a value-add on top of an existing generation, free or Pro.
+  // Check subscription again
+  const isSubscribed = await refreshStripeSubscriptionStatus(email);
+  if (isSubscribed) {
+    record.subscribed = true;
+  }
 
-  const prompt = `
-You are a senior social media copywriter and engagement strategist.
+  // Enforce free tier for Boost calls as well
+  if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
+    return res.status(402).json({ error: 'Upgrade required' });
+  }
 
-User inputs:
-- Platform: ${platform}
-- Tone: ${tone}
-- Idea: "${idea}"
+  record.generations += 1;
+  usage[key] = record;
 
-They already generated captions and hashtags (see below). Your job:
-- Rewrite the FULL set of 5 captions + 30 hashtags to significantly increase engagement:
-  - Stronger hooks
-  - Clearer CTAs (comments, saves, shares, clicks)
-  - Better scannability (line breaks, lists, etc.) where appropriate
-  - Platform-appropriate style and emoji usage
+  const boostPrompt = `
+You are a senior social media copywriter.
 
-Constraints:
-- Keep exactly 5 captions.
-- Each caption must stay under 280 characters.
-- Keep ~30 hashtags, no duplicates.
-- Preserve the original intent of the idea, but make it more compelling and viral-friendly.
-- Tailor the writing style for the platform and tone.
+A creator has this current AI output:
 
-Return ONLY in this exact format (no explanations):
+${captions}
+
+Platform: ${platform}
+Tone: ${tone}
+Idea: "${idea}"
+Current engagement score (0-100): ${typeof previousScore === 'number' ? previousScore : 'unknown'}
+
+Your job:
+- Rewrite the 5 captions and hashtags to realistically increase engagement.
+- Make hooks stronger, CTAs clearer, and hashtags more targeted and niche-rich.
+- Keep the core idea and brand-safe tone.
+- Keep length in a similar range (don't write a novel).
+- Match platform norms (LinkedIn more professional, TikTok more playful, etc.).
+- Do NOT explain what you did.
+- Do NOT add extra sections.
+
+Format EXACTLY the same as before:
 
 ## Captions
 1. "..."
@@ -166,33 +197,27 @@ Return ONLY in this exact format (no explanations):
 
 ## Hashtags
 #tag1 #tag2 #tag3 ...
-
----
-
-Current captions and hashtags:
-${currentText}
 `.trim();
 
   try {
     const completion = await groq.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
+      messages: [{ role: 'user', content: boostPrompt }],
       model: 'llama-3.3-70b-versatile',
       temperature: 0.8,
       max_tokens: 700,
     });
 
-    const result = completion.choices[0]?.message?.content || currentText;
+    const result = completion.choices[0]?.message?.content || 'No result';
     res.json({ result });
   } catch (err) {
-    console.error('AI Error (optimize):', err.message);
-    // On failure, just return the original text so the UI can decide what to do.
-    res.status(500).json({ error: 'Optimization failed', result: currentText });
+    console.error('AI Error (/optimize):', err.message);
+    res.status(500).json({ error: 'AI optimization failed' });
   }
 });
 
 // Create checkout session
 app.post('/create-checkout-session', async (req, res) => {
-  const { email } = req.body;
+  const { email } = req.body || {};
   if (!email) return res.status(400).json({ error: 'Email required' });
 
   try {
@@ -217,7 +242,7 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 });
 
-// Stripe webhook: mark user as subscribed
+// Stripe webhook to mark user as subscribed
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -239,7 +264,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     if (email) {
       const key = email.toLowerCase().trim();
       usage[key] = { generations: 0, subscribed: true };
-      console.log(`User subscribed via webhook: ${email}`);
+      console.log(`User subscribed: ${email}`);
     }
   }
 
