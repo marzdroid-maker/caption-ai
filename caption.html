@@ -400,8 +400,8 @@
                 These aren’t random — they’re <em>proven</em> to get 3x more likes, comments, and saves.  
                 Just click, edit, generate. <strong>Instant viral edge.</strong>
               </p>
-
-              <div id="templateContainer" class="hidden" style="display: none !important;">
+              
+              <div id="templateContainer" class="hidden">
                 
                 <div id="templatePage1">
                     <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">
@@ -574,10 +574,23 @@
     const mainApp = document.getElementById('mainApp');
     const emailInput = document.getElementById('emailInput');
     const emailSubmit = document.getElementById('emailSubmit');
-    const MAX_FREE_USES = 10; 
-
+    
+    // === STATE MANAGEMENT BLOCK (ROOT CAUSE #1 & #5 FIX) ===
     let userEmail = localStorage.getItem('userEmail');
     let isPro = localStorage.getItem('isPro') === 'true';
+    let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
+    const MAX_FREE_USES = 10; 
+
+    // 1. Check for success URL parameter FIRST (ROOT CAUSE #5 FIX)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+        localStorage.setItem('isPro', 'true');
+        isPro = true; // Update local variable immediately
+        // Remove the parameter from the URL after confirming success
+        window.history.replaceState({}, document.title, window.location.pathname);
+        alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
+    }
+    // === END STATE MANAGEMENT BLOCK ===
 
     if (!userEmail) {
       emailSubmit.addEventListener('click', () => {
@@ -588,6 +601,7 @@
           modal.style.display = 'none';
           if (mainApp) mainApp.style.display = 'block';
           userEmail = email;
+          // initApp is called only after a valid email is entered
           initApp();
         } else {
           if (emailInput) {
@@ -599,6 +613,7 @@
     } else {
       if (modal) modal.style.display = 'none';
       if (mainApp) mainApp.style.display = 'block';
+      // initApp is called immediately with the correct pre-loaded state
       initApp();
     }
 
@@ -633,25 +648,21 @@
     // === END TIP OF THE DAY DATA ===
 
     function initApp() {
-      // 1. TIP: Must run first to ensure the tip is visible immediately
+      // 1. TIP: Must run first
       const tipElement = document.getElementById('dailyTipText');
       if (tipElement) tipElement.textContent = getTodayTip();
 
-      // 🟢 CRITICAL FIX: The variables needed by showTab() MUST be defined here
-      const generateContent = document.getElementById('generateContent');
-      const analyzeContent  = document.getElementById('analyzeContent');
-
-      // Variables needed in showTab:
+      // 2. Define All DOM Elements
       const loading = document.getElementById('loading');
       const result = document.getElementById('result');
       const paywall = document.getElementById('paywall');
       const analysisPaywall = document.getElementById('analysisPaywall');
+      const analysisResult = document.getElementById('analysisResult');
       const analyzeForm = document.getElementById('analyzeForm');
+      const generateContent = document.getElementById('generateContent');
+      const analyzeContent  = document.getElementById('analyzeContent');
       const generateTabBtn = document.getElementById('generateTabBtn');
       const analyzeTabBtn = document.getElementById('analyzeTabBtn');
-      const analysisResult = document.getElementById('analysisResult'); // Used in showTab conditional logic
-
-      // The rest of the variables
       const form = document.getElementById('captionForm');
       const generateBtn = document.getElementById('generateBtn');
       const output = document.getElementById('output');
@@ -679,8 +690,7 @@
 
       let debounceTimer;
       let isGenerating = false;
-      let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
-      let currentTab = 'generateContent';
+      let currentTab = 'generateContent'; // Default tab
 
       // === EMOJI MAP ===
       const emojiMap = {
@@ -704,11 +714,28 @@
         'Bookmark': '🔖', 'Gift': '🎁', 'Hand Point Up': '👆',
         'Link': '🔗', 'Balance Scale': '⚖️', 'Magnifying Glass': '🧐', 'User': '👤' 
       };
+      
+      // === ROOT CAUSE #4 FIX: GENERATE BUTTON STATE HELPER ===
+      function updateGenerateButtonState() {
+          if (generateBtn) {
+              if (isPro) {
+                  generateBtn.disabled = false;
+              } else if (freeUses >= MAX_FREE_USES) {
+                  generateBtn.disabled = true;
+                  // Only show the paywall if we are on the generate tab
+                  if (paywall && currentTab === 'generateContent') {
+                      paywall.classList.remove('hidden');
+                  }
+              } else {
+                  generateBtn.disabled = false;
+              }
+          }
+      }
 
-      // === TAB LOGIC ===
+      // === TAB LOGIC (ROOT CAUSE #2 REFACTOR) ===
       function showTab(tabName) {
         currentTab = tabName;
-        // Conditional safety checks for variables that might be null if the app didn't load correctly
+        // Hide result/loading containers on tab switch
         if (analysisResult) analysisResult.classList.add('hidden'); 
         if (loading) loading.classList.add('hidden'); 
         if (result) result.classList.add('hidden'); 
@@ -720,35 +747,60 @@
           if (analyzeTabBtn) analyzeTabBtn.classList.remove('active');
           if (analysisPaywall) analysisPaywall.classList.add('hidden');
           
-          if (!isPro && freeUses >= MAX_FREE_USES) {
-            if (paywall) paywall.classList.remove('hidden');
-          } else {
-            if (paywall) paywall.classList.add('hidden');
-          }
+          // Re-evaluate generate button/paywall state
+          updateGenerateButtonState(); 
 
         } else if (tabName === 'analyzeContent') {
           if (generateContent) generateContent.classList.add('hidden');
           if (analyzeContent) analyzeContent.classList.remove('hidden');
           if (generateTabBtn) generateTabBtn.classList.remove('active');
           if (analyzeTabBtn) analyzeTabBtn.classList.add('active');
-          if (paywall) paywall.classList.add('hidden');
+          if (paywall) paywall.classList.add('hidden'); // Hide generate paywall
 
           if (!isPro) {
             if (analysisPaywall) analysisPaywall.classList.remove('hidden');
             if (analyzeForm) analyzeForm.classList.add('hidden');
-            if (analysisResult) analysisResult.classList.add('hidden');
           } else {
             if (analysisPaywall) analysisPaywall.classList.add('hidden');
             if (analyzeForm) analyzeForm.classList.remove('hidden');
           }
+          updateGenerateButtonState(); // Redundant for Analyze, but safe call
         }
       }
+
+      // === NEW UI BOOTSTRAP FUNCTION (ROOT CAUSE #2 & #1 FIX) ===
+      function updateUIState() {
+          // 1. Templates (ROOT CAUSE #3 FIX)
+          if (isPro) {
+              if (templateContainer) templateContainer.classList.remove('hidden');
+              if (templateTeaser) templateTeaser.style.display = 'none';
+              showPage(1); 
+          } else {
+              if (templateContainer) templateContainer.classList.add('hidden');
+              if (templateTeaser) templateTeaser.style.display = 'block';
+          }
+          
+          // 2. Paywalls and Button State (ROOT CAUSE #1 & #4 FIX)
+          if (isPro) {
+              if (paywall) paywall.classList.add('hidden');
+              if (analysisPaywall) analysisPaywall.classList.add('hidden');
+              if (analyzeForm) analyzeForm.classList.remove('hidden');
+          }
+          
+          updateGenerateButtonState();
+          
+          // 3. Initial Tab Render (must run last to finalize UI)
+          showTab(currentTab);
+      }
+      // === END UI BOOTSTRAP FUNCTION ===
+
 
       if (generateTabBtn) generateTabBtn.addEventListener('click', () => showTab('generateContent'));
       if (analyzeTabBtn) analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
 
-      // 🟢 The fix is applied by defining generateContent and analyzeContent above this line.
-      showTab(currentTab);
+      // 🟢 Call UI initialization now that all elements and functions are defined.
+      updateUIState();
+
 
       if (subscribeAnalyzeBtn && subscribeBtn) {
         subscribeAnalyzeBtn.addEventListener('click', () => {
@@ -865,10 +917,7 @@
       }
 
       if (isPro && templateContainer && templateTeaser) {
-        templateContainer.classList.remove('hidden');
-        templateContainer.style.display = 'block';
-        templateTeaser.style.display = 'none';
-        showPage(1); 
+        // This logic is now mostly handled by updateUIState(), but the event listeners still belong here.
         
         if (page1Btn) page1Btn.addEventListener('click', () => showPage(1));
         if (page2Btn) page2Btn.addEventListener('click', () => showPage(2));
@@ -916,10 +965,7 @@
             showTab('generateContent');
           });
         });
-      } else if (templateContainer) {
-        templateContainer.style.display = 'none';
-        if (templateTeaser) templateTeaser.style.display = 'block';
-      }
+      } 
 
       if (unlockTemplatesBtn && paywall) {
         unlockTemplatesBtn.addEventListener('click', () => {
@@ -1052,11 +1098,8 @@
             if (!isPro) {
               freeUses++;
               localStorage.setItem('freeUses', freeUses.toString());
-              if (freeUses >= MAX_FREE_USES) {
-                if (paywall) paywall.classList.remove('hidden');
-                const submitBtn = form.querySelector('button[type="submit"]');
-                if (submitBtn) submitBtn.disabled = true;
-              }
+              // Re-check state after use to update UI if cap is hit
+              updateGenerateButtonState(); 
             }
           }
         } catch (err) {
@@ -1077,11 +1120,8 @@
           }
           isGenerating = false;
           
-          if (!isPro && freeUses >= MAX_FREE_USES && currentTab === 'generateContent') {
-            if (paywall) paywall.classList.remove('hidden');
-            const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) submitBtn.disabled = true;
-          }
+          // Final check to update button/paywall after request
+          updateGenerateButtonState(); 
         }
       }
 
@@ -1097,33 +1137,7 @@
           });
         });
       }
-
-      // === SUCCESS URL HANDLING (no more reload loop) ===
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('success') === 'true') {
-        localStorage.setItem('isPro', 'true');
-        isPro = true; 
-        if (paywall) paywall.classList.add('hidden');
-        if (analysisPaywall) analysisPaywall.classList.add('hidden');
-        if (analyzeForm) analyzeForm.classList.remove('hidden'); 
-        if (form) {
-          const submitBtn = form.querySelector('button[type="submit"]');
-          if (submitBtn) submitBtn.disabled = false;
-        }
-        alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
-        window.history.replaceState({}, document.title, window.location.pathname);
-        // ⛔ location.reload() removed to prevent reload loop
-      }
-
-      if (isPro) {
-        if (paywall) paywall.classList.add('hidden');
-        if (analysisPaywall) analysisPaywall.classList.add('hidden');
-        if (analyzeForm) analyzeForm.classList.remove('hidden');
-        if (form) {
-          const submitBtn = form.querySelector('button[type="submit"]');
-          if (submitBtn) submitBtn.disabled = false;
-        }
-      }
+      
     }
   });</script>
 </body>
