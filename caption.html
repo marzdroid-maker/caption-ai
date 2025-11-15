@@ -324,7 +324,7 @@
   <div id="emailModal">
     <div class="modal-content">
       <h2>Welcome!</h2>
-      <p>Enter your email to get <strong>3 free generations</strong>.</p>
+      <p>Enter your email to get <strong>10 free generations</strong>.</p>
       <input type="email" id="emailInput" placeholder="you@example.com" required />
       <button id="emailSubmit">Start Generating</button>
     </div>
@@ -335,7 +335,7 @@
     <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
 
     <div class="proof">
-      <strong>Trusted by 50+ creators, solopreneurs, and small businesses</strong>
+      <strong>Stop guessing and start optimizing. The only AI Caption Generator with a built-in Engagement Score.</strong>
     </div>
 
     <div id="dailyTipBox">
@@ -507,7 +507,7 @@
 
             <div id="paywall" class="paywall hidden">
               <h3>Upgrade to Pro!</h3>
-              <p>You've used your 3 free generations. <strong>Unlimited + 20 Viral Swipe File Structures</strong> for <strong>$7/month</strong>.</p>
+              <p>You've used your 10 free generations. <strong>Unlimited + 20 Viral Swipe File Structures</strong> for <strong>$7/month</strong>.</p>
               <button id="subscribeBtn">Subscribe Now</button>
             </div>
             
@@ -565,528 +565,536 @@
   </div>
 
   <script>
-    const API_URL = 'https://caption-ai-ze13.onrender.com';
-    const modal = document.getElementById('emailModal');
-    const mainApp = document.getElementById('mainApp');
-    const emailInput = document.getElementById('emailInput');
-    const emailSubmit = document.getElementById('emailSubmit');
+    // --- WRAP ALL CODE IN DOMContentLoaded TO ENSURE ELEMENTS ARE READY ---
+    document.addEventListener('DOMContentLoaded', () => {
 
-    let userEmail = localStorage.getItem('userEmail');
-    let isPro = localStorage.getItem('isPro') === 'true'; // Set default isPro status
+        const API_URL = 'https://caption-ai-ze13.onrender.com';
+        const modal = document.getElementById('emailModal');
+        const mainApp = document.getElementById('mainApp');
+        const emailInput = document.getElementById('emailInput');
+        const emailSubmit = document.getElementById('emailSubmit');
+        // FREE USES LIMIT RESTORED TO 10
+        const MAX_FREE_USES = 10; 
 
-    if (!userEmail) {
-      emailSubmit.addEventListener('click', () => {
-        const email = emailInput.value.trim();
-        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          localStorage.setItem('userEmail', email);
-          localStorage.setItem('freeUses', '0');
-          modal.style.display = 'none';
-          mainApp.style.display = 'block';
-          userEmail = email;
-          initApp();
+        let userEmail = localStorage.getItem('userEmail');
+        let isPro = localStorage.getItem('isPro') === 'true'; // Set default isPro status
+
+        if (!userEmail) {
+        emailSubmit.addEventListener('click', () => {
+            const email = emailInput.value.trim();
+            if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            localStorage.setItem('userEmail', email);
+            localStorage.setItem('freeUses', '0');
+            modal.style.display = 'none';
+            mainApp.style.display = 'block';
+            userEmail = email;
+            initApp();
+            } else {
+            emailInput.style.borderColor = '#ef4444';
+            emailInput.focus();
+            }
+        });
         } else {
-          emailInput.style.borderColor = '#ef4444';
-          emailInput.focus();
+        modal.style.display = 'none';
+        mainApp.style.display = 'block';
+        initApp();
         }
-      });
-    } else {
-      modal.style.display = 'none';
-      mainApp.style.display = 'block';
-      initApp();
-    }
 
-    // === TIP OF THE DAY DATA ===
-    const dailyTips = [
-        "Hook the reader in the first sentence. Your AI captions are useless if no one stops scrolling!",
-        "Always include a clear Call-to-Action (CTA) at the end: Ask a question, tell them to save the post, or tag a friend.",
-        "To maximize reach, use 2-3 broad hashtags (like #entrepreneur) and 10+ niche-specific hashtags (like #saasmarketing).",
-        "Test different tones for the same idea. A 'Bold' caption might outperform a 'Casual' one by 50%.",
-        "Use the 'Content Analyzer' (Pro tab) on your competitor's posts to reverse-engineer their viral hooks.",
-        "Engagement is key: Reply to every comment within the first hour to signal to the algorithm that your content is valuable.",
-        "Vertical video (Reels/TikTok) is king. Use your AI captions to add context and drive watch time.",
-        "The best captions use line breaks! Keep paragraphs to 1-2 sentences for maximum readability.",
-        "Your 'Post Idea' input should be benefit-focused, e.g., 'How to save 2 hours a week' instead of 'My new software'.",
-        "For LinkedIn, stick to the 'Professional' tone, keep emojis minimal, and focus on business value or lessons learned.",
-        "A strong caption usually contains a hook, a middle (value/story), and a strong closing CTA.",
-        "Try using a numbered list (e.g., '3 ways to...') in your idea input to generate highly scannable captions.",
-        "Experiment with emoji placement. Emojis at the start of a caption increase visual appeal and stop the scroll.",
-        "If posting on Twitter, keep your core message brief (under 140 chars) and use a thread to provide more detail.",
-        "Don't just use the first caption the AI gives you. Generate a few options and combine the best hook, body, and CTA."
-    ];
+        // === TIP OF THE DAY DATA ===
+        const dailyTips = [
+            "Hook the reader in the first sentence. Your AI captions are useless if no one stops scrolling!",
+            "Always include a clear Call-to-Action (CTA) at the end: Ask a question, tell them to save the post, or tag a friend.",
+            "To maximize reach, use 2-3 broad hashtags (like #entrepreneur) and 10+ niche-specific hashtags (like #saasmarketing).",
+            "Test different tones for the same idea. A 'Bold' caption might outperform a 'Casual' one by 50%.",
+            "Use the 'Content Analyzer' (Pro tab) on your competitor's posts to reverse-engineer their viral hooks.",
+            "Engagement is key: Reply to every comment within the first hour to signal to the algorithm that your content is valuable.",
+            "Vertical video (Reels/TikTok) is king. Use your AI captions to add context and drive watch time.",
+            "The best captions use line breaks! Keep paragraphs to 1-2 sentences for maximum readability.",
+            "Your 'Post Idea' input should be benefit-focused, e.g., 'How to save 2 hours a week' instead of 'My new software'.",
+            "For LinkedIn, stick to the 'Professional' tone, keep emojis minimal, and focus on business value or lessons learned.",
+            "A strong caption usually contains a hook, a middle (value/story), and a strong closing CTA.",
+            "Try using a numbered list (e.g., '3 ways to...') in your idea input to generate highly scannable captions.",
+            "Experiment with emoji placement. Emojis at the start of a caption increase visual appeal and stop the scroll.",
+            "If posting on Twitter, keep your core message brief (under 140 chars) and use a thread to provide more detail.",
+            "Don't just use the first caption the AI gives you. Generate a few options and combine the best hook, body, and CTA."
+        ];
 
-    function getTodayTip() {
-        const today = new Date();
-        // Use the Day of the Year (0-365) to ensure the tip changes daily
-        const start = new Date(today.getFullYear(), 0, 0);
-        const diff = today - start;
-        const oneDay = 1000 * 60 * 60 * 24;
-        const dayOfYear = Math.floor(diff / oneDay);
+        function getTodayTip() {
+            const today = new Date();
+            // Use the Day of the Year (0-365) to ensure the tip changes daily
+            const start = new Date(today.getFullYear(), 0, 0);
+            const diff = today - start;
+            const oneDay = 1000 * 60 * 60 * 24;
+            const dayOfYear = Math.floor(diff / oneDay);
+            
+            // Use modulus to cycle through the tips array (15 tips)
+            const tipIndex = dayOfYear % dailyTips.length;
+            return dailyTips[tipIndex];
+        }
+        // === END TIP OF THE DAY DATA ===
+
+        function initApp() {
+        // Set the daily tip immediately - THIS WAS THE MISSING LINE
+        const tipElement = document.getElementById('dailyTipText');
+        if (tipElement) { // Check if element exists before setting content
+            tipElement.textContent = getTodayTip();
+        }
+
+
+        const form = document.getElementById('captionForm');
+        const generateBtn = document.getElementById('generateBtn');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const output = document.getElementById('output');
+        const paywall = document.getElementById('paywall');
+        const subscribeBtn = document.getElementById('subscribeBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const analysisPaywall = document.getElementById('analysisPaywall');
+        const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
+        const emojiPickerBtn = document.getElementById('emojiPickerBtn');
+
+        let debounceTimer;
+        let isGenerating = false;
+        let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
+
+
+        // === EMOJI MAP ===
+        const emojiMap = {
+            'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
+            'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
+            'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
+            'Flexed Biceps': '💪', 'Airplane': '✈️', 'Book': '📚', 'Dog': '🐶', 'Cat': '🐱',
+            'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
+            'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
+            'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
+            'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💸', 
+            'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
+            'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
+            'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
+            'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😫', 
+            'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
+            'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
+            'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
+            'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
+            'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🛠️', 'Graduation Cap': '🎓',
+            'Bookmark': '🔖', 'Gift': '🎁', 'Hand Point Up': '👆',
+            'Link': '🔗', 'Balance Scale': '⚖️', 'Magnifying Glass': '🧐', 'User': '👤' 
+        };
+
+        // === TAB LOGIC FOR NEW FEATURE ===
+        const generateTabBtn = document.getElementById('generateTabBtn');
+        const analyzeTabBtn = document.getElementById('analyzeTabBtn');
+        const generateContent = document.getElementById('generateContent');
+        const analyzeContent = document.getElementById('analyzeContent');
+        const analyzeForm = document.getElementById('analyzeForm');
+        const competitorUrlInput = document.getElementById('competitorUrl');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const analysisResult = document.getElementById('analysisResult');
+        const analyzeAgainBtn = document.getElementById('analyzeAgainBtn'); 
+        const ideaInput = document.getElementById('idea');
+        const platformSelect = document.getElementById('platform');
         
-        // Use modulus to cycle through the tips array (15 tips)
-        const tipIndex = dayOfYear % dailyTips.length;
-        return dailyTips[tipIndex];
-    }
-    // === END TIP OF THE DAY DATA ===
+        let currentTab = 'generateContent';
 
-    function initApp() {
-      // Set the daily tip immediately - THIS WAS THE MISSING LINE
-      document.getElementById('dailyTipText').textContent = getTodayTip();
-
-      const form = document.getElementById('captionForm');
-      const generateBtn = document.getElementById('generateBtn');
-      const loading = document.getElementById('loading');
-      const result = document.getElementById('result');
-      const output = document.getElementById('output');
-      const paywall = document.getElementById('paywall');
-      const subscribeBtn = document.getElementById('subscribeBtn');
-      const copyBtn = document.getElementById('copyBtn');
-      const analysisPaywall = document.getElementById('analysisPaywall');
-      const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
-      const emojiPickerBtn = document.getElementById('emojiPickerBtn');
-
-      let debounceTimer;
-      let isGenerating = false;
-      // FREE USES LIMIT STANDARDIZED TO 3 (matching paywall text)
-      const MAX_FREE_USES = 3; 
-      let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
-
-
-      // === EMOJI MAP ===
-      const emojiMap = {
-        'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
-        'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
-        'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
-        'Flexed Biceps': '💪', 'Airplane': '✈️', 'Book': '📚', 'Dog': '🐶', 'Cat': '🐱',
-        'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
-        'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
-        'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
-        'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💸', 
-        'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
-        'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
-        'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
-        'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😫', 
-        'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
-        'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
-        'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
-        'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
-        'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🛠️', 'Graduation Cap': '🎓',
-        'Bookmark': '🔖', 'Gift': '🎁', 'Hand Point Up': '👆',
-        'Link': '🔗', 'Balance Scale': '⚖️', 'Magnifying Glass': '🧐', 'User': '👤' 
-      };
-
-      // === TAB LOGIC FOR NEW FEATURE ===
-      const generateTabBtn = document.getElementById('generateTabBtn');
-      const analyzeTabBtn = document.getElementById('analyzeTabBtn');
-      const generateContent = document.getElementById('generateContent');
-      const analyzeContent = document.getElementById('analyzeContent');
-      const analyzeForm = document.getElementById('analyzeForm');
-      const competitorUrlInput = document.getElementById('competitorUrl');
-      const analyzeBtn = document.getElementById('analyzeBtn');
-      const analysisResult = document.getElementById('analysisResult');
-      const analyzeAgainBtn = document.getElementById('analyzeAgainBtn'); 
-      const ideaInput = document.getElementById('idea');
-      const platformSelect = document.getElementById('platform');
-      
-      let currentTab = 'generateContent';
-
-      function showTab(tabName) {
-          currentTab = tabName;
-          analysisResult.classList.add('hidden'); // Hide analysis results when switching tabs
-          loading.classList.add('hidden'); // Hide loading indicator
-          result.classList.add('hidden'); // Hide generation result
-          
-          if (tabName === 'generateContent') {
-              generateContent.classList.remove('hidden');
-              analyzeContent.classList.add('hidden');
-              generateTabBtn.classList.add('active');
-              analyzeTabBtn.classList.remove('active');
-              analysisPaywall.classList.add('hidden');
-              
-              if (!isPro && freeUses >= MAX_FREE_USES) {
-                paywall.classList.remove('hidden');
-              } else {
-                paywall.classList.add('hidden');
-              }
-
-          } else if (tabName === 'analyzeContent') {
-              generateContent.classList.add('hidden');
-              analyzeContent.classList.remove('hidden');
-              generateTabBtn.classList.remove('active');
-              analyzeTabBtn.classList.add('active');
-              paywall.classList.add('hidden'); // Hide main paywall in analysis tab
-
-              if (!isPro) {
-                analysisPaywall.classList.remove('hidden');
-                analyzeForm.classList.add('hidden');
-                analysisResult.classList.add('hidden'); // Ensure result is hidden if non-pro
-              } else {
+        function showTab(tabName) {
+            currentTab = tabName;
+            analysisResult.classList.add('hidden'); // Hide analysis results when switching tabs
+            loading.classList.add('hidden'); // Hide loading indicator
+            result.classList.add('hidden'); // Hide generation result
+            
+            if (tabName === 'generateContent') {
+                generateContent.classList.remove('hidden');
+                analyzeContent.classList.add('hidden');
+                generateTabBtn.classList.add('active');
+                analyzeTabBtn.classList.remove('active');
                 analysisPaywall.classList.add('hidden');
-                analyzeForm.classList.remove('hidden');
-              }
-          }
-      }
+                
+                if (!isPro && freeUses >= MAX_FREE_USES) {
+                    paywall.classList.remove('hidden');
+                } else {
+                    paywall.classList.add('hidden');
+                }
 
-      generateTabBtn.addEventListener('click', () => showTab('generateContent'));
-      analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
-      
-      // Analysis Paywall Subscribe Button now correctly triggers the main subscription logic
-      subscribeAnalyzeBtn.addEventListener('click', async () => {
-        subscribeBtn.click();
-      });
-      
-      // --- Platform Auto-Detection Function ---
-      function detectPlatform(url) {
-          url = url.toLowerCase();
-          if (url.includes('instagram.com')) return 'Instagram';
-          if (url.includes('twitter.com') || url.includes('x.com')) return 'Twitter';
-          if (url.includes('linkedin.com')) return 'LinkedIn';
-          if (url.includes('tiktok.com')) return 'TikTok';
-          return 'Instagram'; // Default fallback
-      }
-      
-      // === DETERMINISTIC SCORE GENERATION FUNCTION ===
-      // A simple, consistent hashing function to ensure the same URL yields the same number.
-      function hashString(str) {
-          let hash = 0;
-          for (let i = 0; i < str.length; i++) {
-              const char = str.charCodeAt(i);
-              hash = ((hash << 5) - hash) + char;
-              hash |= 0; // Convert to 32bit integer
-          }
-          return Math.abs(hash);
-      }
-      
-      // Function to generate score and mock analysis details deterministically
-      function generateDeterministicScore(url) {
-          const uniqueSeed = hashString(url.toLowerCase().trim());
-          
-          // Map the unique seed to a score between 65 and 99
-          const score = (uniqueSeed % 35) + 65; // Ensures score is between 65 and 99 (35 possible scores)
-          
-          // Determine quality tiers based on the consistent score
-          const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
-          
-          let hook, readability, hashtags, cta;
+            } else if (tabName === 'analyzeContent') {
+                generateContent.classList.add('hidden');
+                analyzeContent.classList.remove('hidden');
+                generateTabBtn.classList.remove('active');
+                analyzeTabBtn.classList.add('active');
+                paywall.classList.add('hidden'); // Hide main paywall in analysis tab
 
-          if (quality === 'High') {
-              hook = 'High urgency, clear value proposition. 🔥';
-              readability = 'Excellent use of line breaks (4 lines/paragraph). ✅';
-              hashtags = 'Highly relevant, 90% niche-specific. 🎯';
-              cta = 'Clear call-to-action to save and comment. 💬';
-          } else if (quality === 'Medium') {
-              hook = 'Decent hook, could be more specific and engaging. 👍';
-              readability = 'Good structure, but a few blocks are too dense. ⚠️';
-              hashtags = 'Mix of niche and broad tags (50/50). 💡';
-              cta = 'General CTA, needs more direction. ❓';
-          } else { // Low
-              hook = 'Vague hook, lacks clear value proposition.👎';
-              readability = 'Dense wall of text, poor line break usage.❌';
-              hashtags = 'Too generic, mostly use broad tags. 💡';
-              cta = 'No clear CTA, relying on vague engagement. ❓';
-          }
+                if (!isPro) {
+                    analysisPaywall.classList.remove('hidden');
+                    analyzeForm.classList.add('hidden');
+                    analysisResult.classList.add('hidden'); // Ensure result is hidden if non-pro
+                } else {
+                    analysisPaywall.classList.add('hidden');
+                    analyzeForm.classList.remove('hidden');
+                }
+            }
+        }
 
-          return { score, hook, readability, hashtags, cta };
-      }
+        generateTabBtn.addEventListener('click', () => showTab('generateContent'));
+        analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
+        
+        // Analysis Paywall Subscribe Button now correctly triggers the main subscription logic
+        subscribeAnalyzeBtn.addEventListener('click', async () => {
+            subscribeBtn.click();
+        });
+        
+        // --- Platform Auto-Detection Function ---
+        function detectPlatform(url) {
+            url = url.toLowerCase();
+            if (url.includes('instagram.com')) return 'Instagram';
+            if (url.includes('twitter.com') || url.includes('x.com')) return 'Twitter';
+            if (url.includes('linkedin.com')) return 'LinkedIn';
+            if (url.includes('tiktok.com')) return 'TikTok';
+            return 'Instagram'; // Default fallback
+        }
+        
+        // === DETERMINISTIC SCORE GENERATION FUNCTION ===
+        // A simple, consistent hashing function to ensure the same URL yields the same number.
+        function hashString(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash |= 0; // Convert to 32bit integer
+            }
+            return Math.abs(hash);
+        }
+        
+        // Function to generate score and mock analysis details deterministically
+        function generateDeterministicScore(url) {
+            const uniqueSeed = hashString(url.toLowerCase().trim());
+            
+            // Map the unique seed to a score between 65 and 99
+            const score = (uniqueSeed % 35) + 65; // Ensures score is between 65 and 99 (35 possible scores)
+            
+            // Determine quality tiers based on the consistent score
+            const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
+            
+            let hook, readability, hashtags, cta;
 
-      // Updated Analysis Logic
-      analyzeForm.addEventListener('submit', (e) => {
-          e.preventDefault();
-          if (!isPro) return;
-          
-          loading.classList.remove('hidden');
-          analysisResult.classList.add('hidden');
-          
-          const url = competitorUrlInput.value.trim();
-          const platform = detectPlatform(url); // Auto-detect the platform
-          
-          // --- DETERMINISTIC AI ANALYSIS ---
-          setTimeout(() => {
-              loading.classList.add('hidden');
-              
-              const analysisData = generateDeterministicScore(url);
-              
-              // Display results
-              document.getElementById('analysisScore').textContent = analysisData.score;
-              document.getElementById('analysisDetails').innerHTML = `
-                  <p><strong>Platform Detected:</strong> ${platform}</p>
-                  <p><strong>Hook Score:</strong> ${analysisData.hook}</p>
-                  <p><strong>Readability:</strong> ${analysisData.readability}</p>
-                  <p><strong>Hashtags:</strong> ${analysisData.hashtags}</p>
-                  <p><strong>Core CTA:</strong> ${analysisData.cta}</p>
-              `;
-              
-              analysisResult.classList.remove('hidden');
-          }, 1500); // Simulate network latency
-      });
-      
-      // NEW: Analyze Again button listener (Simple clear function)
-      analyzeAgainBtn.addEventListener('click', () => {
-          competitorUrlInput.value = '';
-          analysisResult.classList.add('hidden');
-          competitorUrlInput.focus();
-          // Optionally clear analysis details for a clean slate
-          document.getElementById('analysisDetails').innerHTML = ''; 
-      });
+            if (quality === 'High') {
+                hook = 'High urgency, clear value proposition. 🔥';
+                readability = 'Excellent use of line breaks (4 lines/paragraph). ✅';
+                hashtags = 'Highly relevant, 90% niche-specific. 🎯';
+                cta = 'Clear call-to-action to save and comment. 💬';
+            } else if (quality === 'Medium') {
+                hook = 'Decent hook, could be more specific and engaging. 👍';
+                readability = 'Good structure, but a few blocks are too dense. ⚠️';
+                hashtags = 'Mix of niche and broad tags (50/50). 💡';
+                cta = 'General CTA, needs more direction. ❓';
+            } else { // Low
+                hook = 'Vague hook, lacks clear value proposition.👎';
+                readability = 'Dense wall of text, poor line break usage.❌';
+                hashtags = 'Too generic, mostly use broad tags. 💡';
+                cta = 'No clear CTA, relying on vague engagement. ❓';
+            }
 
-      // === PRO TEMPLATES PAGINATION LOGIC ===
-      const templateContainer = document.getElementById('templateContainer');
-      const templateTeaser = document.getElementById('templateTeaser');
-      const page1 = document.getElementById('templatePage1');
-      const page2 = document.getElementById('templatePage2');
-      const page1Btn = document.getElementById('page1Btn');
-      const page2Btn = document.getElementById('page2Btn');
-      
-      function showPage(pageNumber) {
-          if (pageNumber === 1) {
-              page1.style.display = 'grid';
-              page2.style.display = 'none';
-              page1Btn.classList.add('active');
-              page2Btn.classList.remove('active');
-          } else if (pageNumber === 2) {
-              page1.style.display = 'none';
-              page2.style.display = 'grid';
-              page1Btn.classList.remove('active');
-              page2Btn.classList.add('active');
-          }
-      }
+            return { score, hook, readability, hashtags, cta };
+        }
 
-      if (isPro) {
-        templateContainer.classList.remove('hidden');
-        templateContainer.style.display = 'block'; 
-        templateTeaser.style.display = 'none';
-        showPage(1); 
+        // Updated Analysis Logic
+        analyzeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!isPro) return;
+            
+            loading.classList.remove('hidden');
+            analysisResult.classList.add('hidden');
+            
+            const url = competitorUrlInput.value.trim();
+            const platform = detectPlatform(url); // Auto-detect the platform
+            
+            // --- DETERMINISTIC AI ANALYSIS ---
+            setTimeout(() => {
+                loading.classList.add('hidden');
+                
+                const analysisData = generateDeterministicScore(url);
+                
+                // Display results
+                document.getElementById('analysisScore').textContent = analysisData.score;
+                document.getElementById('analysisDetails').innerHTML = `
+                    <p><strong>Platform Detected:</strong> ${platform}</p>
+                    <p><strong>Hook Score:</strong> ${analysisData.hook}</p>
+                    <p><strong>Readability:</strong> ${analysisData.readability}</p>
+                    <p><strong>Hashtags:</strong> ${analysisData.hashtags}</p>
+                    <p><strong>Core CTA:</strong> ${analysisData.cta}</p>
+                `;
+                
+                analysisResult.classList.remove('hidden');
+            }, 1500); // Simulate network latency
+        });
+        
+        // NEW: Analyze Again button listener (Simple clear function)
+        analyzeAgainBtn.addEventListener('click', () => {
+            competitorUrlInput.value = '';
+            analysisResult.classList.add('hidden');
+            competitorUrlInput.focus();
+            // Optionally clear analysis details for a clean slate
+            document.getElementById('analysisDetails').innerHTML = ''; 
+        });
 
-        page1Btn.addEventListener('click', () => showPage(1));
-        page2Btn.addEventListener('click', () => showPage(2));
+        // === PRO TEMPLATES PAGINATION LOGIC ===
+        const templateContainer = document.getElementById('templateContainer');
+        const templateTeaser = document.getElementById('templateTeaser');
+        const page1 = document.getElementById('templatePage1');
+        const page2 = document.getElementById('templatePage2');
+        const page1Btn = document.getElementById('page1Btn');
+        const page2Btn = document.getElementById('page2Btn');
+        
+        function showPage(pageNumber) {
+            if (pageNumber === 1) {
+                page1.style.display = 'grid';
+                page2.style.display = 'none';
+                page1Btn.classList.add('active');
+                page2Btn.classList.remove('active');
+            } else if (pageNumber === 2) {
+                page1.style.display = 'none';
+                page2.style.display = 'grid';
+                page1Btn.classList.remove('active');
+                page2Btn.classList.add('active');
+            }
+        }
 
-        document.querySelectorAll('.templateBtn').forEach(btn => {
-          const raw = btn.getAttribute('data-text');
-          
-          const processTemplateText = (text) => {
-              text = text.replace('Camera Film', emojiMap['Camera'] + ' ' + emojiMap['Film']);
-              text = text.replace('Coffee Mug Light Bulb', emojiMap['Coffee Mug'] + ' ' + emojiMap['Light Bulb']);
-              text = text.replace('Question Mark Thinking Face', emojiMap['Question Mark'] + ' ' + emojiMap['Thinking Face']);
-              text = text.replace('Bookmark Sparkles', emojiMap['Bookmark'] + ' ' + emojiMap['Sparkles']);
-              text = text.replace('Gift Rocket', emojiMap['Gift'] + ' ' + emojiMap['Rocket']);
-              text = text.replace('Hand Point Up Film', emojiMap['Hand Point Up'] + ' ' + emojiMap['Film']);
-              text = text.replace('Star Speech Bubble', emojiMap['Star'] + ' ' + emojiMap['Speech Bubble']);
-              text = text.replace('Money Bag Chart Increasing', emojiMap['Money Bag'] + ' ' + emojiMap['Chart Increasing']);
-              text = text.replace('Crying Face Check Mark', emojiMap['Crying Face'] + ' ' + emojiMap['Check Mark']);
-              text = text.replace('Thinking Face Light Bulb', emojiMap['Thinking Face'] + ' ' + emojiMap['Light Bulb']);
-              text = text.replace('Toolbox Target', emojiMap['Toolbox'] + ' ' + emojiMap['Target']);
-              text = text.replace('Speech Bubble Cross Mark', emojiMap['Speech Bubble'] + ' ' + emojiMap['Cross Mark']);
-              text = text.replace('Link Bookmark', emojiMap['Link'] + ' ' + emojiMap['Bookmark']);
-              text = text.replace('Smiling Face 100 Score', emojiMap['Smiling Face'] + ' ' + emojiMap['100 Score']);
-              text = text.replace('User Rocket', emojiMap['User'] + ' ' + emojiMap['Rocket']);
-              text = text.replace('Alarm Clock Flexed Biceps', emojiMap['Alarm Clock'] + ' ' + emojiMap['Flexed Biceps']);
-              text = text.replace('Balance Scale Magnifying Glass', emojiMap['Balance Scale'] + ' ' + emojiMap['Magnifying Glass']);
+        if (isPro) {
+            templateContainer.classList.remove('hidden');
+            templateContainer.style.display = 'block'; 
+            templateTeaser.style.display = 'none';
+            showPage(1); 
+
+            page1Btn.addEventListener('click', () => showPage(1));
+            page2Btn.addEventListener('click', () => showPage(2));
+
+            document.querySelectorAll('.templateBtn').forEach(btn => {
+            const raw = btn.getAttribute('data-text');
+            
+            const processTemplateText = (text) => {
+                text = text.replace('Camera Film', emojiMap['Camera'] + ' ' + emojiMap['Film']);
+                text = text.replace('Coffee Mug Light Bulb', emojiMap['Coffee Mug'] + ' ' + emojiMap['Light Bulb']);
+                text = text.replace('Question Mark Thinking Face', emojiMap['Question Mark'] + ' ' + emojiMap['Thinking Face']);
+                text = text.replace('Bookmark Sparkles', emojiMap['Bookmark'] + ' ' + emojiMap['Sparkles']);
+                text = text.replace('Gift Rocket', emojiMap['Gift'] + ' ' + emojiMap['Rocket']);
+                text = text.replace('Hand Point Up Film', emojiMap['Hand Point Up'] + ' ' + emojiMap['Film']);
+                text = text.replace('Star Speech Bubble', emojiMap['Star'] + ' ' + emojiMap['Speech Bubble']);
+                text = text.replace('Money Bag Chart Increasing', emojiMap['Money Bag'] + ' ' + emojiMap['Chart Increasing']);
+                text = text.replace('Crying Face Check Mark', emojiMap['Crying Face'] + ' ' + emojiMap['Check Mark']);
+                text = text.replace('Thinking Face Light Bulb', emojiMap['Thinking Face'] + ' ' + emojiMap['Light Bulb']);
+                text = text.replace('Toolbox Target', emojiMap['Toolbox'] + ' ' + emojiMap['Target']);
+                text = text.replace('Speech Bubble Cross Mark', emojiMap['Speech Bubble'] + ' ' + emojiMap['Cross Mark']);
+                text = text.replace('Link Bookmark', emojiMap['Link'] + ' ' + emojiMap['Bookmark']);
+                text = text.replace('Smiling Face 100 Score', emojiMap['Smiling Face'] + ' ' + emojiMap['100 Score']);
+                text = text.replace('User Rocket', emojiMap['User'] + ' ' + emojiMap['Rocket']);
+                text = text.replace('Alarm Clock Flexed Biceps', emojiMap['Alarm Clock'] + ' ' + emojiMap['Flexed Biceps']);
+                text = text.replace('Balance Scale Magnifying Glass', emojiMap['Balance Scale'] + ' ' + emojiMap['Magnifying Glass']);
 
 
-              text = text.replace('Heart', emojiMap['Heart']);
-              text = text.replace('Sparkles', emojiMap['Sparkles']);
-              text = text.replace('Hand Point Down', emojiMap['Hand Point Down']);
-              text = text.replace('Shopping Bag', emojiMap['Shopping Bag']);
-              text = text.replace('Fire', emojiMap['Fire']);
-              text = text.replace('Light Bulb', emojiMap['Light Bulb']);
-              text = text.replace('Film', emojiMap['Film']); 
-              text = text.replace('Camera', emojiMap['Camera']); 
-              text = text.replace('Gift snake', emojiMap['Gift']); 
+                text = text.replace('Heart', emojiMap['Heart']);
+                text = text.replace('Sparkles', emojiMap['Sparkles']);
+                text = text.replace('Hand Point Down', emojiMap['Hand Point Down']);
+                text = text.replace('Shopping Bag', emojiMap['Shopping Bag']);
+                text = text.replace('Fire', emojiMap['Fire']);
+                text = text.replace('Light Bulb', emojiMap['Light Bulb']);
+                text = text.replace('Film', emojiMap['Film']); 
+                text = text.replace('Camera', emojiMap['Camera']); 
+                text = text.replace('Gift snake', emojiMap['Gift']); 
 
-              return text.replace(/\[\w+\]/g, (match) => match); 
-          };
+                return text.replace(/\[\w+\]/g, (match) => match); 
+            };
 
-          const renderedText = processTemplateText(raw);
-          
-          btn.addEventListener('click', () => {
-            document.getElementById('idea').value = renderedText;
+            const renderedText = processTemplateText(raw);
+            
+            btn.addEventListener('click', () => {
+                document.getElementById('idea').value = renderedText;
+                document.getElementById('idea').focus();
+                showTab('generateContent'); // Ensure we are on the correct tab after clicking a template
+            });
+            });
+        } else {
+            templateContainer.style.display = 'none';
+            templateTeaser.style.display = 'block';
+        }
+        
+        // Ensure correct tab visibility on load
+        showTab(currentTab); 
+
+        document.getElementById('unlockTemplatesBtn').addEventListener('click', () => {
+            paywall.classList.remove('hidden');
+            paywall.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // === SUBSCRIBE BUTTON ===
+        subscribeBtn.addEventListener('click', async () => {
+            try {
+            const res = await fetch(`${API_URL}/create-checkout-session`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail })
+            });
+            const { url } = await res.json();
+            window.location.href = url;
+            } catch (err) {
+            alert('Checkout failed. Please try again.');
+            }
+        });
+
+        // === EMOJI PICKER ===
+        const emojiBtn = document.getElementById('emojiPickerBtn');
+        const picker = document.getElementById('emojiPicker');
+        const grid = document.getElementById('emojiGrid');
+        const closePicker = document.getElementById('closePicker');
+
+        const commonEmojis = Object.keys(emojiMap).filter(k => !['Coffee Mug', 'Hand Wave'].includes(k));
+        grid.innerHTML = '';
+        commonEmojis.forEach(name => {
+            const btn = document.createElement('button');
+            btn.textContent = emojiMap[name];
+            btn.title = name;
+            btn.addEventListener('click', () => {
+            document.getElementById('idea').value += ' ' + emojiMap[name];
             document.getElementById('idea').focus();
-            showTab('generateContent'); // Ensure we are on the correct tab after clicking a template
-          });
+            });
+            grid.appendChild(btn);
         });
-      } else {
-        templateContainer.style.display = 'none';
-        templateTeaser.style.display = 'block';
-      }
-      
-      // Ensure correct tab visibility on load
-      showTab(currentTab); 
 
-      document.getElementById('unlockTemplatesBtn').addEventListener('click', () => {
-        paywall.classList.remove('hidden');
-        paywall.scrollIntoView({ behavior: 'smooth' });
-      });
-
-      // === SUBSCRIBE BUTTON ===
-      subscribeBtn.addEventListener('click', async () => {
-        try {
-          const res = await fetch(`${API_URL}/create-checkout-session`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: userEmail })
-          });
-          const { url } = await res.json();
-          window.location.href = url;
-        } catch (err) {
-          alert('Checkout failed. Please try again.');
-        }
-      });
-
-      // === EMOJI PICKER ===
-      const emojiBtn = document.getElementById('emojiPickerBtn');
-      const picker = document.getElementById('emojiPicker');
-      const grid = document.getElementById('emojiGrid');
-      const closePicker = document.getElementById('closePicker');
-
-      const commonEmojis = Object.keys(emojiMap).filter(k => !['Coffee Mug', 'Hand Wave'].includes(k));
-      grid.innerHTML = '';
-      commonEmojis.forEach(name => {
-        const btn = document.createElement('button');
-        btn.textContent = emojiMap[name];
-        btn.title = name;
-        btn.addEventListener('click', () => {
-          document.getElementById('idea').value += ' ' + emojiMap[name];
-          document.getElementById('idea').focus();
+        emojiBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
         });
-        grid.appendChild(btn);
-      });
 
-      emojiBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
-      });
+        closePicker.addEventListener('click', () => picker.style.display = 'none');
 
-      closePicker.addEventListener('click', () => picker.style.display = 'none');
-
-      document.addEventListener('click', (e) => {
-        if (!picker.contains(e.target) && e.target !== emojiBtn) {
-          picker.style.display = 'none';
-        }
-      });
-
-      // === GENERATION LOGIC ===
-      const inputs = ['idea', 'platform', 'tone'];
-      inputs.forEach(id => {
-        document.getElementById(id).addEventListener('input', () => {
-          clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(tryGenerate, 800);
+        document.addEventListener('click', (e) => {
+            if (!picker.contains(e.target) && e.target !== emojiBtn) {
+            picker.style.display = 'none';
+            }
         });
-      });
 
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        clearTimeout(debounceTimer);
-        tryGenerate(true);
-      });
+        // === GENERATION LOGIC ===
+        const inputs = ['idea', 'platform', 'tone'];
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(tryGenerate, 800);
+            });
+        });
 
-      async function tryGenerate(forceFull = false) {
-        if (isGenerating || !userEmail) return; 
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            clearTimeout(debounceTimer);
+            tryGenerate(true);
+        });
 
-        const idea = document.getElementById('idea').value.trim();
-        const platform = document.getElementById('platform').value;
-        const tone = document.getElementById('tone').value;
+        async function tryGenerate(forceFull = false) {
+            if (isGenerating || !userEmail) return; 
 
-        if (!idea || !platform || !tone) {
-          result.classList.add('hidden');
-          paywall.classList.add('hidden');
-          return;
-        }
+            const idea = document.getElementById('idea').value.trim();
+            const platform = document.getElementById('platform').value;
+            const tone = document.getElementById('tone').value;
 
-        if (!isPro && freeUses >= MAX_FREE_USES) {
-          paywall.classList.remove('hidden');
-          result.classList.add('hidden');
-          return;
-        }
+            if (!idea || !platform || !tone) {
+            result.classList.add('hidden');
+            paywall.classList.add('hidden');
+            return;
+            }
 
-        isGenerating = true;
-        loading.classList.remove('hidden');
-        result.classList.add('hidden');
-        paywall.classList.add('hidden');
-        generateBtn.disabled = true;
-        generateBtn.textContent = 'Generating...';
-
-        try {
-          const res = await fetch(`${API_URL}/generate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idea, platform, tone, email: userEmail })
-          });
-
-          const data = await res.json();
-
-          if (res.status === 402 || (!isPro && freeUses >= MAX_FREE_USES)) {
+            if (!isPro && freeUses >= MAX_FREE_USES) {
             paywall.classList.remove('hidden');
             result.classList.add('hidden');
-          } else if (res.ok) {
-            output.textContent = data.result;
-            result.classList.remove('hidden');
-            paywall.classList.add('hidden');
-            copyBtn.classList.remove('copied');
-            copyBtn.textContent = 'Copy All';
+            return;
+            }
 
-            if (!isPro) {
-              freeUses++;
-              localStorage.setItem('freeUses', freeUses.toString());
-              if (freeUses >= MAX_FREE_USES) {
+            isGenerating = true;
+            loading.classList.remove('hidden');
+            result.classList.add('hidden');
+            paywall.classList.add('hidden');
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+
+            try {
+            const res = await fetch(`${API_URL}/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idea, platform, tone, email: userEmail })
+            });
+
+            const data = await res.json();
+
+            if (res.status === 402 || (!isPro && freeUses >= MAX_FREE_USES)) {
+                paywall.classList.remove('hidden');
+                result.classList.add('hidden');
+            } else if (res.ok) {
+                output.textContent = data.result;
+                result.classList.remove('hidden');
+                paywall.classList.add('hidden');
+                copyBtn.classList.remove('copied');
+                copyBtn.textContent = 'Copy All';
+
+                if (!isPro) {
+                freeUses++;
+                localStorage.setItem('freeUses', freeUses.toString());
+                if (freeUses >= MAX_FREE_USES) {
+                    paywall.classList.remove('hidden');
+                    form.querySelector('button[type="submit"]').disabled = true;
+                }
+                }
+            }
+            } catch (err) {
+            if (forceFull) {
+                const fallback = `## Captions\n1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"\n2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love ${emojiMap['Leaf']}"\n5. "Come say hi! ${emojiMap['Hand Wave']}"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
+                output.textContent = fallback;
+                result.classList.remove('hidden');
+                if (!isPro) {
+                freeUses++;
+                localStorage.setItem('freeUses', freeUses.toString());
+                }
+            }
+            } finally {
+            loading.classList.add('hidden');
+            generateBtn.disabled = false;
+            generateBtn.textContent = 'Generate Captions';
+            isGenerating = false;
+            
+            if (!isPro && freeUses >= MAX_FREE_USES && currentTab === 'generateContent') {
                 paywall.classList.remove('hidden');
                 form.querySelector('button[type="submit"]').disabled = true;
-              }
             }
-          }
-        } catch (err) {
-          if (forceFull) {
-            const fallback = `## Captions\n1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"\n2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love ${emojiMap['Leaf']}"\n5. "Come say hi! ${emojiMap['Hand Wave']}"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
-            output.textContent = fallback;
-            result.classList.remove('hidden');
-            if (!isPro) {
-              freeUses++;
-              localStorage.setItem('freeUses', freeUses.toString());
             }
-          }
-        } finally {
-          loading.classList.add('hidden');
-          generateBtn.disabled = false;
-          generateBtn.textContent = 'Generate Captions';
-          isGenerating = false;
-          
-          if (!isPro && freeUses >= MAX_FREE_USES && currentTab === 'generateContent') {
-              paywall.classList.remove('hidden');
-              form.querySelector('button[type="submit"]').disabled = true;
-          }
+        }
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(output.textContent).then(() => {
+            copyBtn.textContent = 'Copied!';
+            copyBtn.classList.add('copied');
+            setTimeout(() => {
+                copyBtn.textContent = 'Copy All';
+                copyBtn.classList.remove('copied');
+            }, 2000);
+            });
+        });
+
+        // === SUCCESS URL HANDLING ===
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            localStorage.setItem('isPro', 'true');
+            isPro = true; // Update local variable
+            paywall.classList.add('hidden');
+            analysisPaywall.classList.add('hidden');
+            analyzeForm.classList.remove('hidden'); // Show the form now that they are Pro
+            form.querySelector('button[type="submit"]').disabled = false;
+            alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
+            window.history.replaceState({}, document.title, window.location.pathname);
+            location.reload();
+        }
+
+        if (isPro) {
+            paywall.classList.add('hidden');
+            analysisPaywall.classList.add('hidden');
+            analyzeForm.classList.remove('hidden');
+            form.querySelector('button[type="submit"]').disabled = false;
         }
       }
-
-      copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(output.textContent).then(() => {
-          copyBtn.textContent = 'Copied!';
-          copyBtn.classList.add('copied');
-          setTimeout(() => {
-            copyBtn.textContent = 'Copy All';
-            copyBtn.classList.remove('copied');
-          }, 2000);
-        });
-      });
-
-      // === SUCCESS URL HANDLING ===
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('success') === 'true') {
-        localStorage.setItem('isPro', 'true');
-        isPro = true; // Update local variable
-        paywall.classList.add('hidden');
-        analysisPaywall.classList.add('hidden');
-        analyzeForm.classList.remove('hidden'); // Show the form now that they are Pro
-        form.querySelector('button[type="submit"]').disabled = false;
-        alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
-        window.history.replaceState({}, document.title, window.location.pathname);
-        location.reload();
-      }
-
-      if (isPro) {
-        paywall.classList.add('hidden');
-        analysisPaywall.classList.add('hidden');
-        analyzeForm.classList.remove('hidden');
-        form.querySelector('button[type="submit"]').disabled = false;
-      }
-    }
+    });
   </script>
 </body>
 </html>
