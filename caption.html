@@ -342,6 +342,7 @@
         <strong style="color: var(--warning);">💡 Today's Tip:</strong> 
         <span id="dailyTipText">Loading a viral content tip...</span>
     </div>
+
     <div id="tabContainer">
         <div id="tabHeader">
             <button id="generateTabBtn" class="tab-btn active" data-target="generateContent">Generate Content</button>
@@ -632,30 +633,37 @@
     // === END TIP OF THE DAY DATA ===
 
     function initApp() {
-      // --- TIP ---
+      // 1. TIP: Must run first to ensure the tip is visible immediately
       const tipElement = document.getElementById('dailyTipText');
       if (tipElement) tipElement.textContent = getTodayTip();
 
-      const form = document.getElementById('captionForm');
-      const generateBtn = document.getElementById('generateBtn');
+      // 🟢 CRITICAL FIX: The variables needed by showTab() MUST be defined here
+      const generateContent = document.getElementById('generateContent');
+      const analyzeContent  = document.getElementById('analyzeContent');
+
+      // Variables needed in showTab:
       const loading = document.getElementById('loading');
       const result = document.getElementById('result');
-      const output = document.getElementById('output');
       const paywall = document.getElementById('paywall');
-      const subscribeBtn = document.getElementById('subscribeBtn');
-      const copyBtn = document.getElementById('copyBtn');
       const analysisPaywall = document.getElementById('analysisPaywall');
-      const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
-
+      const analyzeForm = document.getElementById('analyzeForm');
       const generateTabBtn = document.getElementById('generateTabBtn');
       const analyzeTabBtn = document.getElementById('analyzeTabBtn');
+      const analysisResult = document.getElementById('analysisResult'); // Used in showTab conditional logic
+
+      // The rest of the variables
+      const form = document.getElementById('captionForm');
+      const generateBtn = document.getElementById('generateBtn');
+      const output = document.getElementById('output');
+      const subscribeBtn = document.getElementById('subscribeBtn');
+      const copyBtn = document.getElementById('copyBtn');
+      const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
+
       const emojiPickerBtn = document.getElementById('emojiPickerBtn');
       const unlockTemplatesBtn = document.getElementById('unlockTemplatesBtn');
 
-      const analyzeForm = document.getElementById('analyzeForm');
       const competitorUrlInput = document.getElementById('competitorUrl');
       const analyzeBtn = document.getElementById('analyzeBtn');
-      const analysisResult = document.getElementById('analysisResult');
       const analyzeAgainBtn = document.getElementById('analyzeAgainBtn'); 
       const ideaInput = document.getElementById('idea');
       const platformSelect = document.getElementById('platform');
@@ -668,10 +676,6 @@
       const picker = document.getElementById('emojiPicker');
       const grid = document.getElementById('emojiGrid');
       const closePicker = document.getElementById('closePicker');
-
-      // 🟢 FIX: Define these variables from the DOM *before* calling showTab()
-      const generateContent = document.getElementById('generateContent');
-      const analyzeContent  = document.getElementById('analyzeContent');
 
       let debounceTimer;
       let isGenerating = false;
@@ -704,6 +708,7 @@
       // === TAB LOGIC ===
       function showTab(tabName) {
         currentTab = tabName;
+        // Conditional safety checks for variables that might be null if the app didn't load correctly
         if (analysisResult) analysisResult.classList.add('hidden'); 
         if (loading) loading.classList.add('hidden'); 
         if (result) result.classList.add('hidden'); 
@@ -742,7 +747,7 @@
       if (generateTabBtn) generateTabBtn.addEventListener('click', () => showTab('generateContent'));
       if (analyzeTabBtn) analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
 
-      // initial tab
+      // 🟢 The fix is applied by defining generateContent and analyzeContent above this line.
       showTab(currentTab);
 
       if (subscribeAnalyzeBtn && subscribeBtn) {
