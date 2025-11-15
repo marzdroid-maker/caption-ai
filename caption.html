@@ -41,6 +41,23 @@
     }
     .proof strong { font-weight: 600; }
 
+    /* NEW DAILY TIP BOX STYLE */
+    #dailyTipBox {
+        background: #fff; 
+        border: 1px solid #d1d5db; 
+        padding: 1rem; 
+        border-radius: .75rem; 
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        font-size: .95rem;
+        line-height: 1.4;
+    }
+    #dailyTipBox strong {
+        color: var(--warning); 
+        margin-right: .5rem;
+    }
+    /* END NEW DAILY TIP BOX STYLE */
+
     #emailModal {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.7); display: flex; align-items: center;
@@ -321,6 +338,10 @@
       <strong>Stop guessing and start optimizing. The only AI Caption Generator with a built-in Engagement Score.</strong>
     </div>
 
+    <div id="dailyTipBox">
+        <strong style="color: var(--warning);">💡 Today's Tip:</strong> 
+        <span id="dailyTipText">Loading a viral content tip...</span>
+    </div>
     <div id="tabContainer">
         <div id="tabHeader">
             <button id="generateTabBtn" class="tab-btn active" data-target="generateContent">Generate Content</button>
@@ -574,7 +595,44 @@
       initApp();
     }
 
+    // === TIP OF THE DAY DATA ===
+    const dailyTips = [
+        "Hook the reader in the first sentence. Your AI captions are useless if no one stops scrolling!",
+        "Always include a clear Call-to-Action (CTA) at the end: Ask a question, tell them to save the post, or tag a friend.",
+        "To maximize reach, use 2-3 broad hashtags (like #entrepreneur) and 10+ niche-specific hashtags (like #saasmarketing).",
+        "Test different tones for the same idea. A 'Bold' caption might outperform a 'Casual' one by 50%.",
+        "Use the 'Content Analyzer' (Pro tab) on your competitor's posts to reverse-engineer their viral hooks.",
+        "Engagement is key: Reply to every comment within the first hour to signal to the algorithm that your content is valuable.",
+        "Vertical video (Reels/TikTok) is king. Use your AI captions to add context and drive watch time.",
+        "The best captions use line breaks! Keep paragraphs to 1-2 sentences for maximum readability.",
+        "Your 'Post Idea' input should be benefit-focused, e.g., 'How to save 2 hours a week' instead of 'My new software'.",
+        "For LinkedIn, stick to the 'Professional' tone, keep emojis minimal, and focus on business value or lessons learned.",
+        "A strong caption usually contains a hook, a middle (value/story), and a strong closing CTA.",
+        "Try using a numbered list (e.g., '3 ways to...') in your idea input to generate highly scannable captions.",
+        "Experiment with emoji placement. Emojis at the start of a caption increase visual appeal and stop the scroll.",
+        "If posting on Twitter, keep your core message brief (under 140 chars) and use a thread to provide more detail.",
+        "Don't just use the first caption the AI gives you. Generate a few options and combine the best hook, body, and CTA."
+    ];
+
+    function getTodayTip() {
+        const today = new Date();
+        // Use the Day of the Year (0-365) to ensure the tip changes daily
+        const start = new Date(today.getFullYear(), 0, 0);
+        const diff = today - start;
+        const oneDay = 1000 * 60 * 60 * 24;
+        const dayOfYear = Math.floor(diff / oneDay);
+        
+        // Use modulus to cycle through the tips array (15 tips)
+        const tipIndex = dayOfYear % dailyTips.length;
+        return dailyTips[tipIndex];
+    }
+    // === END TIP OF THE DAY DATA ===
+
+
     function initApp() {
+      // Set the daily tip immediately
+      document.getElementById('dailyTipText').textContent = getTodayTip();
+
       const form = document.getElementById('captionForm');
       const generateBtn = document.getElementById('generateBtn');
       const loading = document.getElementById('loading');
@@ -721,7 +779,7 @@
               cta = 'General CTA, needs more direction. ❓';
           } else { // Low
               hook = 'Vague hook, lacks clear value proposition.👎';
-              readability = 'Dense wall of text, poor line break usage. ❌';
+              readability = 'Dense wall of text, poor line break usage.❌';
               hashtags = 'Too generic, mostly use broad tags. 💡';
               cta = 'No clear CTA, relying on vague engagement. ❓';
           }
