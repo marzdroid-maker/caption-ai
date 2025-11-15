@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 // === MIDDLEWARE ===
 app.use(cors());
 
-// Serve static files (caption.html)
+// Serve static files (caption.html, etc.)
 app.use(express.static('.'));
 
 // Parse JSON for all routes EXCEPT /webhook
@@ -30,17 +30,8 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-// Helper: get or init user record
-function getUser(email) {
-  const key = email.toLowerCase().trim();
-  if (!usage[key]) {
-    usage[key] = { generations: 0, subscribed: false };
-  }
-  return { user: usage[key], key };
-}
-
-// Helper: check Stripe subscription (best-effort)
-async function refreshSubscriptionFromStripe(email, user) {
+// === HELPERS ===
+async function ensureStripeSubscription(email, user) {
   try {
     const customers = await stripe.customers.list({ email });
     if (customers.data.length > 0) {
@@ -71,12 +62,13 @@ app.post('/generate', async (req, res) => {
     return res.status(400).json({ error: 'All fields required' });
   }
 
-  const { user, key } = getUser(email);
+  const key = email.toLowerCase().trim();
+  let user = usage[key] || { generations: 0, subscribed: false };
 
-  // Check subscription
-  await refreshSubscriptionFromStripe(email, user);
+  // Check subscription via Stripe (fallback)
+  await ensureStripeSubscription(email, user);
 
-  // Enforce free tier limit
+  // Enforce free tier
   if (!user.subscribed && user.generations >= 3) {
     return res.status(402).json({ error: 'Upgrade required' });
   }
@@ -104,14 +96,14 @@ Format:
 
 ## Hashtags
 #Tag1 #Tag2 ...
-`.trim();
+  `.trim();
 
   try {
     const completion = await groq.chat.completions.create({
       messages: [{ role: 'user', content: prompt }],
       model: 'llama-3.3-70b-versatile',
       temperature: 0.7,
-      max_tokens: 500,
+      max_tokens: 700,
     });
 
     const result = completion.choices[0]?.message?.content || 'No result';
@@ -122,20 +114,21 @@ Format:
   }
 });
 
-// 🔥 NEW: Optimize captions for higher engagement
-app.post('/optimize', async (req, res) => {
-  const { idea, platform, tone, email, current } = req.body;
+// ⭐ Boost captions (improve engagement)
+app.post('/boost', async (req, res) => {
+  const { idea, platform, tone, email, captions } = req.body;
 
-  if (!idea || !platform || !tone || !email || !current) {
+  if (!idea || !platform || !tone || !email || !captions) {
     return res.status(400).json({ error: 'All fields required' });
   }
 
-  const { user, key } = getUser(email);
+  const key = email.toLowerCase().trim();
+  let user = usage[key] || { generations: 0, subscribed: false };
 
-  // Check subscription
-  await refreshSubscriptionFromStripe(email, user);
+  // Check subscription via Stripe
+  await ensureStripeSubscription(email, user);
 
-  // Same free-tier limit for optimization
+  // Free tier: count boost as a "generation" too
   if (!user.subscribed && user.generations >= 3) {
     return res.status(402).json({ error: 'Upgrade required' });
   }
@@ -144,48 +137,54 @@ app.post('/optimize', async (req, res) => {
   usage[key] = user;
 
   const prompt = `
-You are a senior viral social media copywriter.
+You are a world-class viral social media copywriter.
 
-The creator is posting on:
-- Platform: ${platform}
-- Tone: ${tone}
-- Core idea: "${idea}"
+We already have AI-generated captions + hashtags, but we want to BOOST ENGAGEMENT.
 
-They already generated this caption bundle (5 captions + 30 hashtags):
+Platform: ${platform}
+Tone: ${tone}
+Idea: "${idea}"
 
-${current}
+CURRENT OUTPUT:
+${captions}
 
 Your job:
-- Rewrite this bundle to maximize engagement:
-  - Stronger hook (first line must stop the scroll)
-  - Clear, benefit-driven language
-  - Scannable formatting (short lines, white space)
-  - Strong CTAs (save, share, comment, click, DM, etc.)
-  - Hashtags that mix broad + niche tags and match the topic
+- Rewrite and improve the 5 captions to maximize:
+  - Hook in the first line
+  - Clarity and readability (short lines, strong flow)
+  - Strong, specific CTA
+- Clean up and optimize the hashtag set:
+  - Mix of 2–3 broad tags and 10+ niche/targeted tags
+  - Avoid duplicates and spammy tags
 
-Rules:
-- KEEP THE SAME OVERALL FORMAT:
-  - "## Captions" on its own line
-  - Then a numbered list 1–5 of captions
-  - "## Hashtags" on its own line
-  - Then 30 hashtags in a single line separated by spaces
-- KEEP IT BELIEVABLE: no insane claims or fake numbers.
-- Do NOT explain or add commentary — return ONLY the optimized captions + hashtags in the same format.
-`.trim();
+IMPORTANT:
+- Keep the same structure and formatting as the current output.
+- Return in EXACTLY this format:
+
+## Captions
+1. "..."
+2. "..."
+3. "..."
+4. "..."
+5. "..."
+
+## Hashtags
+#Tag1 #Tag2 #Tag3 ...
+  `.trim();
 
   try {
     const completion = await groq.chat.completions.create({
       messages: [{ role: 'user', content: prompt }],
       model: 'llama-3.3-70b-versatile',
-      temperature: 0.7,
-      max_tokens: 600,
+      temperature: 0.8,
+      max_tokens: 800,
     });
 
     const result = completion.choices[0]?.message?.content || 'No result';
     res.json({ result });
   } catch (err) {
-    console.error('AI Error (optimize):', err.message);
-    res.status(500).json({ error: 'Optimization failed' });
+    console.error('AI Error (boost):', err.message);
+    res.status(500).json({ error: 'AI boost failed' });
   }
 });
 
@@ -216,7 +215,7 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 });
 
-// Stripe webhook: mark user as subscribed
+// Stripe webhook
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -250,7 +249,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-// START SERVER
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Live URL: https://caption-ai-ze13.onrender.com`);
