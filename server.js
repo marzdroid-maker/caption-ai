@@ -30,6 +30,32 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
+// Helper: get or init user record
+function getUser(email) {
+  const key = email.toLowerCase().trim();
+  if (!usage[key]) {
+    usage[key] = { generations: 0, subscribed: false };
+  }
+  return { user: usage[key], key };
+}
+
+// Helper: check Stripe subscription (best-effort)
+async function refreshSubscriptionFromStripe(email, user) {
+  try {
+    const customers = await stripe.customers.list({ email });
+    if (customers.data.length > 0) {
+      const customer = customers.data[0];
+      const subs = await stripe.subscriptions.list({ customer: customer.id });
+      if (subs.data.length > 0 && subs.data[0].status === 'active') {
+        user.subscribed = true;
+        console.log(`${email} is subscribed (Stripe check)`);
+      }
+    }
+  } catch (err) {
+    console.error('Stripe subscription check failed:', err.message);
+  }
+}
+
 // === ROUTES ===
 
 // Homepage
@@ -45,25 +71,12 @@ app.post('/generate', async (req, res) => {
     return res.status(400).json({ error: 'All fields required' });
   }
 
-  const key = email.toLowerCase().trim();
-  let user = usage[key] || { generations: 0, subscribed: false };
+  const { user, key } = getUser(email);
 
-  // === CHECK SUBSCRIPTION STATUS FROM STRIPE (FALLBACK) ===
-  try {
-    const customers = await stripe.customers.list({ email });
-    if (customers.data.length > 0) {
-      const customer = customers.data[0];
-      const subs = await stripe.subscriptions.list({ customer: customer.id });
-      if (subs.data.length > 0 && subs.data[0].status === 'active') {
-        user.subscribed = true;
-        console.log(`${email} is subscribed (Stripe check)`);
-      }
-    }
-  } catch (err) {
-    console.error('Stripe subscription check failed:', err.message);
-  }
+  // Check subscription
+  await refreshSubscriptionFromStripe(email, user);
 
-  // === ENFORCE FREE TIER LIMIT ===
+  // Enforce free tier limit
   if (!user.subscribed && user.generations >= 3) {
     return res.status(402).json({ error: 'Upgrade required' });
   }
@@ -71,7 +84,6 @@ app.post('/generate', async (req, res) => {
   user.generations++;
   usage[key] = user;
 
-  // === AI PROMPT ===
   const prompt = `
 You are a viral social media copywriter.
 Platform: ${platform}
@@ -86,11 +98,13 @@ Format:
 ## Captions
 1. "..."
 2. "..."
-...
+3. "..."
+4. "..."
+5. "..."
 
 ## Hashtags
 #Tag1 #Tag2 ...
-  `.trim();
+`.trim();
 
   try {
     const completion = await groq.chat.completions.create({
@@ -103,8 +117,75 @@ Format:
     const result = completion.choices[0]?.message?.content || 'No result';
     res.json({ result });
   } catch (err) {
-    console.error('AI Error:', err.message);
+    console.error('AI Error (generate):', err.message);
     res.status(500).json({ error: 'AI generation failed' });
+  }
+});
+
+// 🔥 NEW: Optimize captions for higher engagement
+app.post('/optimize', async (req, res) => {
+  const { idea, platform, tone, email, current } = req.body;
+
+  if (!idea || !platform || !tone || !email || !current) {
+    return res.status(400).json({ error: 'All fields required' });
+  }
+
+  const { user, key } = getUser(email);
+
+  // Check subscription
+  await refreshSubscriptionFromStripe(email, user);
+
+  // Same free-tier limit for optimization
+  if (!user.subscribed && user.generations >= 3) {
+    return res.status(402).json({ error: 'Upgrade required' });
+  }
+
+  user.generations++;
+  usage[key] = user;
+
+  const prompt = `
+You are a senior viral social media copywriter.
+
+The creator is posting on:
+- Platform: ${platform}
+- Tone: ${tone}
+- Core idea: "${idea}"
+
+They already generated this caption bundle (5 captions + 30 hashtags):
+
+${current}
+
+Your job:
+- Rewrite this bundle to maximize engagement:
+  - Stronger hook (first line must stop the scroll)
+  - Clear, benefit-driven language
+  - Scannable formatting (short lines, white space)
+  - Strong CTAs (save, share, comment, click, DM, etc.)
+  - Hashtags that mix broad + niche tags and match the topic
+
+Rules:
+- KEEP THE SAME OVERALL FORMAT:
+  - "## Captions" on its own line
+  - Then a numbered list 1–5 of captions
+  - "## Hashtags" on its own line
+  - Then 30 hashtags in a single line separated by spaces
+- KEEP IT BELIEVABLE: no insane claims or fake numbers.
+- Do NOT explain or add commentary — return ONLY the optimized captions + hashtags in the same format.
+`.trim();
+
+  try {
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: 'llama-3.3-70b-versatile',
+      temperature: 0.7,
+      max_tokens: 600,
+    });
+
+    const result = completion.choices[0]?.message?.content || 'No result';
+    res.json({ result });
+  } catch (err) {
+    console.error('AI Error (optimize):', err.message);
+    res.status(500).json({ error: 'Optimization failed' });
   }
 });
 
@@ -135,7 +216,7 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 });
 
-// === STRIPE WEBHOOK: MARK USER AS SUBSCRIBED ===
+// Stripe webhook: mark user as subscribed
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -169,7 +250,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-// === START SERVER ===
+// START SERVER
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Live URL: https://caption-ai-ze13.onrender.com`);

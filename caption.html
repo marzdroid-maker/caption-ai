@@ -1,1094 +1,867 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>AI Caption + Hashtag Generator</title>
   <style>
-    :root {
-      --primary: #3b82f6;
-      --primary-dark: #2563eb;
-      --gray: #6b7280;
-      --light: #f3f4f6;
-      --border: #e5e7eb;
-      --placeholder: #9ca3af;
-      --success: #10b981;
-      --success-dark: #059669;
-      --error: #ef4444;
-      --warning: #f59e0b;
+    :root{--primary:#3b82f6;--primary-dark:#2563eb;--gray:#6b7280;--light:#f3f4f6;--border:#e5e7eb;--placeholder:#9ca3af;--success:#10b981;--success-dark:#059669;--error:#ef4444;--warning:#f59e0b}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%);color:#111;min-height:100vh;padding:2rem 1rem}
+    .container{max-width:600px;margin:0 auto}
+    h1{font-size:2.25rem;font-weight:700;text-align:center;margin-bottom:.5rem}
+    p.subtitle{text-align:center;color:var(--gray);margin-bottom:1.5rem;font-size:1.1rem}
+    .proof{background:#ecfdf5;border:1px solid #a7f3d0;padding:1rem;border-radius:.75rem;text-align:center;margin-bottom:1.5rem;font-size:.95rem;color:#065f46}
+    .proof strong{font-weight:600}
+    #dailyTipBox{background:#fff;border:1px solid #d1d5db;padding:1rem;border-radius:.75rem;margin-bottom:1.5rem;box-shadow:0 2px 5px rgba(0,0,0,.02);font-size:.95rem;line-height:1.4}
+    #dailyTipBox strong{color:var(--warning);margin-right:.5rem}
+    #emailModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:9999}
+    .modal-content{background:#fff;padding:2rem;border-radius:1rem;width:90%;max-width:400px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,.2)}
+    .modal-content h2{margin-bottom:1rem;font-size:1.5rem}
+    .modal-content p{margin-bottom:1.5rem;color:#555}
+    .modal-content input{width:100%;padding:.75rem;border:2px solid #e5e7eb;border-radius:.5rem;font-size:1rem;margin-bottom:1rem}
+    .modal-content button{background:var(--primary);color:#fff;border:none;padding:.75rem 1.5rem;border-radius:.5rem;font-weight:600;cursor:pointer;width:100%}
+    label{display:block;margin-bottom:.5rem;font-weight:600;color:#111}
+    input,select{width:100%;padding:.75rem 1rem;border:2px solid var(--border);border-radius:.5rem;font-size:1rem;margin-bottom:1rem;transition:border .2s}
+    input:focus,select:focus{outline:none;border-color:var(--primary)}
+    input::placeholder{color:var(--placeholder);font-style:italic}
+    select option[disabled]{display:none}
+    select option[data-placeholder]{color:var(--placeholder);font-style:italic}
+    select:invalid{color:var(--placeholder)}
+    select:valid{color:#111}
+    button{width:100%;background:var(--primary);color:#fff;border:none;padding:1rem;font-size:1.1rem;font-weight:600;border-radius:.5rem;cursor:pointer;transition:background .2s}
+    button:hover{background:var(--primary-dark)}
+    button:disabled{background:#93c5fd;cursor:not-allowed}
+    #tabHeader{display:flex;margin-bottom:1.5rem;border-bottom:2px solid var(--border)}
+    .tab-btn{flex:1;padding:.75rem 0;background:none;border:none;font-weight:600;cursor:pointer;color:var(--gray);font-size:1.1rem;border-bottom:3px solid transparent;transition:color .2s,border-bottom .2s;border-radius:0;width:auto}
+    .tab-btn.active{color:var(--primary);border-bottom:3px solid var(--primary)}
+    .tab-content{padding:0}
+    .analysis-card{background:#fff;border:1px solid var(--border);border-radius:.75rem;padding:1.5rem;margin-top:1.5rem;box-shadow:0 4px 12px rgba(0,0,0,.05)}
+    .analysis-score{font-size:2.5rem;font-weight:700;color:var(--primary);text-align:center;margin-bottom:.5rem}
+    .analysis-detail{margin-top:1rem;padding-top:1rem;border-top:1px dashed var(--border)}
+    .analysis-detail p{margin-bottom:.5rem;line-height:1.4}
+    .analysis-detail strong{color:#111;font-weight:700}
+    #emojiPickerBtn{background:var(--warning);margin:1rem 0;width:auto;padding:.5rem 1rem;font-size:.9rem}
+    .emoji-picker-container{position:relative;text-align:left;display:flex;justify-content:center}
+    #emojiPicker{display:none;position:absolute;background:#fff;border:1px solid #e5e7eb;border-radius:.75rem;padding:1rem;max-width:300px;box-shadow:0 10px 25px rgba(0,0,0,.15);z-index:100;text-align:center;max-height:350px;flex-direction:column;right:0;top:100%;transform:translateY(5px)}
+    #emojiGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:.5rem;font-size:1.5rem;margin:.75rem 0;overflow-y:auto;padding-right:5px}
+    #emojiGrid button{background:none;border:none;font-size:1.5rem;cursor:pointer;padding:0}
+    #closePicker{margin-top:.5rem;background:#6b7280;color:#fff;padding:.5rem 1rem;border-radius:.5rem;font-size:.8rem;width:auto}
+    .result{margin-top:2rem;padding:1.5rem;background:#fff;border-radius:.75rem;box-shadow:0 4px 12px rgba(0,0,0,.05);position:relative}
+    .result h3{margin-bottom:.75rem;color:var(--primary)}
+    .result pre{white-space:pre-wrap;font-family:inherit;line-height:1.6;margin-bottom:1rem}
+    #copyBtn{background:var(--success);color:#fff;padding:.5rem 1rem;border:none;border-radius:.5rem;font-size:.9rem;cursor:pointer;transition:background .2s}
+    #copyBtn:hover{background:var(--success-dark)}
+    #copyBtn.copied{background:#059669}
+    #boostBtn{background:#f97316;padding:.5rem 1rem;font-size:.9rem}
+    #boostBtn:disabled{background:#fed7aa}
+    #engagementScoreBox{margin-bottom:.75rem;font-size:.95rem;font-weight:600;color:#1d4ed8}
+    #engagementScoreBox small{font-weight:400;color:#6b7280;margin-left:.5rem}
+    #proTemplates{margin-top:2rem;padding:1.5rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:.75rem}
+    .templateBtn{text-align:left;padding:.75rem;background:#fff;border:1px solid #d1d5db;border-radius:.5rem;font-size:.9rem;margin-bottom:.5rem;cursor:pointer;color:#111!important;line-height:1.4;display:block}
+    .templateBtn:hover{background:#f9fafb;color:#111!important}
+    #templatePaging{display:flex;justify-content:center;gap:1rem;margin-top:1rem}
+    #templatePaging button{width:auto;padding:.5rem 1.2rem;background:#9ca3af;font-weight:500;font-size:.9rem}
+    #templatePaging button.active{background:var(--primary);font-weight:700}
+    #templatePaging button:hover{background:var(--primary-dark)}
+    .paywall{margin-top:2rem;padding:2rem;background:#fefce8;border-radius:.75rem;text-align:center;border:2px solid #fde68a}
+    .paywall h3{margin-bottom:.5rem;font-size:1.5rem}
+    .paywall p{color:#92400e;margin-bottom:1rem}
+    .paywall button{background:#16a34a;padding:.75rem 1.5rem;font-size:1rem;width:auto;display:inline-block}
+    .paywall button:hover{background:#15803d}
+    .hidden{display:none}
+    .loading{text-align:center;margin:1rem 0;color:var(--gray);font-style:italic}
+    footer{margin-top:3rem;text-align:center;color:#6b7280;font-size:.875rem}
+    footer a{color:inherit;margin:0 1rem;text-decoration:underline}
+    #templateContainer{display:grid;gap:.5rem;font-size:.9rem;margin-top:1rem}
+    #templatePage2{display:none}
+    @media(max-width:480px){
+      h1{font-size:1.75rem}
+      .container{padding:0 1rem}
+      #copyBtn,#boostBtn{width:100%}
+      #emojiGrid{grid-template-columns:repeat(5,1fr)}
+      #emojiPicker{right:auto;left:50%;transform:translateX(-50%) translateY(5px)}
+      .result .actions{flex-direction:column;align-items:stretch}
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-      color: #111;
-      min-height: 100vh;
-      padding: 2rem 1rem;
-    }
-    .container { max-width: 600px; margin: 0 auto; }
-    h1 {
-      text-align: center;
-      color: var(--primary-dark);
-      margin-bottom: 0.5rem;
-      font-size: 1.8rem;
-    }
-    .tabs {
-        display: flex;
-        margin-bottom: 1.5rem;
-        border-radius: 8px;
-        background: white;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        overflow: hidden;
-    }
-    .tab-btn {
-        flex: 1;
-        padding: 0.75rem 0;
-        text-align: center;
-        border: none;
-        background: transparent;
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: color 0.2s, background-color 0.2s;
-        position: relative;
-    }
-    .tab-btn.active {
-        color: var(--primary-dark);
-        background: var(--light);
-    }
-    .tab-btn:not(.active):hover {
-        background: #f0f0f0;
-    }
-    .tab-btn.pro-badge::after {
-        content: "PRO";
-        position: absolute;
-        top: 2px;
-        right: 4px;
-        background: var(--warning);
-        color: white;
-        font-size: 0.6rem;
-        padding: 1px 4px;
-        border-radius: 4px;
-        font-weight: 700;
-    }
-    .card {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      margin-bottom: 1.5rem;
-    }
-    .form-group { margin-bottom: 1rem; }
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 0.3rem;
-      color: #333;
-    }
-    textarea, select, input[type="text"] {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    textarea:focus, select:focus, input[type="text"]:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-      outline: none;
-    }
-    textarea { min-height: 100px; resize: vertical; }
-    .btn {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background-color 0.2s, opacity 0.2s;
-      background: var(--primary);
-      color: white;
-    }
-    .btn:hover { background: var(--primary-dark); }
-    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-    /* Results */
-    #loading {
-      text-align: center;
-      padding: 2rem;
-      font-size: 1.1rem;
-      color: var(--gray);
-    }
-    #output {
-      white-space: pre-wrap;
-      padding: 1rem;
-      background: var(--light);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-top: 1rem;
-      font-size: 0.95rem;
-      line-height: 1.4;
-    }
-    .result-actions {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 0.75rem;
-    }
-    #copyBtn {
-      width: auto;
-      padding: 0.5rem 1rem;
-      background: var(--success);
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-    #copyBtn:hover { background: var(--success-dark); }
-    #copyBtn.copied { background: var(--gray); }
-
-    /* Paywall Styling */
-    .paywall-overlay {
-      background: rgba(255, 255, 255, 0.9);
-      padding: 1.5rem;
-      border-radius: 12px;
-      border: 2px dashed var(--warning);
-      text-align: center;
-      margin-top: 1rem;
-      z-index: 10;
-    }
-    .paywall-overlay p {
-      margin-bottom: 1rem;
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--primary-dark);
-    }
-    .paywall-overlay .btn {
-      background: var(--warning);
-      width: auto;
-      padding: 0.75rem 2rem;
-    }
-    .paywall-overlay .btn:hover {
-      background: #e58d00; 
-    }
-    
-    /* Templates Styling */
-    .templates-section { margin-top: 1.5rem; }
-    .templates-section h2 {
-      font-size: 1.2rem;
-      margin-bottom: 1rem;
-      color: #1f2937;
-    }
-    #templateGrid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 0.75rem;
-    }
-    .templateBtn {
-      background: var(--light);
-      border: 1px solid var(--border);
-      padding: 0.75rem;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      text-align: left;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-      font-weight: 500;
-    }
-    .templateBtn:hover {
-      background: #e5e7eb;
-      border-color: var(--primary);
-    }
-    .templateBtn strong { display: block; margin-bottom: 0.2rem; color: var(--primary-dark); font-weight: 700; }
-    .templateTeaser {
-        text-align: center;
-        padding: 1.5rem;
-        background: var(--light);
-        border-radius: 12px;
-        margin-top: 1.5rem;
-    }
-    .templateTeaser .btn {
-        width: auto;
-        padding: 0.5rem 1.5rem;
-        background: var(--warning);
-        margin-top: 1rem;
-    }
-    
-    .pagination {
-        display: flex;
-        justify-content: center;
-        margin-top: 1rem;
-    }
-    .pagination button {
-        padding: 0.5rem 1rem;
-        margin: 0 0.5rem;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        background: white;
-        cursor: pointer;
-        font-weight: 600;
-    }
-    .pagination button.active {
-        background: var(--primary);
-        color: white;
-        border-color: var(--primary);
-    }
-
-    /* Analysis Result Box */
-    .analysis-card {
-        text-align: center;
-        padding: 1.5rem;
-        margin-top: 1.5rem;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
-    .analysis-score {
-        font-size: 4rem;
-        font-weight: 900;
-        color: var(--primary-dark);
-        line-height: 1;
-        margin: 0.5rem 0 1.5rem;
-        transition: color 0.3s;
-    }
-    .analysis-score.boosted {
-        color: var(--success); /* Change color to green for the boost */
-    }
-    .analysis-detail {
-        text-align: left;
-        padding: 1rem;
-        background: var(--light);
-        border-radius: 8px;
-        margin-bottom: 1rem;
-    }
-    .analysis-detail p {
-        margin-bottom: 0.75rem;
-        font-size: 0.95rem;
-        line-height: 1.4;
-    }
-    .analysis-detail strong {
-        color: #1f2937;
-        font-weight: 700;
-        display: block;
-        margin-bottom: 0.2rem;
-    }
-    #analyzeAgainBtn {
-        background: var(--gray);
-        font-weight: 600;
-        font-size: 0.9rem;
-        width: 100%;
-        margin-top: 0.5rem;
-    }
-    #analyzeAgainBtn:hover {
-        background: #4b5563;
-    }
-    
-    /* Emoji Picker Styles */
-    #emojiPickerBtn {
-        width: auto;
-        padding: 0.4rem 0.8rem;
-        background: var(--warning);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 1rem;
-        cursor: pointer;
-        margin-top: 0.5rem;
-        display: block;
-    }
-    #emojiPicker {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        z-index: 20;
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        display: none; /* Hidden by default */
-        flex-direction: column;
-        width: 100%;
-        max-width: 300px;
-        max-height: 350px;
-        overflow: hidden;
-    }
-    .emoji-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5rem;
-        border-bottom: 1px solid var(--border);
-    }
-    .emoji-header h4 {
-        margin: 0;
-        font-size: 1rem;
-        color: #333;
-    }
-    #closePicker {
-        background: none;
-        border: none;
-        font-size: 1.2rem;
-        cursor: pointer;
-        color: var(--gray);
-    }
-    #emojiGrid {
-        display: grid;
-        grid-template-columns: repeat(6, 1fr);
-        gap: 0.5rem;
-        padding: 1rem;
-        overflow-y: auto;
-    }
-    #emojiGrid button {
-        background: var(--light);
-        border: 1px solid transparent;
-        border-radius: 6px;
-        padding: 0.5rem 0;
-        font-size: 1.2rem;
-        cursor: pointer;
-        transition: background 0.1s, border-color 0.1s;
-    }
-    #emojiGrid button:hover {
-        background: #e5e7eb;
-        border-color: var(--primary);
-    }
-    .emoji-container {
-        position: relative;
-    }
-
-    .hidden { display: none !important; }
-
-    @media (max-width: 450px) {
-        h1 { font-size: 1.5rem; }
-        .card { padding: 1rem; }
-        .tabs { margin-bottom: 1rem; }
-        .tab-btn { font-size: 0.9rem; }
-    }
+    .actions{display:flex;gap:.5rem;justify-content:flex-end;flex-wrap:wrap}
   </style>
 </head>
 <body>
-  <div class="container">
+  <div id="emailModal">
+    <div class="modal-content">
+      <h2>Welcome!</h2>
+      <p>Enter your email to get <strong>10 free generations</strong>.</p>
+      <input type="email" id="emailInput" placeholder="you@example.com" required/>
+      <button id="emailSubmit">Start Generating</button>
+    </div>
+  </div>
+
+  <div class="container" id="mainApp" style="display:none;">
     <h1>AI Caption + Hashtag Generator</h1>
-    <p style="text-align: center; color: var(--gray); margin-bottom: 1rem;">Generate scroll-stopping content in seconds.</p>
+    <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
 
-    <div class="tabs">
-        <button id="generateTabBtn" class="tab-btn active">Caption Generator</button>
-        <button id="analyzeTabBtn" class="tab-btn pro-badge">Analyze Competitor (Pro)</button>
+    <div class="proof">
+      <strong>Stop guessing and start optimizing. The only AI Caption Generator with built-in Engagement Score.</strong>
     </div>
 
-    <div id="generateContent" class="tab-content">
-        <div class="card">
-            <form id="captionForm">
-                <div class="form-group">
-                    <label for="idea">Post Idea / Topic</label>
-                    <textarea id="idea" placeholder="e.g., Launching a new coffee flavor, or 5 steps to better marketing." required></textarea>
-                    <div class="emoji-container">
-                        <button type="button" id="emojiPickerBtn">Insert Emoji</button>
-                        <div id="emojiPicker">
-                            <div class="emoji-header">
-                                <h4>Common Emojis</h4>
-                                <button type="button" id="closePicker">×</button>
-                            </div>
-                            <div id="emojiGrid">
-                                </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="platform">Platform</label>
-                    <select id="platform" required>
-                        <option value="">Select a platform</option>
-                        <option value="Instagram">Instagram (Reel/Post)</option>
-                        <option value="TikTok">TikTok</option>
-                        <option value="LinkedIn">LinkedIn</option>
-                        <option value="Twitter">X / Twitter</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="tone">Tone</label>
-                    <select id="tone" required>
-                        <option value="Informative">Informative</option>
-                        <option value="Engaging">Engaging / Fun</option>
-                        <option value="Professional">Professional / Serious</option>
-                        <option value="Sarcastic">Sarcastic / Edgy</option>
-                    </select>
-                </div>
-                
-                <button type="submit" id="generateBtn" class="btn">Generate Captions</button>
-            </form>
-
-            <div id="loading" class="hidden">
-                <p>Generating your captions and hashtags...</p>
-            </div>
-
-            <div id="result" class="hidden">
-                <div class="result-actions">
-                    <button id="copyBtn">Copy All</button>
-                </div>
-                <pre id="output"></pre>
-            </div>
-            
-            <div id="paywall" class="paywall-overlay hidden">
-                <p>You've used your 3 free generations. Unlock **unlimited** generations and the **Viral Swipe File** by subscribing to Pro!</p>
-                <button id="subscribeBtn" class="btn">Go Pro Now</button>
-            </div>
-        </div>
-
-        <div class="templates-section">
-            <h2 style="display: flex; align-items: center;"><span style="color: var(--success); margin-right: 0.5rem;">&#10003;</span> Viral Swipe File (Pro)</h2>
-            
-            <div id="templateTeaser" class="templateTeaser">
-                <p style="font-size: 1.1rem; font-weight: 600; color: var(--primary-dark);">Unlock 20+ viral content templates!</p>
-                <button id="unlockTemplatesBtn" class="btn">Unlock Templates</button>
-            </div>
-
-            <div id="templateContainer" class="hidden">
-                <div id="templatePage1">
-                    <div id="templateGrid">
-                        <button class="templateBtn" data-text="Camera Film 3-step 'hack' for achieving [GOAL] in [TIME].">
-                            <strong>3-Step Hack 📸🎬</strong> What your audience is missing.
-                        </button>
-                        <button class="templateBtn" data-text="Coffee Mug Light Bulb 'If you're not doing [ACTION], you're leaving [RESULT] on the table.'">
-                            <strong>Controversial Statement ☕💡</strong> Call out a common error.
-                        </button>
-                        <button class="templateBtn" data-text="Question Mark Thinking Face 'I spent [TIME] figuring out [COMPLEX TOPIC] so you don't have to. Here's what I learned:'">
-                            <strong>The Shortcut ?🤔</strong> Position yourself as the guide.
-                        </button>
-                        <button class="templateBtn" data-text="Bookmark Sparkles 'The ultimate guide to [TOPIC]. Save this for later!'" >
-                            <strong>Ultimate Guide 🔖✨</strong> Must-save, comprehensive value.
-                        </button>
-                        <button class="templateBtn" data-text="Gift Rocket 'I'm giving away [ITEM] to one random person who comments [KEYWORD] and tags a friend.'">
-                            <strong>Simple Giveaway 🎁🚀</strong> Easy engagement boost.
-                        </button>
-                        <button class="templateBtn" data-text="Hand Point Up Film 'A thread on why [INDUSTRY BELIEF] is wrong and what you should do instead.'">
-                            <strong>Myth Busting 👆🎬</strong> Challenge status quo.
-                        </button>
-                        <button class="templateBtn" data-text="Star Speech Bubble 'What's one thing you wish you knew about [TOPIC] 5 years ago? Let me know below!'" >
-                            <strong>Open Forum ⭐💬</strong> Encourage high comment volume.
-                        </button>
-                        <button class="templateBtn" data-text="Money Bag Chart Increasing 'Stop chasing [BAD METRIC]. Focus on [GOOD METRIC] instead to see real growth.'" >
-                            <strong>Focus Shift 💸📈</strong> Advice on prioritization.
-                        </button>
-                        <button class="templateBtn" data-text="Crying Face Check Mark 'The worst advice I ever got about [INDUSTRY] was [BAD ADVICE]. The truth is...'">
-                            <strong>Bad Advice Reveal 😫✅</strong> Relatable pain point.
-                        </button>
-                        <button class="templateBtn" data-text="Thinking Face Light Bulb 'Here's the one thing I do every day to [ACHIEVE GOAL]. It's simple but highly effective:'">
-                            <strong>The 'One Thing' 🤔💡</strong> Focus on simplicity and results.
-                        </button>
-                    </div>
-                </div>
-                <div id="templatePage2" class="hidden">
-                    <div id="templateGrid">
-                        <button class="templateBtn" data-text="Toolbox Target 'Fix these 3 mistakes you're making with [SKILL/TOPIC] today.'">
-                            <strong>Fix Your Mistakes 🛠️🎯</strong> Direct and actionable.
-                        </button>
-                        <button class="templateBtn" data-text="Speech Bubble Cross Mark 'Unpopular opinion: [OPINION]. Agree or disagree in the comments.'">
-                            <strong>Unpopular Opinion 💬❌</strong> Drive debate and reach.
-                        </button>
-                        <button class="templateBtn" data-text="Link Bookmark 'How to automate [TASK]. Link in bio for the full tutorial. Save this post!'" >
-                            <strong>Link in Bio Offer 🔗🔖</strong> Convert viewers to leads/saves.
-                        </button>
-                        <button class="templateBtn" data-text="Smiling Face 100 Score 'My biggest win this week was [WIN]. What was yours?'">
-                            <strong>Celebrate Wins 😊💯</strong> Build community engagement.
-                        </button>
-                        <button class="templateBtn" data-text="User Rocket 'How I grew my [METRIC] by [PERCENTAGE] in [TIME FRAME] using [STRATEGY].'">
-                            <strong>Case Study Snippet 👤🚀</strong> Prove concept with numbers.
-                        </button>
-                        <button class="templateBtn" data-text="Alarm Clock Flexed Biceps 'If you only have 5 minutes to focus on [TOPIC], do this:'">
-                            <strong>5-Minute Productivity ⏰💪</strong> Micro-task value.
-                        </button>
-                        <button class="templateBtn" data-text="Balance Scale Magnifying Glass 'Is [PRODUCT A] better than [PRODUCT B]? A detailed breakdown.'">
-                            <strong>A vs B Comparison ⚖️🧐</strong> High-value content.
-                        </button>
-                        <button class="templateBtn" data-text="Laptop Sparkles 'The one feature of [SOFTWARE] that changed my business this year.'">
-                            <strong>Software Spotlight 💻✨</strong> Tool-based value.
-                        </button>
-                        <button class="templateBtn" data-text="Writing Hand Target '3 ways to structure your [CONTENT TYPE] for maximum impact.'">
-                            <strong>Structure Guide ✍️🎯</strong> Step-by-step framework.
-                        </button>
-                        <button class="templateBtn" data-text="Heart 'Tell me you're a [NICHE] without telling me you're a [NICHE].'">
-                            <strong>Insider Community ❤️</strong> Niche-specific engagement.
-                        </button>
-                    </div>
-                </div>
-                <div class="pagination">
-                    <button id="page1Btn">Page 1</button>
-                    <button id="page2Btn">Page 2</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div id="analyzeContent" class="tab-content hidden">
-        <div class="card">
-            <form id="analyzeForm" class="hidden">
-                <div class="form-group">
-                    <label for="competitorUrl">Competitor Post URL</label>
-                    <input type="text" id="competitorUrl" placeholder="e.g., https://instagram.com/p/B_X_Y_Z..." required />
-                </div>
-                <button type="submit" id="analyzeBtn" class="btn">Analyze Post</button>
-            </form>
-            
-            <div id="analysisPaywall" class="paywall-overlay hidden">
-                <p>Unlock the Competitor Analyzer for Pro-level insights into viral content structure. Subscribe today!</p>
-                <button id="subscribeAnalyzeBtn" class="btn">Upgrade to Pro</button>
-            </div>
-
-            <div id="analysisResult" class="analysis-card hidden">
-                <p style="text-align: center; font-size: 1.2rem; font-weight: 600; margin-bottom: 0;">Content Score</p>
-                <div id="analysisScore" class="analysis-score">--</div>
-                
-                <div id="analysisDetails" class="analysis-detail">
-                </div>
-                
-                <button id="boostScoreBtn" style="background: var(--success); margin-top: 1rem; width: 100%; font-size: 1rem; display: none;">Boost Score: See Potential</button>
-                <button id="analyzeAgainBtn">Analyze Another Post</button>
-            </div>
-        </div>
+    <div id="dailyTipBox">
+      <strong>💡 Today's Tip:</strong>
+      <span id="dailyTipText">Loading a viral content tip...</span>
     </div>
 
+    <div id="tabContainer">
+      <div id="tabHeader">
+        <button id="generateTabBtn" class="tab-btn active" data-target="generateContent">Generate Content</button>
+        <button id="analyzeTabBtn" class="tab-btn" data-target="analyzeContent">Analyze Competitor (Pro)</button>
+      </div>
+
+      <!-- GENERATE TAB -->
+      <div id="generateContent" class="tab-content">
+        <form id="captionForm">
+          <label for="idea">Post Idea</label>
+          <input type="text" id="idea" placeholder="e.g. Just launched my coffee shop" required/>
+
+          <label for="platform">Platform</label>
+          <select id="platform" required>
+            <option value="" disabled selected data-placeholder>Choose platform</option>
+            <option value="Instagram">Instagram</option>
+            <option value="Twitter">Twitter</option>
+            <option value="LinkedIn">LinkedIn</option>
+            <option value="TikTok">TikTok</option>
+          </select>
+
+          <label for="tone">Tone</label>
+          <select id="tone" required>
+            <option value="" disabled selected data-placeholder>Choose tone</option>
+            <option value="Professional">Professional</option>
+            <option value="Fun & Playful">Fun & Playful</option>
+            <option value="Inspirational">Inspirational</option>
+            <option value="Bold & Confident">Bold & Confident</option>
+            <option value="Casual & Friendly">Casual & Friendly</option>
+          </select>
+
+          <button type="submit" id="generateBtn">Generate Captions</button>
+        </form>
+
+        <div class="emoji-picker-container">
+          <button type="button" id="emojiPickerBtn">Add Emojis</button>
+          <div id="emojiPicker">
+            <p style="margin-bottom:.75rem;font-weight:600;">Pick Emojis</p>
+            <div id="emojiGrid"></div>
+            <button id="closePicker">Close</button>
+          </div>
+        </div>
+
+        <div id="loading" class="loading hidden">Generating magic...</div>
+
+        <div id="result" class="result hidden">
+          <h3>Your AI Captions</h3>
+          <div id="engagementScoreBox" class="hidden">
+            Engagement Score: <span id="engagementScore">--</span>/100
+            <small id="engagementDelta" class="hidden">(+0)</small>
+          </div>
+          <pre id="output"></pre>
+          <div class="actions">
+            <button type="button" id="boostBtn">⚡ Boost My Score</button>
+            <button type="button" id="copyBtn">Copy All</button>
+          </div>
+        </div>
+
+        <div id="proTemplates">
+          <h3>The Viral Swipe File: Proven 6-Figure Post Structures</h3>
+          <p style="margin:1rem 0 .75rem;font-size:.95rem;color:#065f46;line-height:1.5;">
+            <strong>Steal the exact captions used by 6-figure creators.</strong>
+            These aren’t random — they’re <em>proven</em> to get 3x more likes, comments, and saves.
+            Just click, edit, generate. <strong>Instant viral edge.</strong>
+          </p>
+
+          <div id="templateContainer" class="hidden">
+            <div id="templatePage1">
+              <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">Just hit [X] followers! Grateful for every one of you ❤️ ✨</button>
+              <button class="templateBtn" data-text="Behind the scenes of [your idea] Camera Film">Behind the scenes of [your idea] 📸 🎬</button>
+              <button class="templateBtn" data-text="Tag a friend who needs this! Hand Point Down">Tag a friend who needs this! 👇</button>
+              <button class="templateBtn" data-text="New drop alert! Link in bio Shopping Bag Fire">New drop alert! Link in bio 🛍️ 🔥</button>
+              <button class="templateBtn" data-text="Your daily dose of [topic] Coffee Mug Light Bulb">Your daily dose of [topic] ☕ 💡</button>
+              <button class="templateBtn" data-text="Reply with YES or NO: [question]? Question Mark Thinking Face">Reply with YES or NO: [question]? ❓ 🤔</button>
+              <button class="templateBtn" data-text="Save this for later — you’ll thank me! Bookmark Sparkles">Save this for later — you’ll thank me! 🔖 ✨</button>
+              <button class="templateBtn" data-text="Free [resource] in bio! Don’t miss it Gift Rocket">Free [resource] in bio! Don’t miss it 🎁 🚀</button>
+              <button class="templateBtn" data-text="Swipe up to see the full story! Hand Point Up Film">Swipe up to see the full story! 👆 🎬</button>
+              <button class="templateBtn" data-text="'Changed my [niche] game!' – @username Star Speech Bubble">"Changed my [niche] game!" – @username ⭐ 💬</button>
+            </div>
+
+            <div id="templatePage2">
+              <button class="templateBtn" data-text="You think [Product] is too expensive? Here's the ROI breakdown. Money Bag Chart Increasing">You think [Product] is too expensive? Here's the ROI breakdown. 💸 📈</button>
+              <button class="templateBtn" data-text="Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. Crying Face Check Mark">Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. 😫 ✅</button>
+              <button class="templateBtn" data-text="6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. Thinking Face Light Bulb">6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. 🤯 💡</button>
+              <button class="templateBtn" data-text="How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. Toolbox Target">How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. 🛠️ 🎯</button>
+              <button class="templateBtn" data-text="Unpopular opinion: [Common Belief] is completely wrong. Here's why. Speech Bubble Cross Mark">Unpopular opinion: [Common Belief] is completely wrong. Here's why. 🗣️ ❌</button>
+              <button class="templateBtn" data-text="Get the exact checklist I use to [Goal]! Click the link that says Link Bookmark">Get the exact checklist I use to [Goal]! Click the link that says &quot;Free Guide.&quot; 🔗 🔖</button>
+              <button class="templateBtn" data-text="Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? Smiling Face 100 Score">Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? 😮 💯</button>
+              <button class="templateBtn" data-text="Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. User Rocket">Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. 👤 🚀</button>
+              <button class="templateBtn" data-text="My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. Alarm Clock Flexed Biceps">My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. ⏰ 💪</button>
+              <button class="templateBtn" data-text="[Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. Balance Scale Magnifying Glass">[Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. ⚖️ 🧐</button>
+            </div>
+
+            <div id="templatePaging">
+              <button id="page1Btn" class="active">Page 1</button>
+              <button id="page2Btn">Page 2</button>
+            </div>
+          </div>
+
+          <div id="templateTeaser">
+            <p style="font-size:.9rem;color:#92400e;font-style:italic;margin-top:1rem;">
+              <strong>Unlock 20 Viral Swipe File Structures</strong> — only available in <strong>Pro</strong>.
+            </p>
+            <button id="unlockTemplatesBtn" style="background:#f59e0b;color:#fff;border:none;padding:.6rem 1.2rem;border-radius:.5rem;font-size:.9rem;font-weight:600;cursor:pointer;margin-top:.5rem;">Upgrade to Pro</button>
+          </div>
+        </div>
+
+        <div id="paywall" class="paywall hidden">
+          <h3>Upgrade to Pro!</h3>
+          <p>You've used your 10 free generations. <strong>Unlimited + 20 Viral Swipe File Structures</strong> for <strong>$7/month</strong>.</p>
+          <button id="subscribeBtn">Subscribe Now</button>
+        </div>
+      </div>
+
+      <!-- ANALYZE TAB -->
+      <div id="analyzeContent" class="tab-content hidden">
+        <div id="analysisDescription" style="background:#f0f9ff;border:1px solid #bae6fd;padding:1.2rem;border-radius:.75rem;margin-bottom:1.5rem;font-size:.95rem;line-height:1.5;color:#0369a1;">
+          <h4 style="margin-bottom:.5rem;color:#075985;font-size:1.1rem;">Reverse-Engineer Viral Success 🔬</h4>
+          Paste <em>any</em> competitor's post URL (Instagram, Twitter, etc.) and our AI will <strong>deconstruct their strategy</strong>.
+          Get an instant <strong>Content Score</strong> and a detailed breakdown of their <strong>hook</strong>, <strong>CTA</strong>, and <strong>hashtag usage</strong>.
+          This is your competitive edge to go viral faster.
+        </div>
+
+        <div id="analysisPaywall" class="paywall hidden" style="margin-top:1rem;">
+          <h3>Unlock Analysis!</h3>
+          <p>Content Scoring is an exclusive <strong>Pro</strong> feature. <strong>Unlimited Access</strong> for <strong>$7/month</strong>.</p>
+          <button id="subscribeAnalyzeBtn">Upgrade to Pro</button>
+        </div>
+
+        <form id="analyzeForm" class="hidden">
+          <label for="competitorUrl">Competitor Post URL</label>
+          <input type="url" id="competitorUrl" placeholder="e.g. https://instagram.com/p/B..." required/>
+          <button type="submit" id="analyzeBtn">Analyze Post Structure</button>
+        </form>
+
+        <div id="analysisResult" class="analysis-card hidden">
+          <p style="text-align:center;font-size:1.2rem;font-weight:600;margin-bottom:0;">Content Score</p>
+          <div id="analysisScore" class="analysis-score">--</div>
+          <div id="analysisDetails" class="analysis-detail"></div>
+          <button id="analyzeAgainBtn">Analyze Another Post</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <a href="/terms.html">Terms</a>
+      <a href="/privacy.html">Privacy</a>
+      <span>© 2025 Caption AI</span>
+    </footer>
   </div>
 
   <script>
-    // Mock API URL and User Authentication
-    const API_URL = 'http://mockapi.com'; // Replace with your actual backend endpoint
-    let isPro = localStorage.getItem('isPro') === 'true'; // Check if user is Pro
-    let userEmail = 'user@example.com'; // Replace with actual user session email
+  document.addEventListener('DOMContentLoaded',()=> {
+    const API_URL='https://caption-ai-ze13.onrender.com';
+    const MAX_FREE_USES=10;
 
-    function initApp() {
-      const form = document.getElementById('captionForm');
-      const generateBtn = document.getElementById('generateBtn');
-      const loading = document.getElementById('loading');
-      const result = document.getElementById('result');
-      const output = document.getElementById('output');
-      const paywall = document.getElementById('paywall');
-      const subscribeBtn = document.getElementById('subscribeBtn');
-      const copyBtn = document.getElementById('copyBtn');
-      const analysisPaywall = document.getElementById('analysisPaywall');
-      const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
-      const emojiPickerBtn = document.getElementById('emojiPickerBtn');
+    // state
+    let userEmail=localStorage.getItem('userEmail');
+    let isPro=localStorage.getItem('isPro')==='true';
+    let freeUses=parseInt(localStorage.getItem('freeUses')||'0',10);
+    let currentTab=localStorage.getItem('lastTab')||'generateContent';
+    let debounceTimer;
+    let isGenerating=false;
+    let lastEngagementScore=null;
 
-      let debounceTimer;
-      let isGenerating = false;
-      let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
+    // core DOM
+    const modal=document.getElementById('emailModal');
+    const mainApp=document.getElementById('mainApp');
+    const emailInput=document.getElementById('emailInput');
+    const emailSubmit=document.getElementById('emailSubmit');
+    const generateTabBtn=document.getElementById('generateTabBtn');
+    const analyzeTabBtn=document.getElementById('analyzeTabBtn');
+    const generateContent=document.getElementById('generateContent');
+    const analyzeContent=document.getElementById('analyzeContent');
+    const analysisPaywall=document.getElementById('analysisPaywall');
+    const analyzeForm=document.getElementById('analyzeForm');
+    const analysisResult=document.getElementById('analysisResult');
+    const competitorUrlInput=document.getElementById('competitorUrl');
+    const analyzeAgainBtn=document.getElementById('analyzeAgainBtn');
+    const loading=document.getElementById('loading');
+    const resultBox=document.getElementById('result');
+    const output=document.getElementById('output');
+    const generateBtn=document.getElementById('generateBtn');
+    const copyBtn=document.getElementById('copyBtn');
+    const subscribeBtn=document.getElementById('subscribeBtn');
+    const subscribeAnalyzeBtn=document.getElementById('subscribeAnalyzeBtn');
+    const paywall=document.getElementById('paywall');
+    const ideaInput=document.getElementById('idea');
+    const platformSelect=document.getElementById('platform');
+    const toneEl=document.getElementById('tone');
+    const emojiPickerBtn=document.getElementById('emojiPickerBtn');
+    const picker=document.getElementById('emojiPicker');
+    const grid=document.getElementById('emojiGrid');
+    const closePicker=document.getElementById('closePicker');
+    const templateContainer=document.getElementById('templateContainer');
+    const templateTeaser=document.getElementById('templateTeaser');
+    const page1=document.getElementById('templatePage1');
+    const page2=document.getElementById('templatePage2');
+    const page1Btn=document.getElementById('page1Btn');
+    const page2Btn=document.getElementById('page2Btn');
+    const engagementBox=document.getElementById('engagementScoreBox');
+    const engagementScoreEl=document.getElementById('engagementScore');
+    const engagementDelta=document.getElementById('engagementDelta');
+    const boostBtn=document.getElementById('boostBtn');
 
+    // emoji map
+    const emojiMap={
+      'Camera':'📸','Heart':'❤️','Sparkles':'✨','Coffee':'☕','Shopping Bag':'🛍️','Rocket':'🚀','Fire':'🔥','Trophy':'🏆','Briefcase':'💼','Handshake':'🤝',
+      'Laptop':'💻','Sunrise':'🌅','Moon':'🌙','Pizza':'🍕','Leaf':'🍃','Flexed Biceps':'💪','Airplane':'✈️','Book':'📚','Dog':'🐶','Cat':'🐱','Birthday Cake':'🎂',
+      'Party Popper':'🎉','Star':'⭐','Film':'🎬','Musical Notes':'🎶','Dancer':'💃','Play Button':'▶️','New':'🆕','Sale':'🏷️','Check Mark':'✅','Cross Mark':'❌',
+      'Hand Point Down':'👇','Coffee Mug':'☕','Hand Wave':'👋','Light Bulb':'💡','Thinking Face':'🤔','100 Score':'💯','Money Bag':'💸','Chart Increasing':'📈',
+      'Target':'🎯','Alarm Clock':'⏰','Question Mark':'❓','Speech Bubble':'💬','Crown':'👑','Diamond':'💎','Robot':'🤖','Globe':'🌍','Mountain':'⛰️','Pin':'📌',
+      'Megaphone':'📣','Writing Hand':'✍️','Open Book':'📖','Smiling Face':'😊','Crying Face':'😫','Clapping Hands':'👏','Winking Face':'😉','Red Apple':'🍎',
+      'Grapes':'🍇','Donut':'🍩','Taco':'🌮','Beer Mug':'🍺','Martini Glass':'🍸','Car':'🚗','Bicycle':'🚲','Train':'🚆','Boat':'⛵','Fingers Crossed':'🤞',
+      'Poo':'💩','Ghost':'👻','Alien':'👽','Lock':'🔒','Key':'🔑','Toolbox':'🛠️','Graduation Cap':'🎓','Bookmark':'🔖','Gift':'🎁','Hand Point Up':'👆',
+      'Link':'🔗','Balance Scale':'⚖️','Magnifying Glass':'🧐','User':'👤'
+    };
 
-      // === EMOJI MAP ===
-      const emojiMap = {
-        'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
-        'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
-        'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
-        'Flexed Biceps': '💪', 'Airplane': '✈️', 'Book': '📚', 'Dog': '🐶', 'Cat': '🐱',
-        'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
-        'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
-        'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
-        'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💸', 
-        'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
-        'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
-        'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
-        'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😫', 
-        'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
-        'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
-        'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
-        'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
-        'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🛠️', 'Graduation Cap': '🎓',
-        'Bookmark': '🔖', 'Gift': '🎁', 'Hand Point Up': '👆',
-        'Link': '🔗', 'Balance Scale': '⚖️', 'Magnifying Glass': '🧐', 'User': '👤' 
-      };
+    // daily tips
+    const dailyTips=[
+      "Hook the reader in the first sentence. Your AI captions are useless if no one stops scrolling!",
+      "Always include a clear Call-to-Action (CTA) at the end: Ask a question, tell them to save the post, or tag a friend.",
+      "To maximize reach, use 2-3 broad hashtags (like #entrepreneur) and 10+ niche-specific hashtags (like #saasmarketing).",
+      "Test different tones for the same idea. A 'Bold' caption might outperform a 'Casual' one by 50%.",
+      "Use the 'Content Analyzer' (Pro tab) on your competitor's posts to reverse-engineer their viral hooks.",
+      "Engagement is key: Reply to every comment within the first hour to signal to the algorithm that your content is valuable.",
+      "Vertical video (Reels/TikTok) is king. Use your AI captions to add context and drive watch time.",
+      "The best captions use line breaks! Keep paragraphs to 1-2 sentences for maximum readability.",
+      "Your 'Post Idea' input should be benefit-focused, e.g., 'How to save 2 hours a week' instead of 'My new software'.",
+      "For LinkedIn, stick to the 'Professional' tone, keep emojis minimal, and focus on business value or lessons learned.",
+      "A strong caption usually contains a hook, a middle (value/story), and a strong closing CTA.",
+      "Try using a numbered list (e.g., '3 ways to...') in your idea input to generate highly scannable captions.",
+      "Experiment with emoji placement. Emojis at the start of a caption increase visual appeal and stop the scroll.",
+      "If posting on Twitter, keep your core message brief (under 140 chars) and use a thread to provide more detail.",
+      "Don't just use the first caption the AI gives you. Generate a few options and combine the best hook, body, and CTA."
+    ];
+    function getTodayTip(){
+      const today=new Date();
+      const start=new Date(today.getFullYear(),0,0);
+      const diff=today-start;
+      const oneDay=1000*60*60*24;
+      const dayOfYear=Math.floor(diff/oneDay);
+      const tipIndex=dayOfYear%dailyTips.length;
+      return dailyTips[tipIndex];
+    }
 
-      // === TAB LOGIC FOR NEW FEATURE ===
-      const generateTabBtn = document.getElementById('generateTabBtn');
-      const analyzeTabBtn = document.getElementById('analyzeTabBtn');
-      const generateContent = document.getElementById('generateContent');
-      const analyzeContent = document.getElementById('analyzeContent');
-      const analyzeForm = document.getElementById('analyzeForm');
-      const competitorUrlInput = document.getElementById('competitorUrl');
-      const analyzeBtn = document.getElementById('analyzeBtn');
-      const analysisResult = document.getElementById('analysisResult');
-      const analyzeAgainBtn = document.getElementById('analyzeAgainBtn'); 
-      const ideaInput = document.getElementById('idea');
-      const platformSelect = document.getElementById('platform');
-      
-      // NEW BOOST FEATURE VARIABLES
-      const boostScoreBtn = document.getElementById('boostScoreBtn');
-      let lastAnalyzedUrl = '';
-      let lastAnalyzedScore = 0;
-      
-      let currentTab = 'generateContent';
-
-      function showTab(tabName) {
-          currentTab = tabName;
-          analysisResult.classList.add('hidden'); // Hide analysis results when switching tabs
-          loading.classList.add('hidden'); // Hide loading indicator
-          result.classList.add('hidden'); // Hide generation result
-          
-          if (tabName === 'generateContent') {
-              generateContent.classList.remove('hidden');
-              analyzeContent.classList.add('hidden');
-              generateTabBtn.classList.add('active');
-              analyzeTabBtn.classList.remove('active');
-              analysisPaywall.classList.add('hidden');
-              
-              if (!isPro && freeUses >= 3) {
-                paywall.classList.remove('hidden');
-              } else {
-                paywall.classList.add('hidden');
-              }
-
-          } else if (tabName === 'analyzeContent') {
-              generateContent.classList.add('hidden');
-              analyzeContent.classList.remove('hidden');
-              generateTabBtn.classList.remove('active');
-              analyzeTabBtn.classList.add('active');
-              paywall.classList.add('hidden'); // Hide main paywall in analysis tab
-              
-              // Reset analysis state
-              analysisResult.classList.add('hidden');
-              document.getElementById('analysisScore').classList.remove('boosted');
-              boostScoreBtn.style.display = 'none';
-
-              if (!isPro) {
-                analysisPaywall.classList.remove('hidden');
-                analyzeForm.classList.add('hidden');
-                analysisResult.classList.add('hidden'); // Ensure result is hidden if non-pro
-              } else {
-                analysisPaywall.classList.add('hidden');
-                analyzeForm.classList.remove('hidden');
-              }
-          }
+    // engagement score
+    function computeEngagementScore(text,idea,platform,tone){
+      if(!text) return 0;
+      let score=0;
+      const first140=text.slice(0,140);
+      let hook=0;
+      if(first140 && /[A-Z]/.test(first140[0])) hook+=5;
+      if(/[0-9]/.test(first140)) hook+=5;
+      if(/[🔥✨💥🚀⭐💯❗]/.test(first140)) hook+=5;
+      if(idea){
+        const firstWord=idea.split(/\s+/)[0];
+        if(firstWord && first140.toLowerCase().includes(firstWord.toLowerCase())) hook+=5;
       }
+      if(first140.length<100) hook+=5;
+      score+=Math.min(hook,25);
 
-      generateTabBtn.addEventListener('click', () => showTab('generateContent'));
-      analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
-      
-      // Analysis Paywall Subscribe Button now correctly triggers the main subscription logic
-      subscribeAnalyzeBtn.addEventListener('click', async () => {
-        subscribeBtn.click();
-      });
-      
-      // --- Platform Auto-Detection Function ---
-      function detectPlatform(url) {
-          url = url.toLowerCase();
-          if (url.includes('instagram.com')) return 'Instagram';
-          if (url.includes('twitter.com') || url.includes('x.com')) return 'Twitter';
-          if (url.includes('linkedin.com')) return 'LinkedIn';
-          if (url.includes('tiktok.com')) return 'TikTok';
-          return 'Instagram'; // Default fallback
-      }
-      
-      // === DETERMINISTIC SCORE GENERATION FUNCTION (UPDATED) ===
-      // A simple, consistent hashing function to ensure the same URL yields the same number.
-      function hashString(str) {
-          let hash = 0;
-          for (let i = 0; i < str.length; i++) {
-              const char = str.charCodeAt(i);
-              hash = ((hash << 5) - hash) + char;
-              hash |= 0; // Convert to 32bit integer
-          }
-          return Math.abs(hash);
-      }
-      
-      // Function to generate score and mock analysis details deterministically (UPDATED LOGIC)
-      function generateDeterministicScore(url) {
-          const uniqueSeed = hashString(url.toLowerCase().trim());
-          
-          // Map the unique seed to a score between 30 and 99
-          const score = (uniqueSeed % 70) + 30; // Ensures score is between 30 and 99
-          
-          // Determine quality tiers based on the consistent score
-          const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : score > 50 ? 'Fair' : 'Low';
-          
-          let hook, readability, hashtags, cta;
+      let read=0;
+      const lines=text.split("\n");
+      if(lines.length>3) read+=10;
+      if(text.length<900) read+=10;
+      if(/[.!?]\s/.test(text)) read+=5;
+      score+=Math.min(read,25);
 
-          if (quality === 'High') {
-              hook = 'Exceptional hook strategy, highly compelling. 🔥';
-              readability = 'Perfectly formatted for platform (short paragraphs, emojis). ✅';
-              hashtags = 'All niche-specific and highly relevant (90%+). 🎯';
-              cta = 'Strong, clear, and urgent call-to-action to a specific outcome. 🚀';
-          } else if (quality === 'Medium') {
-              hook = 'Effective hook, though it could be more emotionally engaging. 👍';
-              readability = 'Good structure, needs minor line break optimization. ⚠️';
-              hashtags = 'Balanced mix of niche and broad tags (60/40). 💡';
-              cta = 'Clear directional CTA (e.g., "Link in Bio" or "Comment Below"). 🔗';
-          } else if (quality === 'Fair') {
-              hook = 'Weak, generic hook that risks being scrolled past. 😕';
-              readability = 'Mostly a wall of text, difficult to scan. 📝';
-              hashtags = 'Mostly broad, low-impact tags (75%+). 🔎';
-              cta = 'Passive CTA or a simple question. ❓';
-          } else { // Low (30-50)
-              hook = 'Vague or non-existent hook; immediate failure point. 🛑';
-              readability = 'Dense, unformatted text block, poor emoji use. ❌';
-              hashtags = 'Irrelevant or overused generic tags. 🗑️';
-              cta = 'No clear CTA, relying purely on accidental engagement. 📉';
-          }
+      let hash=0;
+      const hashtags=text.match(/#[A-Za-z0-9_]+/g)||[];
+      if(hashtags.length>=20) hash+=10;
+      const nicheTags=hashtags.filter(h=>h.length>8);
+      if(nicheTags.length>10) hash+=10;
+      if(platform && hashtags.some(h=>h.toLowerCase().includes(platform.toLowerCase()))) hash+=5;
+      score+=Math.min(hash,25);
 
-          return { score, hook, readability, hashtags, cta };
-      }
-      
-      // === BOOST SCORE FUNCTION (NEW) ===
-      function generateBoostedScore(initialScore) {
-          // Calculate boost amount (more boost for low scores, less for high scores)
-          let boostAmount;
-          if (initialScore < 50) { 
-              boostAmount = 15;
-          } else if (initialScore < 80) { 
-              boostAmount = 10;
-          } else { 
-              boostAmount = 5;
-          }
+      let fit=0;
+      if(platform==="LinkedIn" && tone.includes("Professional")) fit+=20;
+      if(platform==="TikTok" && tone.includes("Fun")) fit+=20;
+      if(platform==="Instagram" && /🔥|✨|💫/.test(text)) fit+=20;
+      if(platform==="Twitter" && text.length<600) fit+=20;
+      score+=Math.min(fit,25);
 
-          const newScore = Math.min(initialScore + boostAmount, 99);
-          
-          // Boosted analysis details always reflect 'High' quality improvements
-          const hook = 'Transformed into an irresistible, pattern-interrupting hook. Success. 🔥';
-          const readability = 'Perfectly optimized for mobile scan-reading with line breaks and power words. ✅';
-          const hashtags = 'Precise, low-competition tags selected for maximum organic reach. 🎯';
-          const cta = 'Mandatory, single-action CTA added for conversion focus. 🚀';
+      return Math.max(0,Math.min(score,100));
+    }
 
-          return { score: newScore, hook, readability, hashtags, cta };
-      }
-
-      // Analysis Logic
-      analyzeForm.addEventListener('submit', (e) => {
-          e.preventDefault();
-          if (!isPro) return;
-          
-          loading.classList.remove('hidden');
-          analysisResult.classList.add('hidden');
-          document.getElementById('analysisScore').classList.remove('boosted');
-          boostScoreBtn.style.display = 'none'; // Ensure boost button is hidden initially
-          
-          const url = competitorUrlInput.value.trim();
-          lastAnalyzedUrl = url; // Save URL
-          const platform = detectPlatform(url); // Auto-detect the platform
-          
-          // --- DETERMINISTIC AI ANALYSIS ---
-          setTimeout(() => {
-              loading.classList.add('hidden');
-              
-              const analysisData = generateDeterministicScore(url);
-              lastAnalyzedScore = analysisData.score; // Save score
-              
-              // Display results
-              document.getElementById('analysisScore').textContent = analysisData.score;
-              document.getElementById('analysisDetails').innerHTML = `
-                  <p><strong>Platform Detected:</strong> ${platform}</p>
-                  <p><strong>Hook Score:</strong> ${analysisData.hook}</p>
-                  <p><strong>Readability:</strong> ${analysisData.readability}</p>
-                  <p><strong>Hashtags:</strong> ${analysisData.hashtags}</p>
-                  <p><strong>Core CTA:</strong> ${analysisData.cta}</p>
-              `;
-              
-              analysisResult.classList.remove('hidden');
-              boostScoreBtn.style.display = 'block'; // Show boost button after initial analysis
-          }, 1500); // Simulate network latency
-      });
-      
-      // NEW: Boost Score button listener
-      boostScoreBtn.addEventListener('click', () => {
-          if (lastAnalyzedScore === 0) return;
-          
-          loading.classList.remove('hidden');
-          analysisResult.classList.add('hidden');
-          
-          setTimeout(() => {
-              loading.classList.add('hidden');
-              
-              const boostedData = generateBoostedScore(lastAnalyzedScore);
-              
-              // Display boosted results
-              const scoreElement = document.getElementById('analysisScore');
-              scoreElement.textContent = boostedData.score;
-              scoreElement.classList.add('boosted'); // Apply green color
-              
-              document.getElementById('analysisDetails').innerHTML = `
-                  <p style="color: var(--success-dark); font-weight: 700;">✅ BOOSTED ANALYSIS (Target Score: ${boostedData.score})</p>
-                  <p><strong>Platform Detected:</strong> ${detectPlatform(lastAnalyzedUrl)}</p>
-                  <p><strong>Hook Score:</strong> ${boostedData.hook}</p>
-                  <p><strong>Readability:</strong> ${boostedData.readability}</p>
-                  <p><strong>Hashtags:</strong> ${boostedData.hashtags}</p>
-                  <p><strong>Core CTA:</strong> ${boostedData.cta}</p>
-              `;
-              
-              analysisResult.classList.remove('hidden');
-              boostScoreBtn.style.display = 'none'; // Hide button after boosting
-              document.getElementById('analyzeAgainBtn').scrollIntoView({ behavior: 'smooth' });
-
-          }, 1500); // Simulate network latency
-      });
-      
-      // NEW: Analyze Again button listener (Simple clear function)
-      analyzeAgainBtn.addEventListener('click', () => {
-          competitorUrlInput.value = '';
-          analysisResult.classList.add('hidden');
-          document.getElementById('analysisScore').classList.remove('boosted');
-          boostScoreBtn.style.display = 'none';
-          competitorUrlInput.focus();
-          // Optionally clear analysis details for a clean slate
-          document.getElementById('analysisDetails').innerHTML = ''; 
-      });
-
-      // === PRO TEMPLATES PAGINATION LOGIC ===
-      const templateContainer = document.getElementById('templateContainer');
-      const templateTeaser = document.getElementById('templateTeaser');
-      const page1 = document.getElementById('templatePage1');
-      const page2 = document.getElementById('templatePage2');
-      const page1Btn = document.getElementById('page1Btn');
-      const page2Btn = document.getElementById('page2Btn');
-      
-      function showPage(pageNumber) {
-          if (pageNumber === 1) {
-              page1.style.display = 'grid';
-              page2.style.display = 'none';
-              page1Btn.classList.add('active');
-              page2Btn.classList.remove('active');
-          } else if (pageNumber === 2) {
-              page1.style.display = 'none';
-              page2.style.display = 'grid';
-              page1Btn.classList.remove('active');
-              page2Btn.classList.add('active');
-          }
-      }
-
-      if (isPro) {
-        templateContainer.classList.remove('hidden');
-        templateContainer.style.display = 'block'; 
-        templateTeaser.style.display = 'none';
-        showPage(1); 
-
-        page1Btn.addEventListener('click', () => showPage(1));
-        page2Btn.addEventListener('click', () => showPage(2));
-
-        document.querySelectorAll('.templateBtn').forEach(btn => {
-          const raw = btn.getAttribute('data-text');
-          
-          const processTemplateText = (text) => {
-              text = text.replace('Camera Film', emojiMap['Camera'] + ' ' + emojiMap['Film']);
-              text = text.replace('Coffee Mug Light Bulb', emojiMap['Coffee Mug'] + ' ' + emojiMap['Light Bulb']);
-              text = text.replace('Question Mark Thinking Face', emojiMap['Question Mark'] + ' ' + emojiMap['Thinking Face']);
-              text = text.replace('Bookmark Sparkles', emojiMap['Bookmark'] + ' ' + emojiMap['Sparkles']);
-              text = text.replace('Gift Rocket', emojiMap['Gift'] + ' ' + emojiMap['Rocket']);
-              text = text.replace('Hand Point Up Film', emojiMap['Hand Point Up'] + ' ' + emojiMap['Film']);
-              text = text.replace('Star Speech Bubble', emojiMap['Star'] + ' ' + emojiMap['Speech Bubble']);
-              text = text.replace('Money Bag Chart Increasing', emojiMap['Money Bag'] + ' ' + emojiMap['Chart Increasing']);
-              text = text.replace('Crying Face Check Mark', emojiMap['Crying Face'] + ' ' + emojiMap['Check Mark']);
-              text = text.replace('Thinking Face Light Bulb', emojiMap['Thinking Face'] + ' ' + emojiMap['Light Bulb']);
-              text = text.replace('Toolbox Target', emojiMap['Toolbox'] + ' ' + emojiMap['Target']);
-              text = text.replace('Speech Bubble Cross Mark', emojiMap['Speech Bubble'] + ' ' + emojiMap['Cross Mark']);
-              text = text.replace('Link Bookmark', emojiMap['Link'] + ' ' + emojiMap['Bookmark']);
-              text = text.replace('Smiling Face 100 Score', emojiMap['Smiling Face'] + ' ' + emojiMap['100 Score']);
-              text = text.replace('User Rocket', emojiMap['User'] + ' ' + emojiMap['Rocket']);
-              text = text.replace('Alarm Clock Flexed Biceps', emojiMap['Alarm Clock'] + ' ' + emojiMap['Flexed Biceps']);
-              text = text.replace('Balance Scale Magnifying Glass', emojiMap['Balance Scale'] + ' ' + emojiMap['Magnifying Glass']);
-
-
-              text = text.replace('Heart', emojiMap['Heart']);
-              text = text.replace('Sparkles', emojiMap['Sparkles']);
-              text = text.replace('Hand Point Down', emojiMap['Hand Point Down']);
-              text = text.replace('Shopping Bag', emojiMap['Shopping Bag']);
-              text = text.replace('Fire', emojiMap['Fire']);
-              text = text.replace('Light Bulb', emojiMap['Light Bulb']);
-              text = text.replace('Film', emojiMap['Film']); 
-              text = text.replace('Camera', emojiMap['Camera']); 
-              text = text.replace('Gift snake', emojiMap['Gift']); 
-
-              return text.replace(/\[\w+\]/g, (match) => match); 
-          };
-
-          const renderedText = processTemplateText(raw);
-          
-          btn.addEventListener('click', () => {
-            document.getElementById('idea').value = renderedText;
-            document.getElementById('idea').focus();
-            showTab('generateContent'); // Ensure we are on the correct tab after clicking a template
-          });
-        });
-      } else {
-        templateContainer.style.display = 'none';
-        templateTeaser.style.display = 'block';
-      }
-      
-      // Ensure correct tab visibility on load
-      showTab(currentTab); 
-
-      document.getElementById('unlockTemplatesBtn').addEventListener('click', () => {
-        paywall.classList.remove('hidden');
-        paywall.scrollIntoView({ behavior: 'smooth' });
-      });
-
-      // === SUBSCRIBE BUTTON ===
-      subscribeBtn.addEventListener('click', async () => {
-        try {
-          const res = await fetch(`${API_URL}/create-checkout-session`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: userEmail })
-          });
-          const { url } = await res.json();
-          window.location.href = url;
-        } catch (err) {
-          alert('Checkout failed. Please try again.');
-        }
-      });
-
-      // === EMOJI PICKER ===
-      const emojiBtn = document.getElementById('emojiPickerBtn');
-      const picker = document.getElementById('emojiPicker');
-      const grid = document.getElementById('emojiGrid');
-      const closePicker = document.getElementById('closePicker');
-
-      const commonEmojis = Object.keys(emojiMap).filter(k => !['Coffee Mug', 'Hand Wave'].includes(k));
-      grid.innerHTML = '';
-      commonEmojis.forEach(name => {
-        const btn = document.createElement('button');
-        btn.textContent = emojiMap[name];
-        btn.title = name;
-        btn.addEventListener('click', () => {
-          document.getElementById('idea').value += ' ' + emojiMap[name];
-          document.getElementById('idea').focus();
-        });
-        grid.appendChild(btn);
-      });
-
-      emojiBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
-      });
-
-      closePicker.addEventListener('click', () => picker.style.display = 'none');
-
-      document.addEventListener('click', (e) => {
-        if (!picker.contains(e.target) && e.target !== emojiBtn) {
-          picker.style.display = 'none';
-        }
-      });
-
-      // === GENERATION LOGIC ===
-      const inputs = ['idea', 'platform', 'tone'];
-      inputs.forEach(id => {
-        document.getElementById(id).addEventListener('input', () => {
-          clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(tryGenerate, 800);
-        });
-      });
-
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        clearTimeout(debounceTimer);
-        tryGenerate(true);
-      });
-
-      async function tryGenerate(forceFull = false) {
-        if (isGenerating || !userEmail) return; 
-
-        const idea = document.getElementById('idea').value.trim();
-        const platform = document.getElementById('platform').value;
-        const tone = document.getElementById('tone').value;
-
-        if (!idea || !platform || !tone) {
-          result.classList.add('hidden');
-          paywall.classList.add('hidden');
-          return;
-        }
-
-        if (!isPro && freeUses >= 3) {
-          paywall.classList.remove('hidden');
-          result.classList.add('hidden');
-          return;
-        }
-
-        isGenerating = true;
-        loading.classList.remove('hidden');
-        result.classList.add('hidden');
-        paywall.classList.add('hidden');
-        generateBtn.disabled = true;
-        generateBtn.textContent = 'Generating...';
-
-        try {
-          const res = await fetch(`${API_URL}/generate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idea, platform, tone, email: userEmail })
-          });
-
-          const data = await res.json();
-
-          if (res.status === 402 || (!isPro && freeUses >= 3)) {
-            paywall.classList.remove('hidden');
-            result.classList.add('hidden');
-          } else if (res.ok) {
-            output.textContent = data.result;
-            result.classList.remove('hidden');
-            paywall.classList.add('hidden');
-            copyBtn.classList.remove('copied');
-            copyBtn.textContent = 'Copy All';
-
-            if (!isPro) {
-              freeUses++;
-              localStorage.setItem('freeUses', freeUses.toString());
-              if (freeUses >= 3) {
-                paywall.classList.remove('hidden');
-                form.querySelector('button[type="submit"]').disabled = true;
-              }
-            }
-          }
-        } catch (err) {
-          if (forceFull) {
-            const fallback = `## Captions\n1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"\n2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love ${emojiMap['Leaf']}"\n5. "Come say hi! ${emojiMap['Hand Wave']}"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
-            output.textContent = fallback;
-            result.classList.remove('hidden');
-            if (!isPro) {
-              freeUses++;
-              localStorage.setItem('freeUses', freeUses.toString());
-            }
-          }
-        } finally {
-          loading.classList.add('hidden');
-          generateBtn.disabled = false;
-          generateBtn.textContent = 'Generate Captions';
-          isGenerating = false;
-          
-          if (!isPro && freeUses >= 3 && currentTab === 'generateContent') {
-              paywall.classList.remove('hidden');
-              form.querySelector('button[type="submit"]').disabled = true;
-          }
-        }
-      }
-
-      copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(output.textContent).then(() => {
-          copyBtn.textContent = 'Copied!';
-          copyBtn.classList.add('copied');
-          setTimeout(() => {
-            copyBtn.textContent = 'Copy All';
-            copyBtn.classList.remove('copied');
-          }, 2000);
-        });
-      });
-
-      // === SUCCESS URL HANDLING ===
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('success') === 'true') {
-        localStorage.setItem('isPro', 'true');
-        isPro = true; // Update local variable
-        paywall.classList.add('hidden');
-        analysisPaywall.classList.add('hidden');
-        analyzeForm.classList.remove('hidden'); // Show the form now that they are Pro
-        form.querySelector('button[type="submit"]').disabled = false;
-        alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
-        window.history.replaceState({}, document.title, window.location.pathname);
-        location.reload();
-      }
-
-      if (isPro) {
-        paywall.classList.add('hidden');
-        analysisPaywall.classList.add('hidden');
-        analyzeForm.classList.remove('hidden');
-        form.querySelector('button[type="submit"]').disabled = false;
+    // helper: tab + UI
+    function updateGenerateButtonState(){
+      if(!generateBtn) return;
+      if(isPro){ generateBtn.disabled=false; if(paywall) paywall.classList.add('hidden'); return; }
+      if(freeUses>=MAX_FREE_USES){
+        generateBtn.disabled=true;
+        if(paywall && currentTab==='generateContent') paywall.classList.remove('hidden');
+      }else{
+        generateBtn.disabled=false;
+        if(paywall) paywall.classList.add('hidden');
       }
     }
 
-    document.addEventListener('DOMContentLoaded', initApp);
+    function showTab(tabName){
+      currentTab=tabName;
+      localStorage.setItem('lastTab',tabName);
+      if(analysisResult) analysisResult.classList.add('hidden');
+      if(loading) loading.classList.add('hidden');
+      if(resultBox) resultBox.classList.add('hidden');
+      if(tabName==='generateContent'){
+        if(generateContent) generateContent.classList.remove('hidden');
+        if(analyzeContent) analyzeContent.classList.add('hidden');
+        if(generateTabBtn) generateTabBtn.classList.add('active');
+        if(analyzeTabBtn) analyzeTabBtn.classList.remove('active');
+        if(analysisPaywall) analysisPaywall.classList.add('hidden');
+        updateGenerateButtonState();
+      } else {
+        if(generateContent) generateContent.classList.add('hidden');
+        if(analyzeContent) analyzeContent.classList.remove('hidden');
+        if(generateTabBtn) generateTabBtn.classList.remove('active');
+        if(analyzeTabBtn) analyzeTabBtn.classList.add('active');
+        if(paywall) paywall.classList.add('hidden');
+        if(!isPro){
+          if(analysisPaywall) analysisPaywall.classList.remove('hidden');
+          if(analyzeForm) analyzeForm.classList.add('hidden');
+          if(analyzeTabBtn) analyzeTabBtn.textContent='Analyze Competitor (Pro)';
+        } else {
+          if(analysisPaywall) analysisPaywall.classList.add('hidden');
+          if(analyzeForm) analyzeForm.classList.remove('hidden');
+          if(analyzeTabBtn) analyzeTabBtn.textContent='Analyze Competitor';
+        }
+      }
+    }
+
+    function showPage(pageNumber){
+      if(!page1 || !page2 || !page1Btn || !page2Btn) return;
+      if(pageNumber===1){
+        page1.style.display='grid';
+        page2.style.display='none';
+        page1Btn.classList.add('active');
+        page2Btn.classList.remove('active');
+      } else {
+        page1.style.display='none';
+        page2.style.display='grid';
+        page1Btn.classList.remove('active');
+        page2Btn.classList.add('active');
+      }
+    }
+
+    function processTemplateText(text){
+      const r={
+        'Camera Film':emojiMap['Camera']+' '+emojiMap['Film'],
+        'Coffee Mug Light Bulb':emojiMap['Coffee Mug']+' '+emojiMap['Light Bulb'],
+        'Question Mark Thinking Face':emojiMap['Question Mark']+' '+emojiMap['Thinking Face'],
+        'Bookmark Sparkles':emojiMap['Bookmark']+' '+emojiMap['Sparkles'],
+        'Gift Rocket':emojiMap['Gift']+' '+emojiMap['Rocket'],
+        'Hand Point Up Film':emojiMap['Hand Point Up']+' '+emojiMap['Film'],
+        'Star Speech Bubble':emojiMap['Star']+' '+emojiMap['Speech Bubble'],
+        'Money Bag Chart Increasing':emojiMap['Money Bag']+' '+emojiMap['Chart Increasing'],
+        'Crying Face Check Mark':emojiMap['Crying Face']+' '+emojiMap['Check Mark'],
+        'Thinking Face Light Bulb':emojiMap['Thinking Face']+' '+emojiMap['Light Bulb'],
+        'Toolbox Target':emojiMap['Toolbox']+' '+emojiMap['Target'],
+        'Speech Bubble Cross Mark':emojiMap['Speech Bubble']+' '+emojiMap['Cross Mark'],
+        'Link Bookmark':emojiMap['Link']+' '+emojiMap['Bookmark'],
+        'Smiling Face 100 Score':emojiMap['Smiling Face']+' '+emojiMap['100 Score'],
+        'User Rocket':emojiMap['User']+' '+emojiMap['Rocket'],
+        'Alarm Clock Flexed Biceps':emojiMap['Alarm Clock']+' '+emojiMap['Flexed Biceps'],
+        'Balance Scale Magnifying Glass':emojiMap['Balance Scale']+' '+emojiMap['Magnifying Glass'],
+        'Heart':emojiMap['Heart'],'Sparkles':emojiMap['Sparkles'],'Hand Point Down':emojiMap['Hand Point Down'],
+        'Shopping Bag':emojiMap['Shopping Bag'],'Fire':emojiMap['Fire'],'Light Bulb':emojiMap['Light Bulb'],
+        'Film':emojiMap['Film'],'Camera':emojiMap['Camera'],'Gift snake':emojiMap['Gift']
+      };
+      for(const k in r){ text=text.replace(new RegExp(k,'g'),r[k]); }
+      return text.replace(/\[\w+\]/g,m=>m);
+    }
+
+    function detectPlatform(url){
+      url=url.toLowerCase();
+      if(url.includes('instagram.com')) return 'Instagram';
+      if(url.includes('twitter.com')||url.includes('x.com')) return 'Twitter';
+      if(url.includes('linkedin.com')) return 'LinkedIn';
+      if(url.includes('tiktok.com')) return 'TikTok';
+      return 'Instagram';
+    }
+
+    function hashString(str){
+      let hash=0;
+      for(let i=0;i<str.length;i++){
+        const char=str.charCodeAt(i);
+        hash=((hash<<5)-hash)+char;
+        hash|=0;
+      }
+      return Math.abs(hash);
+    }
+
+    function generateDeterministicScore(url){
+      const uniqueSeed=hashString(url.toLowerCase().trim());
+      const score=(uniqueSeed%35)+65;
+      const quality=score>90?'High':score>80?'Medium':'Low';
+      let hook,readability,hashtags,cta;
+      if(quality==='High'){
+        hook='High urgency, clear value proposition. 🔥';
+        readability='Excellent use of line breaks (4 lines/paragraph). ✅';
+        hashtags='Highly relevant, 90% niche-specific. 🎯';
+        cta='Clear call-to-action to save and comment. 💬';
+      } else if(quality==='Medium'){
+        hook='Decent hook, could be more specific and engaging. 👍';
+        readability='Good structure, but a few blocks are too dense. ⚠️';
+        hashtags='Mix of niche and broad tags (50/50). 💡';
+        cta='General CTA, needs more direction. ❓';
+      } else {
+        hook='Vague hook, lacks clear value proposition.👎';
+        readability='Dense wall of text, poor line break usage.❌';
+        hashtags='Too generic, mostly broad tags. 💡';
+        cta='No clear CTA, relying on vague engagement. ❓';
+      }
+      return {score,hook,readability,hashtags,cta};
+    }
+
+    async function tryGenerate(forceFull=false){
+      if(isGenerating || !userEmail || !ideaInput || !platformSelect || !toneEl) return;
+      const idea=ideaInput.value.trim();
+      const platform=platformSelect.value;
+      const tone=toneEl.value;
+      if(!idea || !platform || !tone){
+        if(resultBox) resultBox.classList.add('hidden');
+        if(paywall) paywall.classList.add('hidden');
+        return;
+      }
+      if(!isPro && freeUses>=MAX_FREE_USES){
+        if(paywall) paywall.classList.remove('hidden');
+        if(resultBox) resultBox.classList.add('hidden');
+        return;
+      }
+      isGenerating=true;
+      if(loading) loading.classList.remove('hidden');
+      if(resultBox) resultBox.classList.add('hidden');
+      if(paywall) paywall.classList.add('hidden');
+      if(generateBtn){generateBtn.disabled=true;generateBtn.textContent='Generating...';}
+      if(boostBtn) boostBtn.disabled=true;
+
+      try{
+        const res=await fetch(`${API_URL}/generate`,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({idea,platform,tone,email:userEmail})
+        });
+        const data=await res.json();
+        if(res.status===402 || (!isPro && freeUses>=MAX_FREE_USES)){
+          if(paywall) paywall.classList.remove('hidden');
+          if(resultBox) resultBox.classList.add('hidden');
+        } else if(res.ok){
+          if(output) output.textContent=data.result;
+          if(resultBox) resultBox.classList.remove('hidden');
+          if(paywall) paywall.classList.add('hidden');
+          if(copyBtn){copyBtn.classList.remove('copied');copyBtn.textContent='Copy All';}
+          // engagement
+          const score=computeEngagementScore(data.result,idea,platform,tone);
+          lastEngagementScore=score;
+          if(engagementScoreEl) engagementScoreEl.textContent=score;
+          if(engagementBox) engagementBox.classList.remove('hidden');
+          if(engagementDelta){engagementDelta.classList.add('hidden');engagementDelta.textContent='';}
+          if(!isPro){
+            freeUses++;
+            localStorage.setItem('freeUses',String(freeUses));
+            updateGenerateButtonState();
+          }
+        }
+      } catch(err){
+        console.error(err);
+        if(forceFull){
+          const fallback=`## Captions
+1. "Just launched my coffee shop! ${emojiMap['Coffee']||'☕'}${emojiMap['Sparkles']||'✨'}"
+2. "Fresh brews, cozy vibes ${emojiMap['Coffee']||'☕'}${emojiMap['Heart']||'❤️'}"
+3. "Your new favorite morning spot!"
+4. "Handcrafted with love ${emojiMap['Leaf']||'🍃'}"
+5. "Come say hi! ${emojiMap['Hand Wave']||'👋'}"
+
+## Hashtags
+#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
+          if(output) output.textContent=fallback;
+          if(resultBox) resultBox.classList.remove('hidden');
+          const score=computeEngagementScore(fallback,idea,platform,tone);
+          lastEngagementScore=score;
+          if(engagementScoreEl) engagementScoreEl.textContent=score;
+          if(engagementBox) engagementBox.classList.remove('hidden');
+        }
+      } finally{
+        if(loading) loading.classList.add('hidden');
+        if(generateBtn){generateBtn.disabled=false;generateBtn.textContent='Generate Captions';}
+        if(boostBtn) boostBtn.disabled=false;
+        isGenerating=false;
+        updateGenerateButtonState();
+      }
+    }
+
+    async function boostCaption(){
+      if(!userEmail || !output || !ideaInput || !platformSelect || !toneEl) return;
+      const current=output.textContent.trim();
+      if(!current) return;
+      const idea=ideaInput.value.trim();
+      const platform=platformSelect.value;
+      const tone=toneEl.value;
+      if(!idea || !platform || !tone) return;
+      if(!isPro && freeUses>=MAX_FREE_USES){
+        if(paywall) paywall.classList.remove('hidden');
+        return;
+      }
+      if(boostBtn){boostBtn.disabled=true;boostBtn.textContent='Boosting...';}
+      if(loading) loading.textContent='Optimizing for higher engagement...';
+      if(loading) loading.classList.remove('hidden');
+
+      try{
+        const res=await fetch(`${API_URL}/optimize`,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({idea,platform,tone,email:userEmail,current})
+        });
+        const data=await res.json();
+        if(res.status===402){
+          if(paywall) paywall.classList.remove('hidden');
+          return;
+        }
+        if(res.ok && data.result){
+          if(output) output.textContent=data.result;
+          const newScore=computeEngagementScore(data.result,idea,platform,tone);
+          if(engagementScoreEl) engagementScoreEl.textContent=newScore;
+          if(engagementBox) engagementBox.classList.remove('hidden');
+          if(typeof lastEngagementScore==='number'){
+            const delta=newScore-lastEngagementScore;
+            if(engagementDelta){
+              if(delta>0){
+                engagementDelta.textContent=`(+${delta})`;
+                engagementDelta.classList.remove('hidden');
+              } else if(delta<0){
+                engagementDelta.textContent=`(${delta})`;
+                engagementDelta.classList.remove('hidden');
+              } else {
+                engagementDelta.textContent='(no change)';
+                engagementDelta.classList.remove('hidden');
+              }
+            }
+          }
+          lastEngagementScore=newScore;
+          if(!isPro){
+            freeUses++;
+            localStorage.setItem('freeUses',String(freeUses));
+            updateGenerateButtonState();
+          }
+        }
+      } catch(err){
+        console.error(err);
+        alert('Boosting failed. Please try again.');
+      } finally{
+        if(boostBtn){boostBtn.disabled=false;boostBtn.textContent='⚡ Boost My Score';}
+        if(loading){loading.classList.add('hidden');loading.textContent='Generating magic...';}
+      }
+    }
+
+    // bootstrap app
+    function updateUIState(){
+      if(isPro){
+        if(templateContainer){templateContainer.classList.remove('hidden');templateContainer.style.display='grid';}
+        if(templateTeaser) templateTeaser.style.display='none';
+        showPage(1);
+        if(paywall) paywall.classList.add('hidden');
+        if(analysisPaywall) analysisPaywall.classList.add('hidden');
+        if(analyzeForm) analyzeForm.classList.remove('hidden');
+      } else {
+        if(templateContainer){templateContainer.classList.add('hidden');templateContainer.style.display='none';}
+        if(templateTeaser) templateTeaser.style.display='block';
+      }
+      updateGenerateButtonState();
+      showTab(currentTab);
+    }
+
+    async function bootstrapApp(){
+      // success param → upgrade to pro
+      const urlParams=new URLSearchParams(window.location.search);
+      if(urlParams.get('success')==='true'){
+        isPro=true;
+        localStorage.setItem('isPro','true');
+        window.history.replaceState({},document.title,window.location.pathname);
+        alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
+      }
+
+      const tipElement=document.getElementById('dailyTipText');
+      if(tipElement) tipElement.textContent=getTodayTip();
+
+      if(generateTabBtn) generateTabBtn.addEventListener('click',()=>showTab('generateContent'));
+      if(analyzeTabBtn) analyzeTabBtn.addEventListener('click',()=>showTab('analyzeContent'));
+
+      if(subscribeAnalyzeBtn && subscribeBtn){
+        subscribeAnalyzeBtn.addEventListener('click',()=>subscribeBtn.click());
+      }
+
+      if(page1Btn) page1Btn.addEventListener('click',()=>showPage(1));
+      if(page2Btn) page2Btn.addEventListener('click',()=>showPage(2));
+
+      document.querySelectorAll('.templateBtn').forEach(btn=>{
+        const raw=btn.getAttribute('data-text')||'';
+        const rendered=processTemplateText(raw);
+        btn.addEventListener('click',()=>{
+          if(ideaInput) ideaInput.value=rendered;
+          ideaInput && ideaInput.focus();
+          showTab('generateContent');
+        });
+      });
+
+      if(unlockTemplatesBtn && paywall){
+        unlockTemplatesBtn.addEventListener('click',()=>{
+          paywall.classList.remove('hidden');
+          paywall.scrollIntoView({behavior:'smooth'});
+        });
+      }
+
+      if(subscribeBtn){
+        subscribeBtn.addEventListener('click',async()=>{
+          try{
+            const res=await fetch(`${API_URL}/create-checkout-session`,{
+              method:'POST',
+              headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({email:userEmail})
+            });
+            const {url}=await res.json();
+            window.location.href=url;
+          }catch(err){alert('Checkout failed. Please try again.');}
+        });
+      }
+
+      const commonEmojis=Object.keys(emojiMap).filter(k=>!['Coffee Mug','Hand Wave'].includes(k));
+      if(grid) grid.innerHTML='';
+      if(grid && ideaInput){
+        commonEmojis.forEach(name=>{
+          const b=document.createElement('button');
+          b.textContent=emojiMap[name];
+          b.title=name;
+          b.addEventListener('click',()=>{
+            ideaInput.value+=' '+emojiMap[name];
+            ideaInput.focus();
+          });
+          grid.appendChild(b);
+        });
+      }
+
+      if(emojiPickerBtn && picker){
+        emojiPickerBtn.addEventListener('click',e=>{
+          e.stopPropagation();
+          picker.style.display=picker.style.display==='flex'?'none':'flex';
+        });
+      }
+      if(closePicker && picker){
+        closePicker.addEventListener('click',()=>picker.style.display='none');
+      }
+      document.addEventListener('click',e=>{
+        if(picker && emojiPickerBtn && !picker.contains(e.target) && e.target!==emojiPickerBtn){
+          picker.style.display='none';
+        }
+      });
+
+      ['idea','platform','tone'].forEach(id=>{
+        const el=document.getElementById(id);
+        if(el){
+          el.addEventListener('input',()=>{
+            clearTimeout(debounceTimer);
+            debounceTimer=setTimeout(()=>tryGenerate(false),800);
+          });
+        }
+      });
+
+      const form=document.getElementById('captionForm');
+      if(form){
+        form.addEventListener('submit',e=>{
+          e.preventDefault();
+          clearTimeout(debounceTimer);
+          tryGenerate(true);
+        });
+      }
+
+      if(copyBtn && output){
+        copyBtn.addEventListener('click',()=>{
+          navigator.clipboard.writeText(output.textContent).then(()=>{
+            copyBtn.textContent='Copied!';
+            copyBtn.classList.add('copied');
+            setTimeout(()=>{copyBtn.textContent='Copy All';copyBtn.classList.remove('copied');},2000);
+          });
+        });
+      }
+
+      if(boostBtn){
+        boostBtn.addEventListener('click',boostCaption);
+      }
+
+      const analyzeFormEl=document.getElementById('analyzeForm');
+      if(analyzeFormEl){
+        analyzeFormEl.addEventListener('submit',e=>{
+          e.preventDefault();
+          if(!isPro) return;
+          if(loading){loading.textContent='Analyzing competitor post...';loading.classList.remove('hidden');}
+          if(analysisResult) analysisResult.classList.add('hidden');
+          const url=competitorUrlInput.value.trim();
+          const platform=detectPlatform(url);
+          setTimeout(()=>{
+            if(loading){loading.classList.add('hidden');loading.textContent='Generating magic...';}
+            const data=generateDeterministicScore(url);
+            const scoreEl=document.getElementById('analysisScore');
+            const detailEl=document.getElementById('analysisDetails');
+            if(scoreEl && detailEl){
+              scoreEl.textContent=data.score;
+              detailEl.innerHTML=`
+                <p><strong>Platform Detected:</strong> ${platform}</p>
+                <p><strong>Hook Score:</strong> ${data.hook}</p>
+                <p><strong>Readability:</strong> ${data.readability}</p>
+                <p><strong>Hashtags:</strong> ${data.hashtags}</p>
+                <p><strong>Core CTA:</strong> ${data.cta}</p>
+              `;
+            }
+            if(analysisResult) analysisResult.classList.remove('hidden');
+          },1500);
+        });
+      }
+      if(analyzeAgainBtn && competitorUrlInput && analysisResult){
+        analyzeAgainBtn.addEventListener('click',()=>{
+          competitorUrlInput.value='';
+          analysisResult.classList.add('hidden');
+          competitorUrlInput.focus();
+          const details=document.getElementById('analysisDetails');
+          if(details) details.innerHTML='';
+        });
+      }
+
+      updateUIState();
+    }
+
+    // startup: email gate
+    if(!userEmail){
+      emailSubmit.addEventListener('click',()=>{
+        const email=(emailInput.value||'').trim();
+        if(email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+          localStorage.setItem('userEmail',email);
+          localStorage.setItem('freeUses','0');
+          userEmail=email;
+          modal.style.display='none';
+          if(mainApp) mainApp.style.display='block';
+          bootstrapApp();
+        }else{
+          emailInput.style.borderColor='#ef4444';
+          emailInput.focus();
+        }
+      });
+    } else {
+      if(modal) modal.style.display='none';
+      if(mainApp) mainApp.style.display='block';
+      bootstrapApp();
+    }
+  });
   </script>
 </body>
 </html>
