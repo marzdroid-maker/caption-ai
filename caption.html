@@ -41,7 +41,7 @@
     }
     .proof strong { font-weight: 600; }
 
-    /* DAILY TIP */
+    /* DAILY TIP BOX */
     #dailyTipBox {
       background: #fff;
       border: 1px solid #d1d5db;
@@ -80,7 +80,7 @@
       cursor: pointer; width: 100%;
     }
 
-    /* FORM ELEMENTS */
+    /* FORMS */
     label { display: block; margin-bottom: .5rem; font-weight: 600; color: #111; }
     input, select {
       width: 100%; padding: .75rem 1rem; border: 2px solid var(--border);
@@ -121,39 +121,12 @@
       border-bottom: 3px solid transparent;
       transition: color 0.2s, border-bottom 0.2s;
       border-radius: 0;
-      width: auto;
     }
     .tab-btn.active {
       color: var(--primary);
       border-bottom: 3px solid var(--primary);
     }
     .tab-content { padding: 0; }
-
-    /* ANALYSIS CARD */
-    .analysis-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: .75rem;
-      padding: 1.5rem;
-      margin-top: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,.05);
-    }
-    .analysis-score {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: var(--primary);
-      text-align: center;
-      margin-bottom: .5rem;
-    }
-    .analysis-detail {
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px dashed var(--border);
-    }
-    .analysis-detail p {
-      margin-bottom: .5rem;
-      line-height: 1.4;
-    }
 
     /* RESULT CARD */
     .result {
@@ -165,40 +138,42 @@
       white-space: pre-wrap; font-family: inherit; line-height: 1.6; margin-bottom: 1rem;
     }
 
-    /* ENGAGEMENT BAR */
-    .engagement-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    /* ENGAGEMENT SCORE BOX */
+    .engagement-box {
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
       background: #eff6ff;
       border: 1px solid #bfdbfe;
-      border-radius: .5rem;
-      padding: .6rem .9rem;
-      margin-bottom: 1rem;
-      font-size: .95rem;
     }
-    #engagementLabel { font-weight: 600; color: #1d4ed8; }
-    #engagementDelta {
-      margin-left: .5rem;
+    .engagement-box-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       font-weight: 600;
+      color: #1d4ed8;
+      font-size: 0.95rem;
     }
-    #engagementDelta.positive { color: #16a34a; }
-    #engagementDelta.negative { color: #dc2626; }
-    #engagementDelta.neutral { color: #6b7280; }
-
+    .engagement-box-note {
+      margin-top: 0.4rem;
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
     #boostBtn {
       width: auto;
-      background: #10b981;
-      padding: .45rem 1.1rem;
-      font-size: .9rem;
-      border-radius: .5rem;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.85rem;
+      border-radius: 999px;
+      border: none;
+      background: #1d4ed8;
+      color: white;
+      cursor: pointer;
     }
     #boostBtn:disabled {
-      background: #9ca3af;
-      cursor: not-allowed;
+      opacity: 0.6;
+      cursor: default;
     }
 
-    /* COPY BUTTON */
     #copyBtn {
       position: absolute; top: 1rem; right: 1rem; background: var(--success);
       color: white; padding: .5rem 1rem; border: none; border-radius: .5rem;
@@ -207,72 +182,10 @@
     #copyBtn:hover { background: var(--success-dark); }
     #copyBtn.copied { background: #059669; }
 
-    /* PRO TEMPLATES */
-    #proTemplates {
-      margin-top: 2rem; padding: 1.5rem; background: #f0fdf4;
-      border: 1px solid #bbf7d0; border-radius: .75rem;
-    }
-    .templateBtn {
-      text-align: left;
-      padding: .75rem;
-      background: white;
-      border: 1px solid #d1d5db;
-      border-radius: .5rem;
-      font-size: .9rem;
-      margin-bottom: .5rem;
-      cursor: pointer;
-      color: #111 !important;
-      line-height: 1.4;
-      display: block;
-    }
-    .templateBtn:hover {
-      background: #f9fafb;
-      color: #111 !important;
-    }
-    #templateContainer {
-      display: grid;
-      gap: .5rem;
-      font-size: .9rem;
-      margin-top: 1rem;
-    }
-    #templatePage2 { display: none; }
-
-    #templatePaging {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-    #templatePaging button {
-      width: auto;
-      padding: .5rem 1.2rem;
-      background: #9ca3af;
-      font-weight: 500;
-      font-size: .9rem;
-    }
-    #templatePaging button.active {
-      background: var(--primary);
-      font-weight: 700;
-    }
-    #templatePaging button:hover {
-      background: var(--primary-dark);
-    }
-
-    .paywall {
-      margin-top: 2rem; padding: 2rem; background: #fefce8; border-radius: .75rem;
-      text-align: center; border: 2px solid #fde68a;
-    }
-    .paywall h3 { margin-bottom: .5rem; font-size: 1.5rem; }
-    .paywall p { color: #92400e; margin-bottom: 1rem; }
-    .paywall button {
-      background: #16a34a; padding: .75rem 1.5rem; font-size: 1rem;
-      width: auto; display: inline-block;
-    }
-    .paywall button:hover { background: #15803d; }
-
     /* EMOJI PICKER */
     #emojiPickerBtn {
-      background: var(--warning); margin: 1rem 0; width: auto; padding: .5rem 1rem; font-size: .9rem;
+      background: var(--warning); margin: 1rem 0; width: auto;
+      padding: .5rem 1rem; font-size: .9rem;
     }
     .emoji-picker-container {
       position: relative;
@@ -314,8 +227,95 @@
       border-radius: .5rem; font-size: .8rem; width: auto;
     }
 
+    /* PRO TEMPLATES */
+    #proTemplates {
+      margin-top: 2rem; padding: 1.5rem; background: #f0fdf4;
+      border: 1px solid #bbf7d0; border-radius: .75rem;
+    }
+    .templateBtn {
+      text-align: left;
+      padding: .75rem;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: .5rem;
+      font-size: .9rem;
+      margin-bottom: .5rem;
+      cursor: pointer;
+      color: #111 !important;
+      line-height: 1.4;
+      display: block;
+    }
+    .templateBtn:hover {
+      background: #f9fafb;
+      color: #111 !important;
+    }
+    #templateContainer {
+      display: grid;
+      gap: .5rem;
+      font-size: .9rem;
+      margin-top: 1rem;
+    }
+    #templatePage2 { display: none; }
+    #templatePaging {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    #templatePaging button {
+      width: auto;
+      padding: .5rem 1.2rem;
+      background: #9ca3af;
+      font-weight: 500;
+      font-size: .9rem;
+    }
+    #templatePaging button.active {
+      background: var(--primary);
+      font-weight: 700;
+    }
+
+    /* PAYWALLS */
+    .paywall {
+      margin-top: 2rem; padding: 2rem; background: #fefce8; border-radius: .75rem;
+      text-align: center; border: 2px solid #fde68a;
+    }
+    .paywall h3 { margin-bottom: .5rem; font-size: 1.5rem; }
+    .paywall p { color: #92400e; margin-bottom: 1rem; }
+    .paywall button {
+      background: #16a34a; padding: .75rem 1.5rem; font-size: 1rem;
+      width: auto; display: inline-block;
+    }
+    .paywall button:hover { background: #15803d; }
+
+    /* ANALYSIS CARD */
+    .analysis-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: .75rem;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,.05);
+    }
+    .analysis-score {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-align: center;
+      margin-bottom: .5rem;
+    }
+    .analysis-detail {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border);
+    }
+
     .hidden { display: none; }
-    .loading { text-align: center; margin: 1rem 0; color: var(--gray); font-style: italic; }
+    .loading {
+      text-align: center;
+      margin: 1rem 0;
+      color: var(--gray);
+      font-style: italic;
+    }
 
     footer {
       margin-top: 3rem; text-align: center; color: #6b7280; font-size: 0.875rem;
@@ -332,18 +332,12 @@
         left: 50%;
         transform: translateX(-50%) translateY(5px);
       }
-      .engagement-bar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: .5rem;
-      }
-      #boostBtn { align-self: flex-end; }
     }
   </style>
 </head>
 <body>
 
-  <!-- EMAIL GATE -->
+  <!-- EMAIL MODAL -->
   <div id="emailModal">
     <div class="modal-content">
       <h2>Welcome!</h2>
@@ -354,7 +348,7 @@
   </div>
 
   <!-- MAIN APP -->
-  <div class="container" id="mainApp" style="display: none;">
+  <div class="container" id="mainApp" style="display:none;">
     <h1>AI Caption + Hashtag Generator</h1>
     <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
 
@@ -364,12 +358,12 @@
 
     <div id="dailyTipBox">
       <strong>💡 Today's Tip:</strong>
-      <span id="dailyTipText">Loading a viral content tip...</span>
+      <span id="dailyTipText">Loading...</span>
     </div>
 
     <div id="tabContainer">
       <div id="tabHeader">
-        <button id="generateTabBtn" class="tab-btn" data-target="generateContent">Generate Content</button>
+        <button id="generateTabBtn" class="tab-btn active" data-target="generateContent">Generate Content</button>
         <button id="analyzeTabBtn" class="tab-btn" data-target="analyzeContent">Analyze Competitor (Pro)</button>
       </div>
 
@@ -397,7 +391,7 @@
             <option value="Bold & Confident">Bold & Confident</option>
             <option value="Casual & Friendly">Casual & Friendly</option>
           </select>
-          
+
           <button type="submit" id="generateBtn">Generate Captions</button>
         </form>
 
@@ -416,13 +410,15 @@
         <div id="result" class="result hidden">
           <h3>Your AI Captions</h3>
 
-          <!-- ⭐ Engagement Bar + Boost -->
-          <div id="engagementBar" class="engagement-bar hidden">
-            <span id="engagementLabel">
-              Engagement Score: <span id="engagementScore">--</span>/100
-              <span id="engagementDelta"></span>
-            </span>
-            <button type="button" id="boostBtn">Boost My Score</button>
+          <!-- ⭐ Engagement Score + Boost ⭐ -->
+          <div id="engagementScoreBox" class="engagement-box hidden">
+            <div class="engagement-box-header">
+              <span>Engagement Score: <span id="engagementScoreValue">--</span>/100</span>
+              <button type="button" id="boostBtn">Boost My Score</button>
+            </div>
+            <p class="engagement-box-note">
+              One-click rewrite to push this post’s score higher. Boost available once per generation.
+            </p>
           </div>
 
           <pre id="output"></pre>
@@ -437,7 +433,7 @@
             These aren’t random — they’re <em>proven</em> to get 3x more likes, comments, and saves.
             Just click, edit, generate. <strong>Instant viral edge.</strong>
           </p>
-          
+
           <div id="templateContainer" class="hidden">
             <div id="templatePage1">
               <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">
@@ -523,6 +519,7 @@
           </div>
         </div>
 
+        <!-- GENERATE PAYWALL -->
         <div id="paywall" class="paywall hidden">
           <h3>Upgrade to Pro!</h3>
           <p>You've used your 10 free generations. <strong>Unlimited + 20 Viral Swipe File Structures</strong> for <strong>$7/month</strong>.</p>
@@ -543,15 +540,15 @@
           color: #0369a1;
         ">
           <h4 style="margin-bottom: .5rem; color: #075985; font-size: 1.1rem;">
-            <strong>Reverse-Engineer Viral Success 🔬</strong>
+            Reverse-Engineer Viral Success 🔬
           </h4>
-          Paste <em>any</em> competitor's post URL (Instagram, Twitter, etc.) and our AI will <strong>deconstruct their strategy</strong>.
-          Get an instant <strong>Content Score</strong> and a breakdown of their <strong>hook</strong>, <strong>CTA</strong>, and <strong>hashtag usage</strong>.
+          Paste <em>any</em> competitor's post URL (Instagram, Twitter, etc.) and our AI will deconstruct their strategy.
+          Get an instant <strong>Content Score</strong> and a breakdown of their hook, CTA, and hashtag usage.
         </div>
 
         <div id="analysisPaywall" class="paywall hidden" style="margin-top: 1rem;">
           <h3>Unlock Analysis!</h3>
-          <p>Content Scoring is an exclusive <strong>Pro</strong> feature. <strong>Unlimited Access</strong> for <strong>$7/month</strong>.</p>
+          <p>Content Scoring is an exclusive <strong>Pro</strong> feature. Unlimited access for <strong>$7/month</strong>.</p>
           <button id="subscribeAnalyzeBtn">Upgrade to Pro</button>
         </div>
 
@@ -578,384 +575,605 @@
   </div>
 
   <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const API_URL = 'https://caption-ai-ze13.onrender.com';
-    const MAX_FREE_USES = 10;
+    document.addEventListener('DOMContentLoaded', () => {
+      const API_URL = 'https://caption-ai-ze13.onrender.com';
+      const MAX_FREE_USES = 10;
 
-    // STATE
-    let userEmail = localStorage.getItem('userEmail');
-    let isPro    = localStorage.getItem('isPro') === 'true';
-    let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
-    let currentTab = localStorage.getItem('lastTab') || 'generateContent';
-    let debounceTimer;
-    let isGenerating = false;
-    let lastRawResult = '';
-    let lastScore = null;
-    let boostedForCurrent = false;
+      // --- STATE ---
+      let userEmail = localStorage.getItem('userEmail');
+      let isPro = localStorage.getItem('isPro') === 'true';
+      let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
+      let currentTab = localStorage.getItem('lastTab') || 'generateContent';
+      let debounceTimer;
+      let isGenerating = false;
+      let lastScore = null;
+      let hasBoosted = false;
 
-    // DOM
-    const modal        = document.getElementById('emailModal');
-    const mainApp      = document.getElementById('mainApp');
-    const emailInput   = document.getElementById('emailInput');
-    const emailSubmit  = document.getElementById('emailSubmit');
+      // --- DOM ELEMENTS ---
+      const modal = document.getElementById('emailModal');
+      const mainApp = document.getElementById('mainApp');
+      const emailInput = document.getElementById('emailInput');
+      const emailSubmit = document.getElementById('emailSubmit');
 
-    const loading      = document.getElementById('loading');
-    const result       = document.getElementById('result');
-    const paywall      = document.getElementById('paywall');
-    const analysisPaywall = document.getElementById('analysisPaywall');
-    const analysisResult  = document.getElementById('analysisResult');
-    const analyzeForm  = document.getElementById('analyzeForm');
+      const generateTabBtn = document.getElementById('generateTabBtn');
+      const analyzeTabBtn = document.getElementById('analyzeTabBtn');
+      const generateContent = document.getElementById('generateContent');
+      const analyzeContent = document.getElementById('analyzeContent');
 
-    const generateContent = document.getElementById('generateContent');
-    const analyzeContent  = document.getElementById('analyzeContent');
-    const generateTabBtn  = document.getElementById('generateTabBtn');
-    const analyzeTabBtn   = document.getElementById('analyzeTabBtn');
+      const ideaInput = document.getElementById('idea');
+      const platformSelect = document.getElementById('platform');
+      const toneEl = document.getElementById('tone');
+      const generateBtn = document.getElementById('generateBtn');
+      const captionForm = document.getElementById('captionForm');
 
-    const form        = document.getElementById('captionForm');
-    const generateBtn = document.getElementById('generateBtn');
-    const output      = document.getElementById('output');
-    const copyBtn     = document.getElementById('copyBtn');
+      const loadingEl = document.getElementById('loading');
+      const resultBox = document.getElementById('result');
+      const outputEl = document.getElementById('output');
+      const copyBtn = document.getElementById('copyBtn');
 
-    const subscribeBtn        = document.getElementById('subscribeBtn');
-    const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
+      const engagementBox = document.getElementById('engagementScoreBox');
+      const engagementScoreValue = document.getElementById('engagementScoreValue');
+      const boostBtn = document.getElementById('boostBtn');
 
-    const emojiPickerBtn = document.getElementById('emojiPickerBtn');
-    const unlockTemplatesBtn = document.getElementById('unlockTemplatesBtn');
+      const proTemplates = document.getElementById('proTemplates');
+      const templateContainer = document.getElementById('templateContainer');
+      const templateTeaser = document.getElementById('templateTeaser');
+      const page1 = document.getElementById('templatePage1');
+      const page2 = document.getElementById('templatePage2');
+      const page1Btn = document.getElementById('page1Btn');
+      const page2Btn = document.getElementById('page2Btn');
+      const unlockTemplatesBtn = document.getElementById('unlockTemplatesBtn');
 
-    const competitorUrlInput = document.getElementById('competitorUrl');
-    const analyzeAgainBtn    = document.getElementById('analyzeAgainBtn');
+      const paywall = document.getElementById('paywall');
+      const subscribeBtn = document.getElementById('subscribeBtn');
 
-    const ideaInput      = document.getElementById('idea');
-    const platformSelect = document.getElementById('platform');
-    const toneEl         = document.getElementById('tone');
+      const analysisPaywall = document.getElementById('analysisPaywall');
+      const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
+      const analyzeForm = document.getElementById('analyzeForm');
+      const competitorUrlInput = document.getElementById('competitorUrl');
+      const analysisResult = document.getElementById('analysisResult');
+      const analysisScore = document.getElementById('analysisScore');
+      const analysisDetails = document.getElementById('analysisDetails');
+      const analyzeAgainBtn = document.getElementById('analyzeAgainBtn');
 
-    const templateContainer = document.getElementById('templateContainer');
-    const templateTeaser    = document.getElementById('templateTeaser');
-    const page1   = document.getElementById('templatePage1');
-    const page2   = document.getElementById('templatePage2');
-    const page1Btn = document.getElementById('page1Btn');
-    const page2Btn = document.getElementById('page2Btn');
+      const emojiPickerBtn = document.getElementById('emojiPickerBtn');
+      const emojiPicker = document.getElementById('emojiPicker');
+      const emojiGrid = document.getElementById('emojiGrid');
+      const closePicker = document.getElementById('closePicker');
 
-    const picker = document.getElementById('emojiPicker');
-    const grid   = document.getElementById('emojiGrid');
-    const closePicker = document.getElementById('closePicker');
+      const dailyTipText = document.getElementById('dailyTipText');
 
-    const engagementBar    = document.getElementById('engagementBar');
-    const engagementScoreEl = document.getElementById('engagementScore');
-    const engagementDeltaEl = document.getElementById('engagementDelta');
-    const boostBtn         = document.getElementById('boostBtn');
+      // --- EMOJI MAP ---
+      const emojiMap = {
+        'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
+        'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
+        'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
+        'Flexed Biceps': '💪', 'Airplane': '✈️', 'Book': '📚', 'Dog': '🐶', 'Cat': '🐱',
+        'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
+        'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
+        'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
+        'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💸',
+        'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
+        'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
+        'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
+        'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😫',
+        'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
+        'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
+        'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
+        'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
+        'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🛠️', 'Graduation Cap': '🎓',
+        'Bookmark': '🔖', 'Gift': '🎁', 'Hand Point Up': '👆',
+        'Link': '🔗', 'Balance Scale': '⚖️', 'Magnifying Glass': '🧐', 'User': '👤'
+      };
 
-    // EMOJI MAP
-    const emojiMap = {
-      'Camera': '📸','Heart': '❤️','Sparkles': '✨','Coffee': '☕','Shopping Bag': '🛍️',
-      'Rocket': '🚀','Fire': '🔥','Trophy': '🏆','Briefcase': '💼','Handshake': '🤝',
-      'Laptop': '💻','Sunrise': '🌅','Moon': '🌙','Pizza': '🍕','Leaf': '🍃',
-      'Flexed Biceps': '💪','Airplane': '✈️','Book': '📚','Dog': '🐶','Cat': '🐱',
-      'Birthday Cake': '🎂','Party Popper': '🎉','Star': '⭐','Film': '🎬',
-      'Musical Notes': '🎶','Dancer': '💃','Play Button': '▶️','New': '🆕','Sale': '🏷️',
-      'Check Mark': '✅','Cross Mark': '❌','Hand Point Down': '👇','Coffee Mug': '☕','Hand Wave': '👋',
-      'Light Bulb': '💡','Thinking Face': '🤔','100 Score': '💯','Money Bag': '💸',
-      'Chart Increasing': '📈','Target': '🎯','Alarm Clock': '⏰','Question Mark': '❓',
-      'Speech Bubble': '💬','Crown': '👑','Diamond': '💎','Robot': '🤖',
-      'Globe': '🌍','Mountain': '⛰️','Pin': '📌','Megaphone': '📣',
-      'Writing Hand': '✍️','Open Book': '📖','Smiling Face': '😊','Crying Face': '😫',
-      'Clapping Hands': '👏','Winking Face': '😉','Red Apple': '🍎','Grapes': '🍇',
-      'Donut': '🍩','Taco': '🌮','Beer Mug': '🍺','Martini Glass': '🍸',
-      'Car': '🚗','Bicycle': '🚲','Train': '🚆','Boat': '⛵',
-      'Fingers Crossed': '🤞','Poo': '💩','Ghost': '👻','Alien': '👽',
-      'Lock': '🔒','Key': '🔑','Toolbox': '🛠️','Graduation Cap': '🎓',
-      'Bookmark': '🔖','Gift': '🎁','Hand Point Up': '👆',
-      'Link': '🔗','Balance Scale': '⚖️','Magnifying Glass': '🧐','User': '👤'
-    };
-
-    // DAILY TIPS
-    const dailyTips = [
-      "Hook the reader in the first sentence. Your AI captions are useless if no one stops scrolling!",
-      "Always include a clear Call-to-Action (CTA) at the end: Ask a question, tell them to save the post, or tag a friend.",
-      "To maximize reach, use 2-3 broad hashtags (like #entrepreneur) and 10+ niche-specific hashtags (like #saasmarketing).",
-      "Test different tones for the same idea. A 'Bold' caption might outperform a 'Casual' one by 50%.",
-      "Use the 'Content Analyzer' (Pro tab) on your competitor's posts to reverse-engineer their viral hooks.",
-      "Engagement is key: Reply to every comment within the first hour to signal to the algorithm that your content is valuable.",
-      "Vertical video (Reels/TikTok) is king. Use your AI captions to add context and drive watch time.",
-      "The best captions use line breaks! Keep paragraphs to 1-2 sentences for maximum readability.",
-      "Your 'Post Idea' input should be benefit-focused, e.g., 'How to save 2 hours a week' instead of 'My new software'.",
-      "For LinkedIn, stick to the 'Professional' tone, keep emojis minimal, and focus on business value or lessons learned.",
-      "A strong caption usually contains a hook, a middle (value/story), and a strong closing CTA.",
-      "Try using a numbered list (e.g., '3 ways to...') in your idea input to generate highly scannable captions.",
-      "Experiment with emoji placement. Emojis at the start of a caption increase visual appeal and stop the scroll.",
-      "If posting on Twitter, keep your core message brief (under 140 chars) and use a thread to provide more detail.",
-      "Don't just use the first caption the AI gives you. Generate a few options and combine the best hook, body, and CTA."
-    ];
-    function getTodayTip() {
-      const today = new Date();
-      const start = new Date(today.getFullYear(), 0, 0);
-      const diff = today - start;
-      const oneDay = 1000 * 60 * 60 * 24;
-      const dayOfYear = Math.floor(diff / oneDay);
-      const tipIndex = dayOfYear % dailyTips.length;
-      return dailyTips[tipIndex];
-    }
-
-    // BACKEND PRO STATUS MOCK (kept simple)
-    async function fetchAndVerifyStatus() {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('success') === 'true') {
-        localStorage.setItem('isPro', 'true');
-        isPro = true;
-        window.history.replaceState({}, document.title, window.location.pathname);
-        alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
+      // --- DAILY TIPS ---
+      const dailyTips = [
+        "Hook the reader in the first sentence. Your AI captions are useless if no one stops scrolling!",
+        "Always include a clear Call-to-Action at the end: ask a question, tell them to save the post, or tag a friend.",
+        "Use 2–3 broad hashtags and 10+ niche hashtags for maximum reach.",
+        "Test different tones for the same idea. A 'Bold' caption might outperform 'Casual' by 50%.",
+        "Reply to every comment in the first hour to signal value to the algorithm.",
+        "Use line breaks. 1–2 sentence paragraphs keep people reading.",
+        "Your 'Post Idea' should be benefit-focused, not feature-focused.",
+        "For LinkedIn, keep emojis minimal and focus on lessons and value.",
+        "A strong caption has a hook, value/story, and a CTA.",
+        "Don't use the first AI caption blindly. Mix hooks, middles, and CTAs from several runs."
+      ];
+      function getTodayTip() {
+        const today = new Date();
+        const start = new Date(today.getFullYear(), 0, 0);
+        const diff = today - start;
+        const oneDay = 1000 * 60 * 60 * 24;
+        const dayOfYear = Math.floor(diff / oneDay);
+        const idx = dayOfYear % dailyTips.length;
+        return dailyTips[idx];
       }
-      if (userEmail) {
-        try {
-          const data = { isPro: localStorage.getItem('isPro') === 'true' };
-          if (data.isPro !== isPro) {
-            isPro = data.isPro;
-            localStorage.setItem('isPro', isPro.toString());
-          }
-        } catch (e) {
-          console.error('Backend verification failed', e);
+
+      // --- UTILS ---
+      function textHash(str) {
+        let h = 0;
+        for (let i = 0; i < str.length; i++) {
+          h = (h << 5) - h + str.charCodeAt(i);
+          h |= 0;
         }
+        return Math.abs(h);
       }
-    }
 
-    // HELPERS
-    function updateGenerateButtonState() {
-      if (!generateBtn) return;
-      if (isPro) {
-        generateBtn.disabled = false;
-        if (paywall) paywall.classList.add('hidden');
-      } else if (freeUses >= MAX_FREE_USES) {
-        generateBtn.disabled = true;
-        if (currentTab === 'generateContent' && paywall) {
-          paywall.classList.remove('hidden');
+      // Balanced, content-driven Engagement Score
+      function computeEngagementScore(text, idea, platform, tone) {
+        if (!text) return 0;
+        const raw = text.toString();
+        const lower = raw.toLowerCase();
+        let score = 45; // base for balanced feel
+
+        // Parse captions section
+        let captionsPart = raw;
+        const capsIdx = raw.toLowerCase().indexOf('## captions');
+        if (capsIdx !== -1) captionsPart = raw.slice(capsIdx);
+        const hashIdx = captionsPart.toLowerCase().indexOf('## hashtags');
+        if (hashIdx !== -1) captionsPart = captionsPart.slice(0, hashIdx);
+
+        const captionLines = captionsPart.split('\n').filter(l => l.trim().match(/^\d+\./));
+        const captions = captionLines.map(l => l.replace(/^\d+\.\s*/, '').trim());
+
+        // Hashtags
+        let hashtagsPart = raw;
+        const hashHeaderIdx = raw.toLowerCase().indexOf('## hashtags');
+        if (hashHeaderIdx !== -1) {
+          hashtagsPart = raw.slice(hashHeaderIdx);
         }
-      } else {
-        generateBtn.disabled = false;
-        if (paywall) paywall.classList.add('hidden');
+        const hashtags = hashtagsPart.match(/#[a-z0-9_]+/gi) || [];
+
+        // Emojis
+        const emojiMatches = raw.match(/[\u{1F300}-\u{1FAFF}]/gu) || [];
+        const emojiCount = emojiMatches.length;
+
+        // 1) Hook quality (0–20) from first caption
+        let hookScore = 0;
+        const firstCap = (captions[0] || raw).slice(0, 200);
+        const firstLower = firstCap.toLowerCase();
+        if (/[0-9]/.test(firstCap)) hookScore += 5;
+        if (/[?!]/.test(firstCap)) hookScore += 4;
+        if (emojiCount > 0) hookScore += 4;
+        const hookWords = ['secret', 'mistake', 'mistakes', 'hack', 'hacks', 'myth', 'myths', 'stop', 'never', 'steal', 'viral', 'explode', 'boost', 'skyrocket'];
+        if (hookWords.some(w => firstLower.includes(w))) hookScore += 4;
+        if (idea && idea.split(/\s+/)[0] && firstLower.includes(idea.split(/\s+/)[0].toLowerCase())) {
+          hookScore += 3;
+        }
+        hookScore = Math.min(hookScore, 20);
+        score += hookScore;
+
+        // 2) Structure and readability (0–15)
+        let struct = 0;
+        if (captions.length === 5) struct += 5;
+        if (captions.length >= 3 && captions.length <= 6) struct += 3;
+        const totalLen = captions.reduce((acc, c) => acc + c.length, 0);
+        if (totalLen > 300 && totalLen < 1400) struct += 5;
+        const avgLen = captions.length ? totalLen / captions.length : 0;
+        if (avgLen >= 80 && avgLen <= 260) struct += 5;
+        struct = Math.min(struct, 15);
+        score += struct;
+
+        // 3) Hashtag quality (0–15)
+        let hashScore = 0;
+        const hashCount = hashtags.length;
+        if (hashCount >= 15 && hashCount <= 40) hashScore += 7;
+        const uniqueHashtags = Array.from(new Set(hashtags.map(h => h.toLowerCase())));
+        if (uniqueHashtags.length >= 12) hashScore += 4;
+        const niche = uniqueHashtags.filter(h => h.length > 9);
+        if (niche.length >= 8) hashScore += 4;
+        hashScore = Math.min(hashScore, 15);
+        score += hashScore;
+
+        // 4) CTA presence (0–10)
+        const ctaPhrases = ['comment', 'tag a friend', 'save this', 'share this', 'dm me', 'link in bio', 'drop a', 'reply with', 'double tap', 'follow for more'];
+        let ctaScore = 0;
+        if (ctaPhrases.some(p => lower.includes(p))) ctaScore += 7;
+        if (/(\?|!|:)\s*$/m.test(firstCap)) ctaScore += 3;
+        ctaScore = Math.min(ctaScore, 10);
+        score += ctaScore;
+
+        // 5) Emoji usage (0–8)
+        let emoScore = 0;
+        if (emojiCount >= 3 && emojiCount <= 20) emoScore += 6;
+        if (emojiCount > 0 && emojiCount <= 30) emoScore += 2;
+        emoScore = Math.min(emoScore, 8);
+        score += emoScore;
+
+        // 6) Diversity penalty (up to -8)
+        const words = lower.replace(/#[a-z0-9_]+/gi, '').split(/\s+/).filter(Boolean);
+        if (words.length > 20) {
+          const uniqueWords = new Set(words);
+          const ratio = uniqueWords.size / words.length; // 0–1
+          if (ratio < 0.4) score -= 8;
+          else if (ratio < 0.55) score -= 4;
+        }
+
+        // 7) Light platform/tone adjustments (-5 to +5)
+        const plat = platform || '';
+        const toneStr = tone || '';
+        if (plat === 'LinkedIn' && toneStr.includes('Professional')) {
+          if (emojiCount <= 4) score += 4;
+          else score -= 3;
+        } else if (plat === 'TikTok' && toneStr.includes('Fun')) {
+          if (emojiCount >= 5) score += 3;
+        } else if (plat === 'Twitter') {
+          if (raw.length <= 900) score += 2;
+        }
+
+        // 8) Small deterministic noise so similar posts don't always tie
+        const h = textHash(raw + (platform || '') + (tone || ''));
+        const noise = (h % 7) - 3; // -3..+3
+        score += noise;
+
+        // Clamp
+        score = Math.max(10, Math.min(100, Math.round(score)));
+        return score;
       }
-    }
 
-    function showTab(tabName) {
-      currentTab = tabName;
-      localStorage.setItem('lastTab', tabName);
+      function detectPlatform(url) {
+        url = url.toLowerCase();
+        if (url.includes('instagram.com')) return 'Instagram';
+        if (url.includes('twitter.com') || url.includes('x.com')) return 'Twitter';
+        if (url.includes('linkedin.com')) return 'LinkedIn';
+        if (url.includes('tiktok.com')) return 'TikTok';
+        return 'Instagram';
+      }
 
-      if (analysisResult) analysisResult.classList.add('hidden');
-      if (loading) loading.classList.add('hidden');
-      if (result) result.classList.add('hidden');
-
-      if (tabName === 'generateContent') {
-        if (generateContent) generateContent.classList.remove('hidden');
-        if (analyzeContent) analyzeContent.classList.add('hidden');
-        if (generateTabBtn) generateTabBtn.classList.add('active');
-        if (analyzeTabBtn) analyzeTabBtn.classList.remove('active');
-        if (analysisPaywall) analysisPaywall.classList.add('hidden');
-        updateGenerateButtonState();
-      } else {
-        if (generateContent) generateContent.classList.add('hidden');
-        if (analyzeContent) analyzeContent.classList.remove('hidden');
-        if (generateTabBtn) generateTabBtn.classList.remove('active');
-        if (analyzeTabBtn) analyzeTabBtn.classList.add('active');
-        if (paywall) paywall.classList.add('hidden');
-
-        if (!isPro) {
-          if (analysisPaywall) analysisPaywall.classList.remove('hidden');
-          if (analyzeForm) analyzeForm.classList.add('hidden');
-          if (analyzeTabBtn) analyzeTabBtn.textContent = 'Analyze Competitor (Pro)';
+      function hashString(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          const char = str.charCodeAt(i);
+          hash = ((hash << 5) - hash) + char;
+          hash |= 0;
+        }
+        return Math.abs(hash);
+      }
+      function generateDeterministicScore(url) {
+        const uniqueSeed = hashString(url.toLowerCase().trim());
+        const score = (uniqueSeed % 35) + 65;
+        const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
+        let hook, readability, hashtags, cta;
+        if (quality === 'High') {
+          hook = 'High urgency, clear value proposition. 🔥';
+          readability = 'Excellent use of line breaks and short paragraphs. ✅';
+          hashtags = 'Highly relevant, mostly niche-specific. 🎯';
+          cta = 'Clear CTA encouraging saves and comments. 💬';
+        } else if (quality === 'Medium') {
+          hook = 'Decent hook, could be more specific or curiosity-driven. 👍';
+          readability = 'Good structure, a few dense sections. ⚠️';
+          hashtags = 'Mix of niche and broad tags. 💡';
+          cta = 'CTA present but not very strong. ❓';
         } else {
+          hook = 'Vague hook, unclear value for the reader. 👎';
+          readability = 'Text is dense, needs more line breaks. ❌';
+          hashtags = 'Too generic, many broad tags. 💡';
+          cta = 'Weak or missing CTA. ❓';
+        }
+        return { score, hook, readability, hashtags, cta };
+      }
+
+      function updateGenerateButtonState() {
+        if (!generateBtn) return;
+        if (isPro) {
+          generateBtn.disabled = false;
+          if (paywall) paywall.classList.add('hidden');
+          return;
+        }
+        if (freeUses >= MAX_FREE_USES) {
+          generateBtn.disabled = true;
+          if (paywall && currentTab === 'generateContent') {
+            paywall.classList.remove('hidden');
+          }
+        } else {
+          generateBtn.disabled = false;
+          if (paywall) paywall.classList.add('hidden');
+        }
+      }
+
+      function showTab(tabName) {
+        currentTab = tabName;
+        localStorage.setItem('lastTab', tabName);
+
+        // Hide shared UI on tab switch
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (resultBox) resultBox.classList.add('hidden');
+        if (engagementBox) engagementBox.classList.add('hidden');
+        if (analysisResult) analysisResult.classList.add('hidden');
+
+        if (tabName === 'generateContent') {
+          generateContent.classList.remove('hidden');
+          analyzeContent.classList.add('hidden');
+          generateTabBtn.classList.add('active');
+          analyzeTabBtn.classList.remove('active');
+          if (analysisPaywall) analysisPaywall.classList.add('hidden');
+          updateGenerateButtonState();
+        } else {
+          generateContent.classList.add('hidden');
+          analyzeContent.classList.remove('hidden');
+          generateTabBtn.classList.remove('active');
+          analyzeTabBtn.classList.add('active');
+          if (!isPro) {
+            analysisPaywall.classList.remove('hidden');
+            analyzeForm.classList.add('hidden');
+          } else {
+            analysisPaywall.classList.add('hidden');
+            analyzeForm.classList.remove('hidden');
+          }
+          if (paywall) paywall.classList.add('hidden');
+        }
+      }
+
+      function showPage(pageNumber) {
+        if (!page1 || !page2 || !page1Btn || !page2Btn) return;
+        if (pageNumber === 1) {
+          page1.style.display = 'grid';
+          page2.style.display = 'none';
+          page1Btn.classList.add('active');
+          page2Btn.classList.remove('active');
+        } else {
+          page1.style.display = 'none';
+          page2.style.display = 'grid';
+          page1Btn.classList.remove('active');
+          page2Btn.classList.add('active');
+        }
+      }
+
+      function processTemplateText(text) {
+        const replacements = {
+          'Camera Film': emojiMap['Camera'] + ' ' + emojiMap['Film'],
+          'Coffee Mug Light Bulb': emojiMap['Coffee Mug'] + ' ' + emojiMap['Light Bulb'],
+          'Question Mark Thinking Face': emojiMap['Question Mark'] + ' ' + emojiMap['Thinking Face'],
+          'Bookmark Sparkles': emojiMap['Bookmark'] + ' ' + emojiMap['Sparkles'],
+          'Gift Rocket': emojiMap['Gift'] + ' ' + emojiMap['Rocket'],
+          'Hand Point Up Film': emojiMap['Hand Point Up'] + ' ' + emojiMap['Film'],
+          'Star Speech Bubble': emojiMap['Star'] + ' ' + emojiMap['Speech Bubble'],
+          'Money Bag Chart Increasing': emojiMap['Money Bag'] + ' ' + emojiMap['Chart Increasing'],
+          'Crying Face Check Mark': emojiMap['Crying Face'] + ' ' + emojiMap['Check Mark'],
+          'Thinking Face Light Bulb': emojiMap['Thinking Face'] + ' ' + emojiMap['Light Bulb'],
+          'Toolbox Target': emojiMap['Toolbox'] + ' ' + emojiMap['Target'],
+          'Speech Bubble Cross Mark': emojiMap['Speech Bubble'] + ' ' + emojiMap['Cross Mark'],
+          'Link Bookmark': emojiMap['Link'] + ' ' + emojiMap['Bookmark'],
+          'Smiling Face 100 Score': emojiMap['Smiling Face'] + ' ' + emojiMap['100 Score'],
+          'User Rocket': emojiMap['User'] + ' ' + emojiMap['Rocket'],
+          'Alarm Clock Flexed Biceps': emojiMap['Alarm Clock'] + ' ' + emojiMap['Flexed Biceps'],
+          'Balance Scale Magnifying Glass': emojiMap['Balance Scale'] + ' ' + emojiMap['Magnifying Glass'],
+          'Heart': emojiMap['Heart'],
+          'Sparkles': emojiMap['Sparkles'],
+          'Hand Point Down': emojiMap['Hand Point Down'],
+          'Shopping Bag': emojiMap['Shopping Bag'],
+          'Fire': emojiMap['Fire'],
+          'Light Bulb': emojiMap['Light Bulb'],
+          'Film': emojiMap['Film'],
+          'Camera': emojiMap['Camera'],
+          'Gift snake': emojiMap['Gift']
+        };
+        for (const key in replacements) {
+          text = text.replace(new RegExp(key, 'g'), replacements[key]);
+        }
+        return text.replace(/\[\w+\]/g, m => m);
+      }
+
+      function updateUIState() {
+        // Tip
+        if (dailyTipText) dailyTipText.textContent = getTodayTip();
+
+        // Templates
+        if (isPro) {
+          if (templateContainer) {
+            templateContainer.classList.remove('hidden');
+            templateContainer.style.display = 'grid';
+          }
+          if (templateTeaser) templateTeaser.style.display = 'none';
+          showPage(1);
+        } else {
+          if (templateContainer) {
+            templateContainer.classList.add('hidden');
+            templateContainer.style.display = 'none';
+          }
+          if (templateTeaser) templateTeaser.style.display = 'block';
+        }
+
+        // Analysis access
+        if (isPro) {
           if (analysisPaywall) analysisPaywall.classList.add('hidden');
           if (analyzeForm) analyzeForm.classList.remove('hidden');
-          if (analyzeTabBtn) analyzeTabBtn.textContent = 'Analyze Competitor';
+        }
+
+        updateGenerateButtonState();
+        showTab(currentTab);
+      }
+
+      // --- MAIN GENERATION LOGIC ---
+      async function tryGenerate(forceFull = false) {
+        if (isGenerating || !userEmail || !ideaInput || !platformSelect || !toneEl) return;
+
+        const idea = ideaInput.value.trim();
+        const platform = platformSelect.value;
+        const tone = toneEl.value;
+
+        if (!idea || !platform || !tone) {
+          if (resultBox) resultBox.classList.add('hidden');
+          if (engagementBox) engagementBox.classList.add('hidden');
+          if (paywall) paywall.classList.add('hidden');
+          return;
+        }
+
+        if (!isPro && freeUses >= MAX_FREE_USES) {
+          if (paywall) paywall.classList.remove('hidden');
+          if (resultBox) resultBox.classList.add('hidden');
+          if (engagementBox) engagementBox.classList.add('hidden');
+          return;
+        }
+
+        isGenerating = true;
+        hasBoosted = false;
+        lastScore = null;
+
+        if (loadingEl) loadingEl.classList.remove('hidden');
+        if (resultBox) resultBox.classList.add('hidden');
+        if (engagementBox) engagementBox.classList.add('hidden');
+        if (paywall) paywall.classList.add('hidden');
+
+        if (generateBtn) {
+          generateBtn.disabled = true;
+          generateBtn.textContent = 'Generating...';
+        }
+
+        try {
+          const res = await fetch(`${API_URL}/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idea, platform, tone, email: userEmail })
+          });
+          const data = await res.json();
+
+          if (res.status === 402 || (!isPro && freeUses >= MAX_FREE_USES)) {
+            if (paywall) paywall.classList.remove('hidden');
+            if (resultBox) resultBox.classList.add('hidden');
+          } else if (res.ok) {
+            if (outputEl) outputEl.textContent = data.result || '';
+            if (resultBox) resultBox.classList.remove('hidden');
+
+            // Compute and show Engagement Score
+            const score = computeEngagementScore(data.result || '', idea, platform, tone);
+            lastScore = score;
+            if (engagementBox && engagementScoreValue && boostBtn) {
+              engagementScoreValue.textContent = score;
+              engagementBox.classList.remove('hidden');
+              boostBtn.disabled = false;
+              boostBtn.textContent = 'Boost My Score';
+            }
+
+            if (!isPro) {
+              freeUses++;
+              localStorage.setItem('freeUses', String(freeUses));
+              updateGenerateButtonState();
+            }
+
+            if (copyBtn) {
+              copyBtn.classList.remove('copied');
+              copyBtn.textContent = 'Copy All';
+            }
+          } else if (forceFull) {
+            // fallback text
+            const fallback = `## Captions
+1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"
+2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"
+3. "Your new favorite morning spot!"
+4. "Handcrafted with love ${emojiMap['Leaf']}"
+5. "Come say hi! ${emojiMap['Hand Wave']}"
+
+## Hashtags
+#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
+            if (outputEl) outputEl.textContent = fallback;
+            if (resultBox) resultBox.classList.remove('hidden');
+
+            const score = computeEngagementScore(fallback, idea, platform, tone);
+            lastScore = score;
+            if (engagementBox && engagementScoreValue && boostBtn) {
+              engagementScoreValue.textContent = score;
+              engagementBox.classList.remove('hidden');
+              boostBtn.disabled = false;
+              boostBtn.textContent = 'Boost My Score';
+            }
+
+            if (!isPro) {
+              freeUses++;
+              localStorage.setItem('freeUses', String(freeUses));
+              updateGenerateButtonState();
+            }
+          }
+        } catch (err) {
+          console.error(err);
+          if (forceFull) {
+            if (outputEl) outputEl.textContent = 'AI failed. Please try again.';
+            if (resultBox) resultBox.classList.remove('hidden');
+            if (engagementBox) engagementBox.classList.add('hidden');
+          }
+        } finally {
+          if (loadingEl) loadingEl.classList.add('hidden');
+          if (generateBtn) {
+            generateBtn.disabled = false;
+            generateBtn.textContent = 'Generate Captions';
+          }
+          isGenerating = false;
         }
       }
-    }
 
-    function showPage(pageNumber) {
-      if (!page1 || !page2 || !page1Btn || !page2Btn) return;
-      if (pageNumber === 1) {
-        page1.style.display = 'grid';
-        page2.style.display = 'none';
-        page1Btn.classList.add('active');
-        page2Btn.classList.remove('active');
-      } else {
-        page1.style.display = 'none';
-        page2.style.display = 'grid';
-        page1Btn.classList.remove('active');
-        page2Btn.classList.add('active');
-      }
-    }
+      // --- BOOST BUTTON: calls /optimize and ALWAYS increases score visually ---
+      if (boostBtn) {
+        boostBtn.addEventListener('click', async () => {
+          if (hasBoosted || !outputEl || !outputEl.textContent.trim()) return;
+          const idea = ideaInput.value.trim();
+          const platform = platformSelect.value;
+          const tone = toneEl.value;
+          if (!idea || !platform || !tone) return;
 
-    function processTemplateText(text) {
-      const replacements = {
-        'Camera Film': emojiMap['Camera'] + ' ' + emojiMap['Film'],
-        'Coffee Mug Light Bulb': emojiMap['Coffee Mug'] + ' ' + emojiMap['Light Bulb'],
-        'Question Mark Thinking Face': emojiMap['Question Mark'] + ' ' + emojiMap['Thinking Face'],
-        'Bookmark Sparkles': emojiMap['Bookmark'] + ' ' + emojiMap['Sparkles'],
-        'Gift Rocket': emojiMap['Gift'] + ' ' + emojiMap['Rocket'],
-        'Hand Point Up Film': emojiMap['Hand Point Up'] + ' ' + emojiMap['Film'],
-        'Star Speech Bubble': emojiMap['Star'] + ' ' + emojiMap['Speech Bubble'],
-        'Money Bag Chart Increasing': emojiMap['Money Bag'] + ' ' + emojiMap['Chart Increasing'],
-        'Crying Face Check Mark': emojiMap['Crying Face'] + ' ' + emojiMap['Check Mark'],
-        'Thinking Face Light Bulb': emojiMap['Thinking Face'] + ' ' + emojiMap['Light Bulb'],
-        'Toolbox Target': emojiMap['Toolbox'] + ' ' + emojiMap['Target'],
-        'Speech Bubble Cross Mark': emojiMap['Speech Bubble'] + ' ' + emojiMap['Cross Mark'],
-        'Link Bookmark': emojiMap['Link'] + ' ' + emojiMap['Bookmark'],
-        'Smiling Face 100 Score': emojiMap['Smiling Face'] + ' ' + emojiMap['100 Score'],
-        'User Rocket': emojiMap['User'] + ' ' + emojiMap['Rocket'],
-        'Alarm Clock Flexed Biceps': emojiMap['Alarm Clock'] + ' ' + emojiMap['Flexed Biceps'],
-        'Balance Scale Magnifying Glass': emojiMap['Balance Scale'] + ' ' + emojiMap['Magnifying Glass'],
-        'Heart': emojiMap['Heart'],
-        'Sparkles': emojiMap['Sparkles'],
-        'Hand Point Down': emojiMap['Hand Point Down'],
-        'Shopping Bag': emojiMap['Shopping Bag'],
-        'Fire': emojiMap['Fire'],
-        'Light Bulb': emojiMap['Light Bulb'],
-        'Film': emojiMap['Film'],
-        'Camera': emojiMap['Camera'],
-        'Gift snake': emojiMap['Gift']
-      };
-      for (const key in replacements) {
-        text = text.replace(new RegExp(key, 'g'), replacements[key]);
-      }
-      return text.replace(/\[\w+\]/g, (match) => match);
-    }
+          hasBoosted = true;
+          const originalLabel = boostBtn.textContent;
+          boostBtn.disabled = true;
+          boostBtn.textContent = 'Boosting...';
 
-    function updateUIState() {
-      if (isPro) {
-        if (templateContainer) {
-          templateContainer.classList.remove('hidden');
-          templateContainer.style.display = 'grid';
-        }
-        if (templateTeaser) templateTeaser.style.display = 'none';
-        showPage(1);
-        if (analysisPaywall) analysisPaywall.classList.add('hidden');
-        if (analyzeForm) analyzeForm.classList.remove('hidden');
-      } else {
-        if (templateContainer) {
-          templateContainer.classList.add('hidden');
-          templateContainer.style.display = 'none';
-        }
-        if (templateTeaser) templateTeaser.style.display = 'block';
-      }
-      updateGenerateButtonState();
-      showTab(currentTab);
-    }
+          try {
+            const currentText = outputEl.textContent;
+            const res = await fetch(`${API_URL}/optimize`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ idea, platform, tone, email: userEmail, currentText })
+            });
+            if (!res.ok) throw new Error('Optimize failed');
+            const data = await res.json();
+            const newText = data.result || currentText;
+            outputEl.textContent = newText;
 
-    // Platform auto-detect for analysis
-    function detectPlatform(url) {
-      url = url.toLowerCase();
-      if (url.includes('instagram.com')) return 'Instagram';
-      if (url.includes('twitter.com') || url.includes('x.com')) return 'Twitter';
-      if (url.includes('linkedin.com')) return 'LinkedIn';
-      if (url.includes('tiktok.com')) return 'TikTok';
-      return 'Instagram';
-    }
+            // Re-score
+            let newScore = computeEngagementScore(newText, idea, platform, tone);
+            if (lastScore != null && newScore <= lastScore) {
+              // Always bump up for UX: Balanced but monotonic
+              const base = Math.min(lastScore, 97);
+              const bump = Math.max(3, Math.round((100 - base) / 6));
+              newScore = Math.min(100, base + bump);
+            }
+            lastScore = newScore;
 
-    // Deterministic score for analysis tab
-    function hashString(str) {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash |= 0;
-      }
-      return Math.abs(hash);
-    }
-    function generateDeterministicScore(url) {
-      const uniqueSeed = hashString(url.toLowerCase().trim());
-      const score = (uniqueSeed % 35) + 65;
-      const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
-      let hook, readability, hashtags, cta;
-      if (quality === 'High') {
-        hook = 'High urgency, clear value proposition. 🔥';
-        readability = 'Excellent use of line breaks (4 lines/paragraph). ✅';
-        hashtags = 'Highly relevant, 90% niche-specific. 🎯';
-        cta = 'Clear call-to-action to save and comment. 💬';
-      } else if (quality === 'Medium') {
-        hook = 'Decent hook, could be more specific and engaging. 👍';
-        readability = 'Good structure, but a few blocks are too dense. ⚠️';
-        hashtags = 'Mix of niche and broad tags (50/50). 💡';
-        cta = 'General CTA, needs more direction. ❓';
-      } else {
-        hook = 'Vague hook, lacks clear value proposition. 👎';
-        readability = 'Dense wall of text, poor line break usage. ❌';
-        hashtags = 'Too generic, mostly broad tags. 💡';
-        cta = 'No clear CTA, relying on vague engagement. ❓';
-      }
-      return { score, hook, readability, hashtags, cta };
-    }
-
-    // ⭐ Engagement Score heuristic
-    function computeEngagementScore(text, idea, platform, tone) {
-      let score = 0;
-
-      // Hook (0–25)
-      const first140 = text.slice(0, 140);
-      let hook = 0;
-      if (first140 && /[A-Z]/.test(first140[0])) hook += 5;
-      if (/[0-9]/.test(first140)) hook += 5;
-      if (/[🔥✨💥🚀⭐💯❗]/.test(first140)) hook += 5;
-      if (idea && first140.toLowerCase().includes(idea.split(' ')[0].toLowerCase())) hook += 5;
-      if (first140.length > 0 && first140.length < 100) hook += 5;
-      score += Math.min(hook, 25);
-
-      // Readability (0–25)
-      let read = 0;
-      const lines = text.split('\n');
-      if (lines.length > 3) read += 10;
-      if (text.length < 900) read += 10;
-      if (/[.!?]\s/.test(text)) read += 5;
-      score += Math.min(read, 25);
-
-      // Hashtags (0–25)
-      let hash = 0;
-      const hashtags = text.match(/#[A-Za-z0-9_]+/g) || [];
-      if (hashtags.length >= 20) hash += 10;
-      const nicheTags = hashtags.filter(h => h.length > 8);
-      if (nicheTags.length > 10) hash += 10;
-      if (platform && hashtags.some(h => h.toLowerCase().includes(platform.toLowerCase()))) hash += 5;
-      score += Math.min(hash, 25);
-
-      // Platform fit (0–25)
-      let fit = 0;
-      if (platform === 'LinkedIn' && tone.includes('Professional')) fit += 20;
-      if (platform === 'TikTok' && tone.includes('Fun')) fit += 20;
-      if (platform === 'Instagram' && /🔥|✨|💫/.test(text)) fit += 20;
-      if (platform === 'Twitter' && text.length < 600) fit += 20;
-      score += Math.min(fit, 25);
-
-      return Math.max(0, Math.min(score, 100));
-    }
-
-    // MAIN APP BOOTSTRAP
-    async function bootstrapApp() {
-      await fetchAndVerifyStatus();
-
-      const tipElement = document.getElementById('dailyTipText');
-      if (tipElement) tipElement.textContent = getTodayTip();
-
-      // Tab listeners
-      if (generateTabBtn) generateTabBtn.addEventListener('click', () => showTab('generateContent'));
-      if (analyzeTabBtn)  analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
-
-      if (subscribeAnalyzeBtn && subscribeBtn) {
-        subscribeAnalyzeBtn.addEventListener('click', () => {
-          subscribeBtn.click();
+            if (engagementBox && engagementScoreValue) {
+              engagementScoreValue.textContent = newScore;
+              engagementBox.classList.remove('hidden');
+            }
+            boostBtn.textContent = 'Score Boosted';
+          } catch (err) {
+            console.error(err);
+            hasBoosted = false;
+            boostBtn.disabled = false;
+            boostBtn.textContent = originalLabel;
+            alert('Boost failed. Please try again.');
+          }
         });
       }
 
-      // Templates / pagination
+      // --- EVENT WIRING / INITIALIZATION ---
+      if (generateTabBtn) generateTabBtn.addEventListener('click', () => showTab('generateContent'));
+      if (analyzeTabBtn) analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
+
+      if (subscribeAnalyzeBtn && subscribeBtn) {
+        subscribeAnalyzeBtn.addEventListener('click', () => subscribeBtn.click());
+      }
+
       if (page1Btn) page1Btn.addEventListener('click', () => showPage(1));
       if (page2Btn) page2Btn.addEventListener('click', () => showPage(2));
 
-      document.querySelectorAll('.templateBtn').forEach(btn => {
-        const raw = btn.getAttribute('data-text');
-        const renderedText = processTemplateText(raw);
-        btn.addEventListener('click', () => {
-          if (ideaInput) ideaInput.value = renderedText;
-          if (ideaInput) ideaInput.focus();
-          showTab('generateContent');
+      if (templateContainer) {
+        document.querySelectorAll('.templateBtn').forEach(btn => {
+          const raw = btn.getAttribute('data-text') || '';
+          const renderedText = processTemplateText(raw);
+          btn.addEventListener('click', () => {
+            ideaInput.value = renderedText;
+            ideaInput.focus();
+            showTab('generateContent');
+          });
         });
-      });
+      }
 
       if (unlockTemplatesBtn && paywall) {
         unlockTemplatesBtn.addEventListener('click', () => {
@@ -964,7 +1182,6 @@
         });
       }
 
-      // Stripe subscribe
       if (subscribeBtn) {
         subscribeBtn.addEventListener('click', async () => {
           try {
@@ -982,9 +1199,9 @@
       }
 
       // Emoji picker
-      const commonEmojis = Object.keys(emojiMap).filter(k => !['Coffee Mug', 'Hand Wave'].includes(k));
-      if (grid) grid.innerHTML = '';
-      if (grid && ideaInput) {
+      if (emojiGrid && ideaInput) {
+        const commonEmojis = Object.keys(emojiMap);
+        emojiGrid.innerHTML = '';
         commonEmojis.forEach(name => {
           const btn = document.createElement('button');
           btn.textContent = emojiMap[name];
@@ -993,46 +1210,46 @@
             ideaInput.value += ' ' + emojiMap[name];
             ideaInput.focus();
           });
-          grid.appendChild(btn);
+          emojiGrid.appendChild(btn);
         });
       }
-      if (emojiPickerBtn && picker) {
+      if (emojiPickerBtn && emojiPicker) {
         emojiPickerBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
+          emojiPicker.style.display = emojiPicker.style.display === 'flex' ? 'none' : 'flex';
         });
       }
-      if (closePicker && picker) {
-        closePicker.addEventListener('click', () => picker.style.display = 'none');
+      if (closePicker && emojiPicker) {
+        closePicker.addEventListener('click', () => emojiPicker.style.display = 'none');
       }
       document.addEventListener('click', (e) => {
-        if (picker && emojiPickerBtn && !picker.contains(e.target) && e.target !== emojiPickerBtn) {
-          picker.style.display = 'none';
+        if (emojiPicker && emojiPickerBtn && !emojiPicker.contains(e.target) && e.target !== emojiPickerBtn) {
+          emojiPicker.style.display = 'none';
         }
       });
 
-      // Inputs auto-generate debounce
-      ['idea', 'platform', 'tone'].forEach(id => {
-        const inputElement = document.getElementById(id);
-        if (inputElement) {
-          inputElement.addEventListener('input', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => tryGenerate(false), 800);
-          });
-        }
-      });
-
-      if (form) {
-        form.addEventListener('submit', (e) => {
+      // Caption form
+      if (captionForm) {
+        captionForm.addEventListener('submit', (e) => {
           e.preventDefault();
           clearTimeout(debounceTimer);
           tryGenerate(true);
         });
       }
+      ['idea', 'platform', 'tone'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => tryGenerate(false), 900);
+          });
+        }
+      });
 
-      if (copyBtn && output) {
+      // Copy button
+      if (copyBtn && outputEl) {
         copyBtn.addEventListener('click', () => {
-          navigator.clipboard.writeText(output.textContent).then(() => {
+          navigator.clipboard.writeText(outputEl.textContent || '').then(() => {
             copyBtn.textContent = 'Copied!';
             copyBtn.classList.add('copied');
             setTimeout(() => {
@@ -1043,239 +1260,78 @@
         });
       }
 
-      // ANALYZE FORM
+      // Analyze form
       if (analyzeForm && competitorUrlInput) {
         analyzeForm.addEventListener('submit', (e) => {
           e.preventDefault();
           if (!isPro) return;
 
-          if (loading) loading.classList.remove('hidden');
+          if (loadingEl) loadingEl.classList.remove('hidden');
           if (analysisResult) analysisResult.classList.add('hidden');
 
           const url = competitorUrlInput.value.trim();
           const platform = detectPlatform(url);
 
           setTimeout(() => {
-            if (loading) loading.classList.add('hidden');
-            const analysisData = generateDeterministicScore(url);
-            const scoreEl = document.getElementById('analysisScore');
-            const detailEl = document.getElementById('analysisDetails');
-            if (scoreEl && detailEl) {
-              scoreEl.textContent = analysisData.score;
-              detailEl.innerHTML = `
+            if (loadingEl) loadingEl.classList.add('hidden');
+            const data = generateDeterministicScore(url);
+            if (analysisScore && analysisDetails) {
+              analysisScore.textContent = data.score;
+              analysisDetails.innerHTML = `
                 <p><strong>Platform Detected:</strong> ${platform}</p>
-                <p><strong>Hook Score:</strong> ${analysisData.hook}</p>
-                <p><strong>Readability:</strong> ${analysisData.readability}</p>
-                <p><strong>Hashtags:</strong> ${analysisData.hashtags}</p>
-                <p><strong>Core CTA:</strong> ${analysisData.cta}</p>
+                <p><strong>Hook:</strong> ${data.hook}</p>
+                <p><strong>Readability:</strong> ${data.readability}</p>
+                <p><strong>Hashtags:</strong> ${data.hashtags}</p>
+                <p><strong>Core CTA:</strong> ${data.cta}</p>
               `;
             }
             if (analysisResult) analysisResult.classList.remove('hidden');
           }, 1500);
         });
       }
-
       if (analyzeAgainBtn && competitorUrlInput && analysisResult) {
         analyzeAgainBtn.addEventListener('click', () => {
           competitorUrlInput.value = '';
           analysisResult.classList.add('hidden');
           competitorUrlInput.focus();
-          const analysisDetails = document.getElementById('analysisDetails');
           if (analysisDetails) analysisDetails.innerHTML = '';
         });
       }
 
-      // BOOST BUTTON
-      if (boostBtn) {
-        boostBtn.addEventListener('click', async () => {
-          if (boostedForCurrent || !lastRawResult || !ideaInput || !platformSelect || !toneEl) return;
+      // Handle success URL param for Stripe (mark Pro)
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('success') === 'true') {
+        isPro = true;
+        localStorage.setItem('isPro', 'true');
+        window.history.replaceState({}, document.title, window.location.pathname);
+        alert('Welcome to Pro! Unlimited generations + Viral Swipe File + Analyzer unlocked.');
+      }
 
-          boostedForCurrent = true;
-          boostBtn.disabled = true;
-          const originalLabel = 'Boost My Score';
-          boostBtn.textContent = 'Boosting...';
-
-          const idea = ideaInput.value.trim();
-          const platform = platformSelect.value;
-          const tone = toneEl.value;
-
-          try {
-            const res = await fetch(`${API_URL}/optimize`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                originalText: lastRawResult,
-                idea,
-                platform,
-                tone,
-                targetScore: lastScore ? Math.min(100, lastScore + 20) : 80
-              })
-            });
-            const data = await res.json();
-            const newText = data.optimized || data.result || lastRawResult;
-
-            if (output) output.textContent = newText;
-            lastRawResult = newText;
-
-            let newScore = computeEngagementScore(newText, idea, platform, tone);
-            if (lastScore != null) {
-              const minBoost = Math.min(100, lastScore + 5);
-              if (newScore < minBoost) newScore = minBoost;
+      // EMAIL GATE
+      if (!userEmail) {
+        if (emailSubmit) {
+          emailSubmit.addEventListener('click', () => {
+            const email = (emailInput.value || '').trim();
+            if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+              userEmail = email;
+              localStorage.setItem('userEmail', email);
+              localStorage.setItem('freeUses', '0');
+              freeUses = 0;
+              modal.style.display = 'none';
+              mainApp.style.display = 'block';
+              updateUIState();
+            } else {
+              emailInput.style.borderColor = '#ef4444';
+              emailInput.focus();
             }
-            const delta = lastScore != null ? newScore - lastScore : 0;
-            lastScore = newScore;
-
-            if (engagementBar && engagementScoreEl && engagementDeltaEl) {
-              engagementBar.classList.remove('hidden');
-              engagementScoreEl.textContent = newScore;
-              engagementDeltaEl.textContent = delta === 0 ? '(no change)' :
-                `(${delta > 0 ? '+' : ''}${delta})`;
-              engagementDeltaEl.className = '';
-              if (delta > 0) engagementDeltaEl.classList.add('positive');
-              else if (delta < 0) engagementDeltaEl.classList.add('negative');
-              else engagementDeltaEl.classList.add('neutral');
-            }
-
-            boostBtn.textContent = 'Boost Applied';
-          } catch (err) {
-            console.error('Boost failed', err);
-            boostedForCurrent = false;
-            boostBtn.disabled = false;
-            boostBtn.textContent = originalLabel;
-          }
-        });
-      }
-
-      updateUIState();
-    }
-
-    // GENERATION LOGIC
-    async function tryGenerate(forceFull = false) {
-      if (isGenerating || !userEmail || !ideaInput || !platformSelect || !form || !toneEl) return;
-
-      const idea = ideaInput.value.trim();
-      const platform = platformSelect.value;
-      const tone = toneEl.value;
-
-      if (!idea || !platform || !tone) {
-        if (result) result.classList.add('hidden');
-        if (paywall) paywall.classList.add('hidden');
-        return;
-      }
-
-      if (!isPro && freeUses >= MAX_FREE_USES) {
-        if (paywall) paywall.classList.remove('hidden');
-        if (result) result.classList.add('hidden');
-        return;
-      }
-
-      isGenerating = true;
-      if (loading) loading.classList.remove('hidden');
-      if (result) result.classList.add('hidden');
-      if (paywall) paywall.classList.add('hidden');
-      if (generateBtn) {
-        generateBtn.disabled = true;
-        generateBtn.textContent = 'Generating...';
-      }
-
-      try {
-        const res = await fetch(`${API_URL}/generate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idea, platform, tone, email: userEmail })
-        });
-        const data = await res.json();
-
-        if (res.status === 402 || (!isPro && freeUses >= MAX_FREE_USES)) {
-          if (paywall) paywall.classList.remove('hidden');
-          if (result) result.classList.add('hidden');
-        } else if (res.ok) {
-          lastRawResult = data.result;
-          if (output) output.textContent = data.result;
-          if (result) result.classList.remove('hidden');
-          if (paywall) paywall.classList.add('hidden');
-
-          if (!isPro) {
-            freeUses++;
-            localStorage.setItem('freeUses', freeUses.toString());
-          }
-
-          // Engagement score for fresh generation
-          const score = computeEngagementScore(data.result, idea, platform, tone);
-          lastScore = score;
-          boostedForCurrent = false;
-
-          if (engagementBar && engagementScoreEl && engagementDeltaEl) {
-            engagementBar.classList.remove('hidden');
-            engagementScoreEl.textContent = score;
-            engagementDeltaEl.textContent = '';
-            engagementDeltaEl.className = '';
-          }
-          if (boostBtn) {
-            boostBtn.disabled = false;
-            boostBtn.textContent = 'Boost My Score';
-          }
+          });
         }
-      } catch (err) {
-        console.error('Generate failed', err);
-        if (forceFull) {
-          const fallback = `## Captions
-1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"
-2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"
-3. "Your new favorite morning spot!"
-4. "Handcrafted with love ${emojiMap['Leaf']}"
-5. "Come say hi! ${emojiMap['Hand Wave']}"
-
-## Hashtags
-#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
-          if (output) output.textContent = fallback;
-          if (result) result.classList.remove('hidden');
-
-          const score = computeEngagementScore(fallback, idea, platform, tone);
-          lastScore = score;
-          boostedForCurrent = false;
-          if (engagementBar && engagementScoreEl && engagementDeltaEl) {
-            engagementBar.classList.remove('hidden');
-            engagementScoreEl.textContent = score;
-            engagementDeltaEl.textContent = '';
-            engagementDeltaEl.className = '';
-          }
-        }
-      } finally {
-        if (loading) loading.classList.add('hidden');
-        if (generateBtn) {
-          generateBtn.disabled = false;
-          generateBtn.textContent = 'Generate Captions';
-        }
-        isGenerating = false;
-        updateGenerateButtonState();
+      } else {
+        modal.style.display = 'none';
+        mainApp.style.display = 'block';
+        updateUIState();
       }
-    }
-
-    // EMAIL GATE STARTUP
-    if (!userEmail) {
-      emailSubmit.addEventListener('click', () => {
-        const email = emailInput.value.trim();
-        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          localStorage.setItem('userEmail', email);
-          localStorage.setItem('freeUses', '0');
-          modal.style.display = 'none';
-          if (mainApp) mainApp.style.display = 'block';
-          userEmail = email;
-          bootstrapApp();
-        } else {
-          if (emailInput) {
-            emailInput.style.borderColor = '#ef4444';
-            emailInput.focus();
-          }
-        }
-      });
-    } else {
-      if (modal) modal.style.display = 'none';
-      if (mainApp) mainApp.style.display = 'block';
-      bootstrapApp();
-    }
-  });
+    });
   </script>
 </body>
 </html>
