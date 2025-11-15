@@ -279,7 +279,6 @@
       text-align: center; border: 2px solid #fde68a;
     }
     .paywall h3 { margin-bottom: .5rem; font-size: 1.5rem; }
-    /* Corrected free trial count text in CSS */
     .paywall p { color: #92400e; margin-bottom: 1rem; }
     .paywall button {
       background: #16a34a; padding: .75rem 1.5rem; font-size: 1rem;
@@ -587,17 +586,19 @@
             localStorage.setItem('userEmail', email);
             localStorage.setItem('freeUses', '0');
             modal.style.display = 'none';
-            mainApp.style.display = 'block';
+            if (mainApp) mainApp.style.display = 'block';
             userEmail = email;
             initApp();
             } else {
-            emailInput.style.borderColor = '#ef4444';
-            emailInput.focus();
+            if (emailInput) {
+                emailInput.style.borderColor = '#ef4444';
+                emailInput.focus();
+            }
             }
         });
         } else {
-        modal.style.display = 'none';
-        mainApp.style.display = 'block';
+        if (modal) modal.style.display = 'none';
+        if (mainApp) mainApp.style.display = 'block';
         initApp();
         }
 
@@ -635,12 +636,11 @@
         // === END TIP OF THE DAY DATA ===
 
         function initApp() {
-        // Set the daily tip immediately - THIS WAS THE MISSING LINE
+        // --- CORE FIX: SET TIP AND RETRIEVE ALL CRITICAL ELEMENTS AT START ---
         const tipElement = document.getElementById('dailyTipText');
-        if (tipElement) { // Check if element exists before setting content
+        if (tipElement) { 
             tipElement.textContent = getTodayTip();
         }
-
 
         const form = document.getElementById('captionForm');
         const generateBtn = document.getElementById('generateBtn');
@@ -652,11 +652,35 @@
         const copyBtn = document.getElementById('copyBtn');
         const analysisPaywall = document.getElementById('analysisPaywall');
         const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
+        
+        // Buttons reported as broken
+        const generateTabBtn = document.getElementById('generateTabBtn');
+        const analyzeTabBtn = document.getElementById('analyzeTabBtn');
         const emojiPickerBtn = document.getElementById('emojiPickerBtn');
-
+        const unlockTemplatesBtn = document.getElementById('unlockTemplatesBtn');
+        
+        // Other elements
+        const analyzeForm = document.getElementById('analyzeForm');
+        const competitorUrlInput = document.getElementById('competitorUrl');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const analysisResult = document.getElementById('analysisResult');
+        const analyzeAgainBtn = document.getElementById('analyzeAgainBtn'); 
+        const ideaInput = document.getElementById('idea');
+        const platformSelect = document.getElementById('platform');
+        const templateContainer = document.getElementById('templateContainer');
+        const templateTeaser = document.getElementById('templateTeaser');
+        const page1 = document.getElementById('templatePage1');
+        const page2 = document.getElementById('templatePage2');
+        const page1Btn = document.getElementById('page1Btn');
+        const page2Btn = document.getElementById('page2Btn');
+        const picker = document.getElementById('emojiPicker');
+        const grid = document.getElementById('emojiGrid');
+        const closePicker = document.getElementById('closePicker');
+        
         let debounceTimer;
         let isGenerating = false;
         let freeUses = parseInt(localStorage.getItem('freeUses') || '0');
+        let currentTab = 'generateContent';
 
 
         // === EMOJI MAP ===
@@ -682,65 +706,57 @@
             'Link': '🔗', 'Balance Scale': '⚖️', 'Magnifying Glass': '🧐', 'User': '👤' 
         };
 
-        // === TAB LOGIC FOR NEW FEATURE ===
-        const generateTabBtn = document.getElementById('generateTabBtn');
-        const analyzeTabBtn = document.getElementById('analyzeTabBtn');
-        const generateContent = document.getElementById('generateContent');
-        const analyzeContent = document.getElementById('analyzeContent');
-        const analyzeForm = document.getElementById('analyzeForm');
-        const competitorUrlInput = document.getElementById('competitorUrl');
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        const analysisResult = document.getElementById('analysisResult');
-        const analyzeAgainBtn = document.getElementById('analyzeAgainBtn'); 
-        const ideaInput = document.getElementById('idea');
-        const platformSelect = document.getElementById('platform');
-        
-        let currentTab = 'generateContent';
-
+        // === TAB LOGIC FIX ===
         function showTab(tabName) {
             currentTab = tabName;
-            analysisResult.classList.add('hidden'); // Hide analysis results when switching tabs
-            loading.classList.add('hidden'); // Hide loading indicator
-            result.classList.add('hidden'); // Hide generation result
+            if (analysisResult) analysisResult.classList.add('hidden'); 
+            if (loading) loading.classList.add('hidden'); 
+            if (result) result.classList.add('hidden'); 
             
             if (tabName === 'generateContent') {
-                generateContent.classList.remove('hidden');
-                analyzeContent.classList.add('hidden');
-                generateTabBtn.classList.add('active');
-                analyzeTabBtn.classList.remove('active');
-                analysisPaywall.classList.add('hidden');
+                if (generateContent) generateContent.classList.remove('hidden');
+                if (analyzeContent) analyzeContent.classList.add('hidden');
+                if (generateTabBtn) generateTabBtn.classList.add('active');
+                if (analyzeTabBtn) analyzeTabBtn.classList.remove('active');
+                if (analysisPaywall) analysisPaywall.classList.add('hidden');
                 
                 if (!isPro && freeUses >= MAX_FREE_USES) {
-                    paywall.classList.remove('hidden');
+                    if (paywall) paywall.classList.remove('hidden');
                 } else {
-                    paywall.classList.add('hidden');
+                    if (paywall) paywall.classList.add('hidden');
                 }
 
             } else if (tabName === 'analyzeContent') {
-                generateContent.classList.add('hidden');
-                analyzeContent.classList.remove('hidden');
-                generateTabBtn.classList.remove('active');
-                analyzeTabBtn.classList.add('active');
-                paywall.classList.add('hidden'); // Hide main paywall in analysis tab
+                if (generateContent) generateContent.classList.add('hidden');
+                if (analyzeContent) analyzeContent.classList.remove('hidden');
+                if (generateTabBtn) generateTabBtn.classList.remove('active');
+                if (analyzeTabBtn) analyzeTabBtn.classList.add('active');
+                if (paywall) paywall.classList.add('hidden');
 
                 if (!isPro) {
-                    analysisPaywall.classList.remove('hidden');
-                    analyzeForm.classList.add('hidden');
-                    analysisResult.classList.add('hidden'); // Ensure result is hidden if non-pro
+                    if (analysisPaywall) analysisPaywall.classList.remove('hidden');
+                    if (analyzeForm) analyzeForm.classList.add('hidden');
+                    if (analysisResult) analysisResult.classList.add('hidden');
                 } else {
-                    analysisPaywall.classList.add('hidden');
-                    analyzeForm.classList.remove('hidden');
+                    if (analysisPaywall) analysisPaywall.classList.add('hidden');
+                    if (analyzeForm) analyzeForm.classList.remove('hidden');
                 }
             }
         }
-
-        generateTabBtn.addEventListener('click', () => showTab('generateContent'));
-        analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
         
-        // Analysis Paywall Subscribe Button now correctly triggers the main subscription logic
-        subscribeAnalyzeBtn.addEventListener('click', async () => {
-            subscribeBtn.click();
-        });
+        // ATTACH LISTENERS WITH NULL CHECK
+        if (generateTabBtn) generateTabBtn.addEventListener('click', () => showTab('generateContent'));
+        if (analyzeTabBtn) analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
+        
+        // Ensure correct tab visibility on load
+        if (generateTabBtn || analyzeTabBtn) showTab(currentTab); 
+
+        // Analysis Paywall Subscribe Button
+        if (subscribeAnalyzeBtn && subscribeBtn) {
+            subscribeAnalyzeBtn.addEventListener('click', async () => {
+                subscribeBtn.click();
+            });
+        }
         
         // --- Platform Auto-Detection Function ---
         function detectPlatform(url) {
@@ -753,7 +769,6 @@
         }
         
         // === DETERMINISTIC SCORE GENERATION FUNCTION ===
-        // A simple, consistent hashing function to ensure the same URL yields the same number.
         function hashString(str) {
             let hash = 0;
             for (let i = 0; i < str.length; i++) {
@@ -767,11 +782,7 @@
         // Function to generate score and mock analysis details deterministically
         function generateDeterministicScore(url) {
             const uniqueSeed = hashString(url.toLowerCase().trim());
-            
-            // Map the unique seed to a score between 65 and 99
-            const score = (uniqueSeed % 35) + 65; // Ensures score is between 65 and 99 (35 possible scores)
-            
-            // Determine quality tiers based on the consistent score
+            const score = (uniqueSeed % 35) + 65; 
             const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
             
             let hook, readability, hashtags, cta;
@@ -797,75 +808,74 @@
         }
 
         // Updated Analysis Logic
-        analyzeForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (!isPro) return;
-            
-            loading.classList.remove('hidden');
-            analysisResult.classList.add('hidden');
-            
-            const url = competitorUrlInput.value.trim();
-            const platform = detectPlatform(url); // Auto-detect the platform
-            
-            // --- DETERMINISTIC AI ANALYSIS ---
-            setTimeout(() => {
-                loading.classList.add('hidden');
+        if (analyzeForm && competitorUrlInput) {
+            analyzeForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (!isPro) return;
                 
-                const analysisData = generateDeterministicScore(url);
+                if (loading) loading.classList.remove('hidden');
+                if (analysisResult) analysisResult.classList.add('hidden');
                 
-                // Display results
-                document.getElementById('analysisScore').textContent = analysisData.score;
-                document.getElementById('analysisDetails').innerHTML = `
-                    <p><strong>Platform Detected:</strong> ${platform}</p>
-                    <p><strong>Hook Score:</strong> ${analysisData.hook}</p>
-                    <p><strong>Readability:</strong> ${analysisData.readability}</p>
-                    <p><strong>Hashtags:</strong> ${analysisData.hashtags}</p>
-                    <p><strong>Core CTA:</strong> ${analysisData.cta}</p>
-                `;
+                const url = competitorUrlInput.value.trim();
+                const platform = detectPlatform(url); 
                 
-                analysisResult.classList.remove('hidden');
-            }, 1500); // Simulate network latency
-        });
+                setTimeout(() => {
+                    if (loading) loading.classList.add('hidden');
+                    
+                    const analysisData = generateDeterministicScore(url);
+                    
+                    if (document.getElementById('analysisScore') && document.getElementById('analysisDetails')) {
+                        document.getElementById('analysisScore').textContent = analysisData.score;
+                        document.getElementById('analysisDetails').innerHTML = `
+                            <p><strong>Platform Detected:</strong> ${platform}</p>
+                            <p><strong>Hook Score:</strong> ${analysisData.hook}</p>
+                            <p><strong>Readability:</strong> ${analysisData.readability}</p>
+                            <p><strong>Hashtags:</strong> ${analysisData.hashtags}</p>
+                            <p><strong>Core CTA:</strong> ${analysisData.cta}</p>
+                        `;
+                    }
+                    
+                    if (analysisResult) analysisResult.classList.remove('hidden');
+                }, 1500); 
+            });
+        }
         
-        // NEW: Analyze Again button listener (Simple clear function)
-        analyzeAgainBtn.addEventListener('click', () => {
-            competitorUrlInput.value = '';
-            analysisResult.classList.add('hidden');
-            competitorUrlInput.focus();
-            // Optionally clear analysis details for a clean slate
-            document.getElementById('analysisDetails').innerHTML = ''; 
-        });
+        // Analyze Again button listener
+        if (analyzeAgainBtn && competitorUrlInput && analysisResult) {
+            analyzeAgainBtn.addEventListener('click', () => {
+                competitorUrlInput.value = '';
+                analysisResult.classList.add('hidden');
+                competitorUrlInput.focus();
+                const analysisDetails = document.getElementById('analysisDetails');
+                if (analysisDetails) analysisDetails.innerHTML = ''; 
+            });
+        }
 
         // === PRO TEMPLATES PAGINATION LOGIC ===
-        const templateContainer = document.getElementById('templateContainer');
-        const templateTeaser = document.getElementById('templateTeaser');
-        const page1 = document.getElementById('templatePage1');
-        const page2 = document.getElementById('templatePage2');
-        const page1Btn = document.getElementById('page1Btn');
-        const page2Btn = document.getElementById('page2Btn');
-        
         function showPage(pageNumber) {
-            if (pageNumber === 1) {
-                page1.style.display = 'grid';
-                page2.style.display = 'none';
-                page1Btn.classList.add('active');
-                page2Btn.classList.remove('active');
-            } else if (pageNumber === 2) {
-                page1.style.display = 'none';
-                page2.style.display = 'grid';
-                page1Btn.classList.remove('active');
-                page2Btn.classList.add('active');
+            if (page1 && page2 && page1Btn && page2Btn) {
+                if (pageNumber === 1) {
+                    page1.style.display = 'grid';
+                    page2.style.display = 'none';
+                    page1Btn.classList.add('active');
+                    page2Btn.classList.remove('active');
+                } else if (pageNumber === 2) {
+                    page1.style.display = 'none';
+                    page2.style.display = 'grid';
+                    page1Btn.classList.remove('active');
+                    page2Btn.classList.add('active');
+                }
             }
         }
 
-        if (isPro) {
+        if (isPro && templateContainer && templateTeaser) {
             templateContainer.classList.remove('hidden');
             templateContainer.style.display = 'block'; 
             templateTeaser.style.display = 'none';
             showPage(1); 
-
-            page1Btn.addEventListener('click', () => showPage(1));
-            page2Btn.addEventListener('click', () => showPage(2));
+            
+            if (page1Btn) page1Btn.addEventListener('click', () => showPage(1));
+            if (page2Btn) page2Btn.addEventListener('click', () => showPage(2));
 
             document.querySelectorAll('.templateBtn').forEach(btn => {
             const raw = btn.getAttribute('data-text');
@@ -906,112 +916,121 @@
             const renderedText = processTemplateText(raw);
             
             btn.addEventListener('click', () => {
-                document.getElementById('idea').value = renderedText;
-                document.getElementById('idea').focus();
+                if (ideaInput) ideaInput.value = renderedText;
+                if (ideaInput) ideaInput.focus();
                 showTab('generateContent'); // Ensure we are on the correct tab after clicking a template
             });
             });
-        } else {
+        } else if (templateContainer) {
             templateContainer.style.display = 'none';
-            templateTeaser.style.display = 'block';
+            if (templateTeaser) templateTeaser.style.display = 'block';
         }
         
-        // Ensure correct tab visibility on load
-        showTab(currentTab); 
-
-        // MOVED INTO DOMContentLoaded
-        document.getElementById('unlockTemplatesBtn').addEventListener('click', () => {
-            paywall.classList.remove('hidden');
-            paywall.scrollIntoView({ behavior: 'smooth' });
-        });
+        // FIX FOR UNLOCK TEMPLATES BUTTON
+        if (unlockTemplatesBtn && paywall) {
+            unlockTemplatesBtn.addEventListener('click', () => {
+                paywall.classList.remove('hidden');
+                paywall.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
 
         // === SUBSCRIBE BUTTON ===
-        subscribeBtn.addEventListener('click', async () => {
-            try {
-            const res = await fetch(`${API_URL}/create-checkout-session`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: userEmail })
+        if (subscribeBtn) {
+            subscribeBtn.addEventListener('click', async () => {
+                try {
+                const res = await fetch(`${API_URL}/create-checkout-session`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: userEmail })
+                });
+                const { url } = await res.json();
+                window.location.href = url;
+                } catch (err) {
+                alert('Checkout failed. Please try again.');
+                }
             });
-            const { url } = await res.json();
-            window.location.href = url;
-            } catch (err) {
-            alert('Checkout failed. Please try again.');
-            }
-        });
+        }
 
-        // === EMOJI PICKER ===
-        const emojiBtn = document.getElementById('emojiPickerBtn');
-        const picker = document.getElementById('emojiPicker');
-        const grid = document.getElementById('emojiGrid');
-        const closePicker = document.getElementById('closePicker');
 
+        // === EMOJI PICKER FIX ===
         const commonEmojis = Object.keys(emojiMap).filter(k => !['Coffee Mug', 'Hand Wave'].includes(k));
-        grid.innerHTML = '';
-        commonEmojis.forEach(name => {
-            const btn = document.createElement('button');
-            btn.textContent = emojiMap[name];
-            btn.title = name;
-            btn.addEventListener('click', () => {
-            document.getElementById('idea').value += ' ' + emojiMap[name];
-            document.getElementById('idea').focus();
+        if (grid) grid.innerHTML = '';
+
+        if (grid && ideaInput) {
+            commonEmojis.forEach(name => {
+                const btn = document.createElement('button');
+                btn.textContent = emojiMap[name];
+                btn.title = name;
+                btn.addEventListener('click', () => {
+                    ideaInput.value += ' ' + emojiMap[name];
+                    ideaInput.focus();
+                });
+                grid.appendChild(btn);
             });
-            grid.appendChild(btn);
-        });
+        }
 
-        emojiBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
-        });
+        if (emojiPickerBtn && picker) {
+            emojiPickerBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
+            });
+        }
 
-        closePicker.addEventListener('click', () => picker.style.display = 'none');
+        if (closePicker && picker) {
+            closePicker.addEventListener('click', () => picker.style.display = 'none');
+        }
 
         document.addEventListener('click', (e) => {
-            if (!picker.contains(e.target) && e.target !== emojiBtn) {
-            picker.style.display = 'none';
+            if (picker && emojiPickerBtn && !picker.contains(e.target) && e.target !== emojiPickerBtn) {
+                picker.style.display = 'none';
             }
         });
 
         // === GENERATION LOGIC ===
         const inputs = ['idea', 'platform', 'tone'];
         inputs.forEach(id => {
-            document.getElementById(id).addEventListener('input', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(tryGenerate, 800);
-            });
+            const inputElement = document.getElementById(id);
+            if (inputElement) {
+                inputElement.addEventListener('input', () => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(tryGenerate, 800);
+                });
+            }
         });
 
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            clearTimeout(debounceTimer);
-            tryGenerate(true);
-        });
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                clearTimeout(debounceTimer);
+                tryGenerate(true);
+            });
+        }
 
         async function tryGenerate(forceFull = false) {
-            if (isGenerating || !userEmail) return; 
+            if (isGenerating || !userEmail || !ideaInput || !platformSelect || !form) return; 
 
-            const idea = document.getElementById('idea').value.trim();
-            const platform = document.getElementById('platform').value;
+            const idea = ideaInput.value.trim();
+            const platform = platformSelect.value;
             const tone = document.getElementById('tone').value;
 
             if (!idea || !platform || !tone) {
-            result.classList.add('hidden');
-            paywall.classList.add('hidden');
-            return;
+                if (result) result.classList.add('hidden');
+                if (paywall) paywall.classList.add('hidden');
+                return;
             }
 
             if (!isPro && freeUses >= MAX_FREE_USES) {
-            paywall.classList.remove('hidden');
-            result.classList.add('hidden');
-            return;
+                if (paywall) paywall.classList.remove('hidden');
+                if (result) result.classList.add('hidden');
+                return;
             }
 
             isGenerating = true;
-            loading.classList.remove('hidden');
-            result.classList.add('hidden');
-            paywall.classList.add('hidden');
-            generateBtn.disabled = true;
-            generateBtn.textContent = 'Generating...';
+            if (loading) loading.classList.remove('hidden');
+            if (result) result.classList.add('hidden');
+            if (paywall) paywall.classList.add('hidden');
+            if (generateBtn) generateBtn.disabled = true;
+            if (generateBtn) generateBtn.textContent = 'Generating...';
 
             try {
             const res = await fetch(`${API_URL}/generate`, {
@@ -1023,77 +1042,87 @@
             const data = await res.json();
 
             if (res.status === 402 || (!isPro && freeUses >= MAX_FREE_USES)) {
-                paywall.classList.remove('hidden');
-                result.classList.add('hidden');
+                if (paywall) paywall.classList.remove('hidden');
+                if (result) result.classList.add('hidden');
             } else if (res.ok) {
-                output.textContent = data.result;
-                result.classList.remove('hidden');
-                paywall.classList.add('hidden');
-                copyBtn.classList.remove('copied');
-                copyBtn.textContent = 'Copy All';
+                if (output) output.textContent = data.result;
+                if (result) result.classList.remove('hidden');
+                if (paywall) paywall.classList.add('hidden');
+                if (copyBtn) copyBtn.classList.remove('copied');
+                if (copyBtn) copyBtn.textContent = 'Copy All';
 
                 if (!isPro) {
                 freeUses++;
                 localStorage.setItem('freeUses', freeUses.toString());
                 if (freeUses >= MAX_FREE_USES) {
-                    paywall.classList.remove('hidden');
-                    form.querySelector('button[type="submit"]').disabled = true;
+                    if (paywall) paywall.classList.remove('hidden');
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) submitBtn.disabled = true;
                 }
                 }
             }
             } catch (err) {
             if (forceFull) {
                 const fallback = `## Captions\n1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"\n2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"\n3. "Your new favorite morning spot!"\n4. "Handcrafted with love ${emojiMap['Leaf']}"\n5. "Come say hi! ${emojiMap['Hand Wave']}"\n\n## Hashtags\n#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
-                output.textContent = fallback;
-                result.classList.remove('hidden');
+                if (output) output.textContent = fallback;
+                if (result) result.classList.remove('hidden');
                 if (!isPro) {
                 freeUses++;
                 localStorage.setItem('freeUses', freeUses.toString());
                 }
             }
             } finally {
-            loading.classList.add('hidden');
-            generateBtn.disabled = false;
-            generateBtn.textContent = 'Generate Captions';
+            if (loading) loading.classList.add('hidden');
+            if (generateBtn) generateBtn.disabled = false;
+            if (generateBtn) generateBtn.textContent = 'Generate Captions';
             isGenerating = false;
             
             if (!isPro && freeUses >= MAX_FREE_USES && currentTab === 'generateContent') {
-                paywall.classList.remove('hidden');
-                form.querySelector('button[type="submit"]').disabled = true;
+                if (paywall) paywall.classList.remove('hidden');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = true;
             }
             }
         }
 
-        copyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(output.textContent).then(() => {
-            copyBtn.textContent = 'Copied!';
-            copyBtn.classList.add('copied');
-            setTimeout(() => {
-                copyBtn.textContent = 'Copy All';
-                copyBtn.classList.remove('copied');
-            }, 2000);
+        if (copyBtn && output) {
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(output.textContent).then(() => {
+                copyBtn.textContent = 'Copied!';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy All';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+                });
             });
-        });
+        }
 
         // === SUCCESS URL HANDLING ===
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('success') === 'true') {
             localStorage.setItem('isPro', 'true');
-            isPro = true; // Update local variable
-            paywall.classList.add('hidden');
-            analysisPaywall.classList.add('hidden');
-            analyzeForm.classList.remove('hidden'); // Show the form now that they are Pro
-            form.querySelector('button[type="submit"]').disabled = false;
+            isPro = true; 
+            if (paywall) paywall.classList.add('hidden');
+            if (analysisPaywall) analysisPaywall.classList.add('hidden');
+            if (analyzeForm) analyzeForm.classList.remove('hidden'); 
+            if (form) {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = false;
+            }
             alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
             window.history.replaceState({}, document.title, window.location.pathname);
             location.reload();
         }
 
         if (isPro) {
-            paywall.classList.add('hidden');
-            analysisPaywall.classList.add('hidden');
-            analyzeForm.classList.remove('hidden');
-            form.querySelector('button[type="submit"]').disabled = false;
+            if (paywall) paywall.classList.add('hidden');
+            if (analysisPaywall) analysisPaywall.classList.add('hidden');
+            if (analyzeForm) analyzeForm.classList.remove('hidden');
+            if (form) {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = false;
+            }
         }
       }
     });
