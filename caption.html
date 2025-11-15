@@ -41,22 +41,23 @@
     }
     .proof strong { font-weight: 600; }
 
-    /* NEW DAILY TIP BOX STYLE */
+    /* DAILY TIP */
     #dailyTipBox {
-        background: #fff; 
-        border: 1px solid #d1d5db; 
-        padding: 1rem; 
-        border-radius: .75rem; 
-        margin-bottom: 1.5rem;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-        font-size: .95rem;
-        line-height: 1.4;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      padding: 1rem;
+      border-radius: .75rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+      font-size: .95rem;
+      line-height: 1.4;
     }
     #dailyTipBox strong {
-        color: var(--warning); 
-        margin-right: .5rem;
+      color: var(--warning);
+      margin-right: .5rem;
     }
 
+    /* EMAIL MODAL */
     #emailModal {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.7); display: flex; align-items: center;
@@ -79,6 +80,7 @@
       cursor: pointer; width: 100%;
     }
 
+    /* FORM ELEMENTS */
     label { display: block; margin-bottom: .5rem; font-weight: 600; color: #111; }
     input, select {
       width: 100%; padding: .75rem 1rem; border: 2px solid var(--border);
@@ -100,117 +102,60 @@
     }
     button:hover { background: var(--primary-dark); }
     button:disabled { background: #93c5fd; cursor: not-allowed; }
-    
-    /* Tabs */
+
+    /* TABS */
     #tabHeader {
-        display: flex;
-        margin-bottom: 1.5rem;
-        border-bottom: 2px solid var(--border);
+      display: flex;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid var(--border);
     }
     .tab-btn {
-        flex: 1;
-        padding: 0.75rem 0;
-        background: none;
-        border: none;
-        font-weight: 600;
-        cursor: pointer;
-        color: var(--gray);
-        font-size: 1.1rem;
-        border-bottom: 3px solid transparent;
-        transition: color 0.2s, border-bottom 0.2s;
-        border-radius: 0;
-        width: auto;
+      flex: 1;
+      padding: 0.75rem 0;
+      background: none;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--gray);
+      font-size: 1.1rem;
+      border-bottom: 3px solid transparent;
+      transition: color 0.2s, border-bottom 0.2s;
+      border-radius: 0;
+      width: auto;
     }
     .tab-btn.active {
-        color: var(--primary);
-        border-bottom: 3px solid var(--primary);
+      color: var(--primary);
+      border-bottom: 3px solid var(--primary);
     }
-    .tab-content {
-        padding: 0;
-    }
+    .tab-content { padding: 0; }
 
-    /* Analysis Result Box */
+    /* ANALYSIS CARD */
     .analysis-card {
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: .75rem;
-        padding: 1.5rem;
-        margin-top: 1.5rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,.05);
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: .75rem;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,.05);
     }
     .analysis-score {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: var(--primary);
-        text-align: center;
-        margin-bottom: .5rem;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-align: center;
+      margin-bottom: .5rem;
     }
     .analysis-detail {
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px dashed var(--border);
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border);
     }
     .analysis-detail p {
-        margin-bottom: .5rem;
-        line-height: 1.4;
-    }
-    .analysis-detail strong {
-        color: #111;
-        font-weight: 700;
-    }
-    #analyzeAgainBtn { 
-        background: var(--primary);
-        margin-top: 1rem;
-        width: 100%;
-        font-size: 1rem;
+      margin-bottom: .5rem;
+      line-height: 1.4;
     }
 
-    #emojiPickerBtn {
-      background: var(--warning); margin: 1rem 0; width: auto; padding: .5rem 1rem; font-size: .9rem;
-    }
-
-    .emoji-picker-container {
-      position: relative; 
-      text-align: left; 
-      display: flex;
-      justify-content: center;
-    }
-
-    #emojiPicker {
-      display: none; 
-      position: absolute; 
-      background: white; 
-      border: 1px solid #e5e7eb;
-      border-radius: .75rem; 
-      padding: 1rem; 
-      max-width: 300px; 
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-      z-index: 100; 
-      text-align: center;
-      max-height: 350px; 
-      flex-direction: column;
-      right: 0; 
-      top: 100%; 
-      transform: translateY(5px);
-    }
-
-    #emojiGrid {
-      display: grid; 
-      grid-template-columns: repeat(6, 1fr); 
-      gap: .5rem; 
-      font-size: 1.5rem;
-      margin: .75rem 0;
-      overflow-y: auto; 
-      padding-right: 5px; 
-    }
-    #emojiGrid button {
-      background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0;
-    }
-    #closePicker {
-      margin-top: .5rem; background: #6b7280; color: white; padding: .5rem 1rem;
-      border-radius: .5rem; font-size: .8rem; width: auto;
-    }
-
+    /* RESULT CARD */
     .result {
       margin-top: 2rem; padding: 1.5rem; background: white; border-radius: .75rem;
       box-shadow: 0 4px 12px rgba(0,0,0,.05); position: relative;
@@ -220,27 +165,40 @@
       white-space: pre-wrap; font-family: inherit; line-height: 1.6; margin-bottom: 1rem;
     }
 
-    /* ⭐ Engagement Score Box */
-    #engagementScoreBox {
-      display: none;
-      margin-bottom: 0.75rem;
-      padding: 0.5rem 0.75rem;
-      border-radius: 0.5rem;
+    /* ENGAGEMENT BAR */
+    .engagement-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       background: #eff6ff;
       border: 1px solid #bfdbfe;
-      font-size: 0.95rem;
-      color: #1d4ed8;
+      border-radius: .5rem;
+      padding: .6rem .9rem;
+      margin-bottom: 1rem;
+      font-size: .95rem;
+    }
+    #engagementLabel { font-weight: 600; color: #1d4ed8; }
+    #engagementDelta {
+      margin-left: .5rem;
       font-weight: 600;
     }
-    #engagementScoreValue {
-      font-weight: 700;
+    #engagementDelta.positive { color: #16a34a; }
+    #engagementDelta.negative { color: #dc2626; }
+    #engagementDelta.neutral { color: #6b7280; }
+
+    #boostBtn {
+      width: auto;
+      background: #10b981;
+      padding: .45rem 1.1rem;
+      font-size: .9rem;
+      border-radius: .5rem;
     }
-    #engagementScoreDelta {
-      font-weight: 600;
-      margin-left: 0.35rem;
-      font-size: 0.85rem;
+    #boostBtn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
     }
 
+    /* COPY BUTTON */
     #copyBtn {
       position: absolute; top: 1rem; right: 1rem; background: var(--success);
       color: white; padding: .5rem 1rem; border: none; border-radius: .5rem;
@@ -249,17 +207,10 @@
     #copyBtn:hover { background: var(--success-dark); }
     #copyBtn.copied { background: #059669; }
 
-    #boostBtn {
-      margin-top: 0.5rem;
-      width: 100%;
-      background: #6366f1;
-    }
-    #boostBtn:hover {
-      background: #4f46e5;
-    }
-
+    /* PRO TEMPLATES */
     #proTemplates {
-      margin-top: 2rem; padding: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: .75rem;
+      margin-top: 2rem; padding: 1.5rem; background: #f0fdf4;
+      border: 1px solid #bbf7d0; border-radius: .75rem;
     }
     .templateBtn {
       text-align: left;
@@ -278,27 +229,33 @@
       background: #f9fafb;
       color: #111 !important;
     }
-    
-    /* Template Paging Styles */
+    #templateContainer {
+      display: grid;
+      gap: .5rem;
+      font-size: .9rem;
+      margin-top: 1rem;
+    }
+    #templatePage2 { display: none; }
+
     #templatePaging {
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
-        margin-top: 1rem;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
     }
     #templatePaging button {
-        width: auto;
-        padding: .5rem 1.2rem;
-        background: #9ca3af;
-        font-weight: 500;
-        font-size: .9rem;
+      width: auto;
+      padding: .5rem 1.2rem;
+      background: #9ca3af;
+      font-weight: 500;
+      font-size: .9rem;
     }
     #templatePaging button.active {
-        background: var(--primary);
-        font-weight: 700;
+      background: var(--primary);
+      font-weight: 700;
     }
     #templatePaging button:hover {
-        background: var(--primary-dark);
+      background: var(--primary-dark);
     }
 
     .paywall {
@@ -313,6 +270,50 @@
     }
     .paywall button:hover { background: #15803d; }
 
+    /* EMOJI PICKER */
+    #emojiPickerBtn {
+      background: var(--warning); margin: 1rem 0; width: auto; padding: .5rem 1rem; font-size: .9rem;
+    }
+    .emoji-picker-container {
+      position: relative;
+      text-align: left;
+      display: flex;
+      justify-content: center;
+    }
+    #emojiPicker {
+      display: none;
+      position: absolute;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: .75rem;
+      padding: 1rem;
+      max-width: 300px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      z-index: 100;
+      text-align: center;
+      max-height: 350px;
+      flex-direction: column;
+      right: 0;
+      top: 100%;
+      transform: translateY(5px);
+    }
+    #emojiGrid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: .5rem;
+      font-size: 1.5rem;
+      margin: .75rem 0;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+    #emojiGrid button {
+      background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0;
+    }
+    #closePicker {
+      margin-top: .5rem; background: #6b7280; color: white; padding: .5rem 1rem;
+      border-radius: .5rem; font-size: .8rem; width: auto;
+    }
+
     .hidden { display: none; }
     .loading { text-align: center; margin: 1rem 0; color: var(--gray); font-style: italic; }
 
@@ -321,31 +322,28 @@
     }
     footer a { color: inherit; margin: 0 1rem; text-decoration: underline; }
 
-    /* PRO TEMPLATES GRID */
-    #templateContainer {
-      display: grid;
-      gap: .5rem;
-      font-size: .9rem;
-      margin-top: 1rem;
-    }
-    #templatePage2 { display: none; }
-
     @media (max-width: 480px) {
       h1 { font-size: 1.75rem; }
       .container { padding: 0 1rem; }
       #copyBtn { position: static; margin-top: 1rem; width: 100%; }
       #emojiGrid { grid-template-columns: repeat(5, 1fr); }
-      #emojiPicker { 
+      #emojiPicker {
         right: auto;
         left: 50%;
         transform: translateX(-50%) translateY(5px);
       }
+      .engagement-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: .5rem;
+      }
+      #boostBtn { align-self: flex-end; }
     }
   </style>
 </head>
 <body>
 
-  <!-- EMAIL MODAL -->
+  <!-- EMAIL GATE -->
   <div id="emailModal">
     <div class="modal-content">
       <h2>Welcome!</h2>
@@ -365,8 +363,8 @@
     </div>
 
     <div id="dailyTipBox">
-        <strong>💡 Today's Tip:</strong> 
-        <span id="dailyTipText">Loading a viral content tip...</span>
+      <strong>💡 Today's Tip:</strong>
+      <span id="dailyTipText">Loading a viral content tip...</span>
     </div>
 
     <div id="tabContainer">
@@ -402,7 +400,8 @@
           
           <button type="submit" id="generateBtn">Generate Captions</button>
         </form>
-        
+
+        <!-- Emoji Picker -->
         <div class="emoji-picker-container">
           <button type="button" id="emojiPickerBtn">Add Emojis</button>
           <div id="emojiPicker">
@@ -411,113 +410,96 @@
             <button id="closePicker">Close</button>
           </div>
         </div>
-        
+
         <div id="loading" class="loading hidden">Generating magic...</div>
 
         <div id="result" class="result hidden">
           <h3>Your AI Captions</h3>
 
-          <!-- ⭐ Engagement Score UI -->
-          <div id="engagementScoreBox">
-            Engagement Score: 
-            <span id="engagementScoreValue">--</span>/100
-            <span id="engagementScoreDelta"></span>
+          <!-- ⭐ Engagement Bar + Boost -->
+          <div id="engagementBar" class="engagement-bar hidden">
+            <span id="engagementLabel">
+              Engagement Score: <span id="engagementScore">--</span>/100
+              <span id="engagementDelta"></span>
+            </span>
+            <button type="button" id="boostBtn">Boost My Score</button>
           </div>
 
           <pre id="output"></pre>
           <button type="button" id="copyBtn">Copy All</button>
-          <button type="button" id="boostBtn">⚡ Boost My Score</button>
         </div>
 
+        <!-- PRO Templates -->
         <div id="proTemplates">
           <h3>The Viral Swipe File: Proven 6-Figure Post Structures</h3>
           <p style="margin: 1rem 0 .75rem; font-size: .95rem; color: #065f46; line-height: 1.5;">
-            <strong>Steal the exact captions used by 6-figure creators.</strong>  
-            These aren’t random — they’re <em>proven</em> to get 3x more likes, comments, and saves.  
+            <strong>Steal the exact captions used by 6-figure creators.</strong>
+            These aren’t random — they’re <em>proven</em> to get 3x more likes, comments, and saves.
             Just click, edit, generate. <strong>Instant viral edge.</strong>
           </p>
           
           <div id="templateContainer" class="hidden">
-            
             <div id="templatePage1">
               <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">
                 Just hit [X] followers! Grateful for every one of you ❤️ ✨
               </button>
-
               <button class="templateBtn" data-text="Behind the scenes of [your idea] Camera Film">
                 Behind the scenes of [your idea] 📸 🎬
               </button>
-
               <button class="templateBtn" data-text="Tag a friend who needs this! Hand Point Down">
                 Tag a friend who needs this! 👇
               </button>
-
               <button class="templateBtn" data-text="New drop alert! Link in bio Shopping Bag Fire">
                 New drop alert! Link in bio 🛍️ 🔥
               </button>
-
               <button class="templateBtn" data-text="Your daily dose of [topic] Coffee Mug Light Bulb">
                 Your daily dose of [topic] ☕ 💡
               </button>
-
               <button class="templateBtn" data-text="Reply with YES or NO: [question]? Question Mark Thinking Face">
                 Reply with YES or NO: [question]? ❓ 🤔
               </button>
-
               <button class="templateBtn" data-text="Save this for later — you’ll thank me! Bookmark Sparkles">
                 Save this for later — you’ll thank me! 🔖 ✨
               </button>
-
               <button class="templateBtn" data-text="Free [resource] in bio! Don’t miss it Gift Rocket">
                 Free [resource] in bio! Don’t miss it 🎁 🚀
               </button>
-
               <button class="templateBtn" data-text="Swipe up to see the full story! Hand Point Up Film">
                 Swipe up to see the full story! 👆 🎬
               </button>
-
               <button class="templateBtn" data-text="'Changed my [niche] game!' – @username Star Speech Bubble">
                 "Changed my [niche] game!" – @username ⭐ 💬
               </button>
             </div>
-            
+
             <div id="templatePage2">
               <button class="templateBtn" data-text="You think [Product] is too expensive? Here's the ROI breakdown. Money Bag Chart Increasing">
                 You think [Product] is too expensive? Here's the ROI breakdown. 💸 📈
               </button>
-              
               <button class="templateBtn" data-text="Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. Crying Face Check Mark">
                 Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. 😫 ✅
               </button>
-              
               <button class="templateBtn" data-text="6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. Thinking Face Light Bulb">
                 6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. 🤯 💡
               </button>
-              
               <button class="templateBtn" data-text="How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. Toolbox Target">
                 How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. 🛠️ 🎯
               </button>
-              
               <button class="templateBtn" data-text="Unpopular opinion: [Common Belief] is completely wrong. Here's why. Speech Bubble Cross Mark">
                 Unpopular opinion: [Common Belief] is completely wrong. Here's why. 🗣️ ❌
               </button>
-              
               <button class="templateBtn" data-text="Get the exact checklist I use to [Goal]! Click the link that says Link Bookmark">
                 Get the exact checklist I use to [Goal]! Click the link that says "Free Guide." 🔗 🔖
               </button>
-              
               <button class="templateBtn" data-text="Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? Smiling Face 100 Score">
                 Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? 😮 💯
               </button>
-              
               <button class="templateBtn" data-text="Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. User Rocket">
                 Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. 👤 🚀
               </button>
-              
               <button class="templateBtn" data-text="My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. Alarm Clock Flexed Biceps">
                 My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. ⏰ 💪
               </button>
-              
               <button class="templateBtn" data-text="[Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. Balance Scale Magnifying Glass">
                 [Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. ⚖️ 🧐
               </button>
@@ -527,7 +509,6 @@
               <button id="page1Btn" class="active">Page 1</button>
               <button id="page2Btn">Page 2</button>
             </div>
-
           </div>
 
           <div id="templateTeaser">
@@ -547,31 +528,30 @@
           <p>You've used your 10 free generations. <strong>Unlimited + 20 Viral Swipe File Structures</strong> for <strong>$7/month</strong>.</p>
           <button id="subscribeBtn">Subscribe Now</button>
         </div>
-        
       </div>
 
       <!-- ANALYZE TAB -->
       <div id="analyzeContent" class="tab-content hidden">
         <div id="analysisDescription" style="
-            background: #f0f9ff; 
-            border: 1px solid #bae6fd; 
-            padding: 1.2rem; 
-            border-radius: .75rem; 
-            margin-bottom: 1.5rem;
-            font-size: .95rem;
-            line-height: 1.5;
-            color: #0369a1;
+          background: #f0f9ff;
+          border: 1px solid #bae6fd;
+          padding: 1.2rem;
+          border-radius: .75rem;
+          margin-bottom: 1.5rem;
+          font-size: .95rem;
+          line-height: 1.5;
+          color: #0369a1;
         ">
           <h4 style="margin-bottom: .5rem; color: #075985; font-size: 1.1rem;">
             <strong>Reverse-Engineer Viral Success 🔬</strong>
           </h4>
-          Paste <em>any</em> competitor's post URL (Instagram, Twitter, etc.) and our AI will deconstruct their strategy. 
-          Get an instant <strong>Content Score</strong> and a detailed breakdown of their hook, CTA, and hashtag usage.
+          Paste <em>any</em> competitor's post URL (Instagram, Twitter, etc.) and our AI will <strong>deconstruct their strategy</strong>.
+          Get an instant <strong>Content Score</strong> and a breakdown of their <strong>hook</strong>, <strong>CTA</strong>, and <strong>hashtag usage</strong>.
         </div>
 
         <div id="analysisPaywall" class="paywall hidden" style="margin-top: 1rem;">
           <h3>Unlock Analysis!</h3>
-          <p>Content Scoring is an exclusive <strong>Pro</strong> feature. Unlimited Access for <strong>$7/month</strong>.</p>
+          <p>Content Scoring is an exclusive <strong>Pro</strong> feature. <strong>Unlimited Access</strong> for <strong>$7/month</strong>.</p>
           <button id="subscribeAnalyzeBtn">Upgrade to Pro</button>
         </div>
 
@@ -599,86 +579,96 @@
 
   <script>
   document.addEventListener('DOMContentLoaded', () => {
-
     const API_URL = 'https://caption-ai-ze13.onrender.com';
-    const MAX_FREE_USES = 10; 
-    
+    const MAX_FREE_USES = 10;
+
+    // STATE
     let userEmail = localStorage.getItem('userEmail');
-    let isPro = localStorage.getItem('isPro') === 'true';
+    let isPro    = localStorage.getItem('isPro') === 'true';
     let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
-    let currentTab = localStorage.getItem('lastTab') || 'generateContent'; 
-    
-    // DOM Elements
-    const modal = document.getElementById('emailModal');
-    const mainApp = document.getElementById('mainApp');
-    const emailInput = document.getElementById('emailInput');
-    const emailSubmit = document.getElementById('emailSubmit');
-    const loading = document.getElementById('loading');
-    const result = document.getElementById('result');
-    const paywall = document.getElementById('paywall');
-    const analysisPaywall = document.getElementById('analysisPaywall');
-    const analysisResult = document.getElementById('analysisResult');
-    const analyzeForm = document.getElementById('analyzeForm');
-    const generateContent = document.getElementById('generateContent');
-    const analyzeContent  = document.getElementById('analyzeContent');
-    const generateTabBtn = document.getElementById('generateTabBtn');
-    const analyzeTabBtn = document.getElementById('analyzeTabBtn');
-    const form = document.getElementById('captionForm');
-    const generateBtn = document.getElementById('generateBtn');
-    const output = document.getElementById('output');
-    const subscribeBtn = document.getElementById('subscribeBtn');
-    const copyBtn = document.getElementById('copyBtn');
-    const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
-    const emojiPickerBtn = document.getElementById('emojiPickerBtn');
-    const unlockTemplatesBtn = document.getElementById('unlockTemplatesBtn');
-    const competitorUrlInput = document.getElementById('competitorUrl');
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const analyzeAgainBtn = document.getElementById('analyzeAgainBtn'); 
-    const ideaInput = document.getElementById('idea');
-    const platformSelect = document.getElementById('platform');
-    const toneEl = document.getElementById('tone');
-    const templateContainer = document.getElementById('templateContainer');
-    const templateTeaser = document.getElementById('templateTeaser');
-    const page1 = document.getElementById('templatePage1');
-    const page2 = document.getElementById('templatePage2');
-    const page1Btn = document.getElementById('page1Btn');
-    const page2Btn = document.getElementById('page2Btn');
-    const picker = document.getElementById('emojiPicker');
-    const grid = document.getElementById('emojiGrid');
-    const closePicker = document.getElementById('closePicker');
-    const boostBtn = document.getElementById('boostBtn');
-
-    // Engagement DOM
-    const engagementBox = document.getElementById('engagementScoreBox');
-    const engagementScoreValue = document.getElementById('engagementScoreValue');
-    const engagementScoreDelta = document.getElementById('engagementScoreDelta');
-    let lastEngagementScore = null;
-
+    let currentTab = localStorage.getItem('lastTab') || 'generateContent';
     let debounceTimer;
     let isGenerating = false;
-    
+    let lastRawResult = '';
+    let lastScore = null;
+    let boostedForCurrent = false;
+
+    // DOM
+    const modal        = document.getElementById('emailModal');
+    const mainApp      = document.getElementById('mainApp');
+    const emailInput   = document.getElementById('emailInput');
+    const emailSubmit  = document.getElementById('emailSubmit');
+
+    const loading      = document.getElementById('loading');
+    const result       = document.getElementById('result');
+    const paywall      = document.getElementById('paywall');
+    const analysisPaywall = document.getElementById('analysisPaywall');
+    const analysisResult  = document.getElementById('analysisResult');
+    const analyzeForm  = document.getElementById('analyzeForm');
+
+    const generateContent = document.getElementById('generateContent');
+    const analyzeContent  = document.getElementById('analyzeContent');
+    const generateTabBtn  = document.getElementById('generateTabBtn');
+    const analyzeTabBtn   = document.getElementById('analyzeTabBtn');
+
+    const form        = document.getElementById('captionForm');
+    const generateBtn = document.getElementById('generateBtn');
+    const output      = document.getElementById('output');
+    const copyBtn     = document.getElementById('copyBtn');
+
+    const subscribeBtn        = document.getElementById('subscribeBtn');
+    const subscribeAnalyzeBtn = document.getElementById('subscribeAnalyzeBtn');
+
+    const emojiPickerBtn = document.getElementById('emojiPickerBtn');
+    const unlockTemplatesBtn = document.getElementById('unlockTemplatesBtn');
+
+    const competitorUrlInput = document.getElementById('competitorUrl');
+    const analyzeAgainBtn    = document.getElementById('analyzeAgainBtn');
+
+    const ideaInput      = document.getElementById('idea');
+    const platformSelect = document.getElementById('platform');
+    const toneEl         = document.getElementById('tone');
+
+    const templateContainer = document.getElementById('templateContainer');
+    const templateTeaser    = document.getElementById('templateTeaser');
+    const page1   = document.getElementById('templatePage1');
+    const page2   = document.getElementById('templatePage2');
+    const page1Btn = document.getElementById('page1Btn');
+    const page2Btn = document.getElementById('page2Btn');
+
+    const picker = document.getElementById('emojiPicker');
+    const grid   = document.getElementById('emojiGrid');
+    const closePicker = document.getElementById('closePicker');
+
+    const engagementBar    = document.getElementById('engagementBar');
+    const engagementScoreEl = document.getElementById('engagementScore');
+    const engagementDeltaEl = document.getElementById('engagementDelta');
+    const boostBtn         = document.getElementById('boostBtn');
+
+    // EMOJI MAP
     const emojiMap = {
-      'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🆕',
-      'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
-      'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
-      'Flexed Biceps': '💪', 'Airplane': '✈️', 'Book': '📚', 'Dog': '🐶', 'Cat': '🐱',
-      'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
-      'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
-      'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
-      'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💸', 
-      'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
-      'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
-      'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
-      'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😫', 
-      'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
-      'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
-      'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
-      'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
-      'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🛠️', 'Graduation Cap': '🎓',
-      'Bookmark': '🔖', 'Gift': '🎁', 'Hand Point Up': '👆',
-      'Link': '🔗', 'Balance Scale': '⚖️', 'Magnifying Glass': '🧐', 'User': '👤' 
+      'Camera': '📸','Heart': '❤️','Sparkles': '✨','Coffee': '☕','Shopping Bag': '🛍️',
+      'Rocket': '🚀','Fire': '🔥','Trophy': '🏆','Briefcase': '💼','Handshake': '🤝',
+      'Laptop': '💻','Sunrise': '🌅','Moon': '🌙','Pizza': '🍕','Leaf': '🍃',
+      'Flexed Biceps': '💪','Airplane': '✈️','Book': '📚','Dog': '🐶','Cat': '🐱',
+      'Birthday Cake': '🎂','Party Popper': '🎉','Star': '⭐','Film': '🎬',
+      'Musical Notes': '🎶','Dancer': '💃','Play Button': '▶️','New': '🆕','Sale': '🏷️',
+      'Check Mark': '✅','Cross Mark': '❌','Hand Point Down': '👇','Coffee Mug': '☕','Hand Wave': '👋',
+      'Light Bulb': '💡','Thinking Face': '🤔','100 Score': '💯','Money Bag': '💸',
+      'Chart Increasing': '📈','Target': '🎯','Alarm Clock': '⏰','Question Mark': '❓',
+      'Speech Bubble': '💬','Crown': '👑','Diamond': '💎','Robot': '🤖',
+      'Globe': '🌍','Mountain': '⛰️','Pin': '📌','Megaphone': '📣',
+      'Writing Hand': '✍️','Open Book': '📖','Smiling Face': '😊','Crying Face': '😫',
+      'Clapping Hands': '👏','Winking Face': '😉','Red Apple': '🍎','Grapes': '🍇',
+      'Donut': '🍩','Taco': '🌮','Beer Mug': '🍺','Martini Glass': '🍸',
+      'Car': '🚗','Bicycle': '🚲','Train': '🚆','Boat': '⛵',
+      'Fingers Crossed': '🤞','Poo': '💩','Ghost': '👻','Alien': '👽',
+      'Lock': '🔒','Key': '🔑','Toolbox': '🛠️','Graduation Cap': '🎓',
+      'Bookmark': '🔖','Gift': '🎁','Hand Point Up': '👆',
+      'Link': '🔗','Balance Scale': '⚖️','Magnifying Glass': '🧐','User': '👤'
     };
-    
+
+    // DAILY TIPS
     const dailyTips = [
       "Hook the reader in the first sentence. Your AI captions are useless if no one stops scrolling!",
       "Always include a clear Call-to-Action (CTA) at the end: Ask a question, tell them to save the post, or tag a friend.",
@@ -696,7 +686,6 @@
       "If posting on Twitter, keep your core message brief (under 140 chars) and use a thread to provide more detail.",
       "Don't just use the first caption the AI gives you. Generate a few options and combine the best hook, body, and CTA."
     ];
-
     function getTodayTip() {
       const today = new Date();
       const start = new Date(today.getFullYear(), 0, 0);
@@ -707,54 +696,7 @@
       return dailyTips[tipIndex];
     }
 
-    /* ⭐ Engagement Score Function */
-    function computeEngagementScore(text, idea, platform, tone) {
-      if (!text) return 0;
-      let score = 0;
-
-      // Hook (0–25)
-      const first140 = text.slice(0, 140);
-      let hook = 0;
-      if (first140 && /[A-Z]/.test(first140[0])) hook += 5;
-      if (/[0-9]/.test(first140)) hook += 5;
-      if (/[🔥✨💥🚀⭐💯❗]/.test(first140)) hook += 5;
-      if (idea) {
-        const firstWord = idea.split(/\s+/)[0];
-        if (firstWord && first140.toLowerCase().includes(firstWord.toLowerCase())) hook += 5;
-      }
-      if (first140.length <= 120) hook += 5;
-      score += Math.min(hook, 25);
-
-      // Readability (0–25)
-      let read = 0;
-      const lines = text.split("\n").filter(l => l.trim().length > 0);
-      if (lines.length >= 4 && lines.length <= 25) read += 10;
-      if (text.length <= 1200) read += 10;
-      if (/[.!?]\s/.test(text)) read += 5;
-      score += Math.min(read, 25);
-
-      // Hashtag quality (0–25)
-      let hash = 0;
-      const hashtags = text.match(/#[A-Za-z0-9_]+/g) || [];
-      if (hashtags.length >= 20) hash += 10;
-      const nicheTags = hashtags.filter(h => h.length > 8);
-      if (nicheTags.length >= 10) hash += 10;
-      if (platform && hashtags.some(h => h.toLowerCase().includes(platform.toLowerCase()))) hash += 5;
-      score += Math.min(hash, 25);
-
-      // Platform fit (0–25)
-      let fit = 0;
-      if (platform === "LinkedIn" && tone && tone.includes("Professional")) fit += 15;
-      if (platform === "TikTok" && tone && tone.includes("Fun")) fit += 15;
-      if (platform === "Instagram" && /🔥|✨|💫|📸/.test(text)) fit += 15;
-      if (platform === "Twitter" && text.length < 600) fit += 15;
-      if (/save this|tag a friend|comment below|link in bio/i.test(text)) fit += 10;
-      score += Math.min(fit, 25);
-
-      return Math.max(0, Math.min(score, 100));
-    }
-
-    // Backend status verification (mocked to localStorage)
+    // BACKEND PRO STATUS MOCK (kept simple)
     async function fetchAndVerifyStatus() {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('success') === 'true') {
@@ -763,7 +705,6 @@
         window.history.replaceState({}, document.title, window.location.pathname);
         alert('Welcome to Pro! Unlimited generations + 20 Viral Swipe File Structures + Content Analyzer unlocked.');
       }
-
       if (userEmail) {
         try {
           const data = { isPro: localStorage.getItem('isPro') === 'true' };
@@ -771,12 +712,13 @@
             isPro = data.isPro;
             localStorage.setItem('isPro', isPro.toString());
           }
-        } catch (error) {
-          console.error("Backend verification failed. Relying on local storage.", error);
+        } catch (e) {
+          console.error('Backend verification failed', e);
         }
       }
     }
 
+    // HELPERS
     function updateGenerateButtonState() {
       if (!generateBtn) return;
       if (isPro) {
@@ -797,10 +739,9 @@
       currentTab = tabName;
       localStorage.setItem('lastTab', tabName);
 
-      if (analysisResult) analysisResult.classList.add('hidden'); 
-      if (loading) loading.classList.add('hidden'); 
-      if (result) result.classList.add('hidden'); 
-      if (engagementBox) engagementBox.style.display = 'none';
+      if (analysisResult) analysisResult.classList.add('hidden');
+      if (loading) loading.classList.add('hidden');
+      if (result) result.classList.add('hidden');
 
       if (tabName === 'generateContent') {
         if (generateContent) generateContent.classList.remove('hidden');
@@ -868,15 +809,14 @@
         'Shopping Bag': emojiMap['Shopping Bag'],
         'Fire': emojiMap['Fire'],
         'Light Bulb': emojiMap['Light Bulb'],
-        'Film': emojiMap['Film'], 
-        'Camera': emojiMap['Camera'], 
-        'Gift snake': emojiMap['Gift'] 
+        'Film': emojiMap['Film'],
+        'Camera': emojiMap['Camera'],
+        'Gift snake': emojiMap['Gift']
       };
-
       for (const key in replacements) {
         text = text.replace(new RegExp(key, 'g'), replacements[key]);
       }
-      return text.replace(/\[\w+\]/g, (match) => match); 
+      return text.replace(/\[\w+\]/g, (match) => match);
     }
 
     function updateUIState() {
@@ -896,37 +836,126 @@
         }
         if (templateTeaser) templateTeaser.style.display = 'block';
       }
-
       updateGenerateButtonState();
       showTab(currentTab);
     }
 
+    // Platform auto-detect for analysis
+    function detectPlatform(url) {
+      url = url.toLowerCase();
+      if (url.includes('instagram.com')) return 'Instagram';
+      if (url.includes('twitter.com') || url.includes('x.com')) return 'Twitter';
+      if (url.includes('linkedin.com')) return 'LinkedIn';
+      if (url.includes('tiktok.com')) return 'TikTok';
+      return 'Instagram';
+    }
+
+    // Deterministic score for analysis tab
+    function hashString(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash |= 0;
+      }
+      return Math.abs(hash);
+    }
+    function generateDeterministicScore(url) {
+      const uniqueSeed = hashString(url.toLowerCase().trim());
+      const score = (uniqueSeed % 35) + 65;
+      const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
+      let hook, readability, hashtags, cta;
+      if (quality === 'High') {
+        hook = 'High urgency, clear value proposition. 🔥';
+        readability = 'Excellent use of line breaks (4 lines/paragraph). ✅';
+        hashtags = 'Highly relevant, 90% niche-specific. 🎯';
+        cta = 'Clear call-to-action to save and comment. 💬';
+      } else if (quality === 'Medium') {
+        hook = 'Decent hook, could be more specific and engaging. 👍';
+        readability = 'Good structure, but a few blocks are too dense. ⚠️';
+        hashtags = 'Mix of niche and broad tags (50/50). 💡';
+        cta = 'General CTA, needs more direction. ❓';
+      } else {
+        hook = 'Vague hook, lacks clear value proposition. 👎';
+        readability = 'Dense wall of text, poor line break usage. ❌';
+        hashtags = 'Too generic, mostly broad tags. 💡';
+        cta = 'No clear CTA, relying on vague engagement. ❓';
+      }
+      return { score, hook, readability, hashtags, cta };
+    }
+
+    // ⭐ Engagement Score heuristic
+    function computeEngagementScore(text, idea, platform, tone) {
+      let score = 0;
+
+      // Hook (0–25)
+      const first140 = text.slice(0, 140);
+      let hook = 0;
+      if (first140 && /[A-Z]/.test(first140[0])) hook += 5;
+      if (/[0-9]/.test(first140)) hook += 5;
+      if (/[🔥✨💥🚀⭐💯❗]/.test(first140)) hook += 5;
+      if (idea && first140.toLowerCase().includes(idea.split(' ')[0].toLowerCase())) hook += 5;
+      if (first140.length > 0 && first140.length < 100) hook += 5;
+      score += Math.min(hook, 25);
+
+      // Readability (0–25)
+      let read = 0;
+      const lines = text.split('\n');
+      if (lines.length > 3) read += 10;
+      if (text.length < 900) read += 10;
+      if (/[.!?]\s/.test(text)) read += 5;
+      score += Math.min(read, 25);
+
+      // Hashtags (0–25)
+      let hash = 0;
+      const hashtags = text.match(/#[A-Za-z0-9_]+/g) || [];
+      if (hashtags.length >= 20) hash += 10;
+      const nicheTags = hashtags.filter(h => h.length > 8);
+      if (nicheTags.length > 10) hash += 10;
+      if (platform && hashtags.some(h => h.toLowerCase().includes(platform.toLowerCase()))) hash += 5;
+      score += Math.min(hash, 25);
+
+      // Platform fit (0–25)
+      let fit = 0;
+      if (platform === 'LinkedIn' && tone.includes('Professional')) fit += 20;
+      if (platform === 'TikTok' && tone.includes('Fun')) fit += 20;
+      if (platform === 'Instagram' && /🔥|✨|💫/.test(text)) fit += 20;
+      if (platform === 'Twitter' && text.length < 600) fit += 20;
+      score += Math.min(fit, 25);
+
+      return Math.max(0, Math.min(score, 100));
+    }
+
+    // MAIN APP BOOTSTRAP
     async function bootstrapApp() {
       await fetchAndVerifyStatus();
-      
+
       const tipElement = document.getElementById('dailyTipText');
       if (tipElement) tipElement.textContent = getTodayTip();
 
+      // Tab listeners
       if (generateTabBtn) generateTabBtn.addEventListener('click', () => showTab('generateContent'));
-      if (analyzeTabBtn) analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
+      if (analyzeTabBtn)  analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
+
       if (subscribeAnalyzeBtn && subscribeBtn) {
-        subscribeAnalyzeBtn.addEventListener('click', () => subscribeBtn.click());
-      }
-
-      if (isPro) {
-        if (page1Btn) page1Btn.addEventListener('click', () => showPage(1));
-        if (page2Btn) page2Btn.addEventListener('click', () => showPage(2));
-
-        document.querySelectorAll('.templateBtn').forEach(btn => {
-          const raw = btn.getAttribute('data-text');
-          const renderedText = processTemplateText(raw);
-          btn.addEventListener('click', () => {
-            if (ideaInput) ideaInput.value = renderedText;
-            if (ideaInput) ideaInput.focus();
-            showTab('generateContent');
-          });
+        subscribeAnalyzeBtn.addEventListener('click', () => {
+          subscribeBtn.click();
         });
       }
+
+      // Templates / pagination
+      if (page1Btn) page1Btn.addEventListener('click', () => showPage(1));
+      if (page2Btn) page2Btn.addEventListener('click', () => showPage(2));
+
+      document.querySelectorAll('.templateBtn').forEach(btn => {
+        const raw = btn.getAttribute('data-text');
+        const renderedText = processTemplateText(raw);
+        btn.addEventListener('click', () => {
+          if (ideaInput) ideaInput.value = renderedText;
+          if (ideaInput) ideaInput.focus();
+          showTab('generateContent');
+        });
+      });
 
       if (unlockTemplatesBtn && paywall) {
         unlockTemplatesBtn.addEventListener('click', () => {
@@ -935,6 +964,7 @@
         });
       }
 
+      // Stripe subscribe
       if (subscribeBtn) {
         subscribeBtn.addEventListener('click', async () => {
           try {
@@ -951,9 +981,9 @@
         });
       }
 
+      // Emoji picker
       const commonEmojis = Object.keys(emojiMap).filter(k => !['Coffee Mug', 'Hand Wave'].includes(k));
       if (grid) grid.innerHTML = '';
-
       if (grid && ideaInput) {
         commonEmojis.forEach(name => {
           const btn = document.createElement('button');
@@ -966,26 +996,23 @@
           grid.appendChild(btn);
         });
       }
-
       if (emojiPickerBtn && picker) {
         emojiPickerBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
         });
       }
-
       if (closePicker && picker) {
         closePicker.addEventListener('click', () => picker.style.display = 'none');
       }
-
       document.addEventListener('click', (e) => {
         if (picker && emojiPickerBtn && !picker.contains(e.target) && e.target !== emojiPickerBtn) {
           picker.style.display = 'none';
         }
       });
 
-      const inputs = ['idea', 'platform', 'tone'];
-      inputs.forEach(id => {
+      // Inputs auto-generate debounce
+      ['idea', 'platform', 'tone'].forEach(id => {
         const inputElement = document.getElementById(id);
         if (inputElement) {
           inputElement.addEventListener('input', () => {
@@ -1016,17 +1043,18 @@
         });
       }
 
+      // ANALYZE FORM
       if (analyzeForm && competitorUrlInput) {
         analyzeForm.addEventListener('submit', (e) => {
           e.preventDefault();
           if (!isPro) return;
-          
+
           if (loading) loading.classList.remove('hidden');
           if (analysisResult) analysisResult.classList.add('hidden');
-          
+
           const url = competitorUrlInput.value.trim();
-          const platform = detectPlatform(url); 
-          
+          const platform = detectPlatform(url);
+
           setTimeout(() => {
             if (loading) loading.classList.add('hidden');
             const analysisData = generateDeterministicScore(url);
@@ -1043,77 +1071,87 @@
               `;
             }
             if (analysisResult) analysisResult.classList.remove('hidden');
-          }, 1500); 
+          }, 1500);
         });
       }
-      
+
       if (analyzeAgainBtn && competitorUrlInput && analysisResult) {
         analyzeAgainBtn.addEventListener('click', () => {
           competitorUrlInput.value = '';
           analysisResult.classList.add('hidden');
           competitorUrlInput.focus();
           const analysisDetails = document.getElementById('analysisDetails');
-          if (analysisDetails) analysisDetails.innerHTML = ''; 
+          if (analysisDetails) analysisDetails.innerHTML = '';
         });
       }
 
+      // BOOST BUTTON
       if (boostBtn) {
-        boostBtn.addEventListener('click', () => {
-          boostCaptions();
+        boostBtn.addEventListener('click', async () => {
+          if (boostedForCurrent || !lastRawResult || !ideaInput || !platformSelect || !toneEl) return;
+
+          boostedForCurrent = true;
+          boostBtn.disabled = true;
+          const originalLabel = 'Boost My Score';
+          boostBtn.textContent = 'Boosting...';
+
+          const idea = ideaInput.value.trim();
+          const platform = platformSelect.value;
+          const tone = toneEl.value;
+
+          try {
+            const res = await fetch(`${API_URL}/optimize`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                originalText: lastRawResult,
+                idea,
+                platform,
+                tone,
+                targetScore: lastScore ? Math.min(100, lastScore + 20) : 80
+              })
+            });
+            const data = await res.json();
+            const newText = data.optimized || data.result || lastRawResult;
+
+            if (output) output.textContent = newText;
+            lastRawResult = newText;
+
+            let newScore = computeEngagementScore(newText, idea, platform, tone);
+            if (lastScore != null) {
+              const minBoost = Math.min(100, lastScore + 5);
+              if (newScore < minBoost) newScore = minBoost;
+            }
+            const delta = lastScore != null ? newScore - lastScore : 0;
+            lastScore = newScore;
+
+            if (engagementBar && engagementScoreEl && engagementDeltaEl) {
+              engagementBar.classList.remove('hidden');
+              engagementScoreEl.textContent = newScore;
+              engagementDeltaEl.textContent = delta === 0 ? '(no change)' :
+                `(${delta > 0 ? '+' : ''}${delta})`;
+              engagementDeltaEl.className = '';
+              if (delta > 0) engagementDeltaEl.classList.add('positive');
+              else if (delta < 0) engagementDeltaEl.classList.add('negative');
+              else engagementDeltaEl.classList.add('neutral');
+            }
+
+            boostBtn.textContent = 'Boost Applied';
+          } catch (err) {
+            console.error('Boost failed', err);
+            boostedForCurrent = false;
+            boostBtn.disabled = false;
+            boostBtn.textContent = originalLabel;
+          }
         });
       }
 
       updateUIState();
     }
 
-    function detectPlatform(url) {
-      url = url.toLowerCase();
-      if (url.includes('instagram.com')) return 'Instagram';
-      if (url.includes('twitter.com') || url.includes('x.com')) return 'Twitter';
-      if (url.includes('linkedin.com')) return 'LinkedIn';
-      if (url.includes('tiktok.com')) return 'TikTok';
-      return 'Instagram';
-    }
-    
-    function hashString(str) {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash |= 0;
-      }
-      return Math.abs(hash);
-    }
-    
-    function generateDeterministicScore(url) {
-      const uniqueSeed = hashString(url.toLowerCase().trim());
-      const score = (uniqueSeed % 35) + 65;
-      const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
-      
-      let hook, readability, hashtags, cta;
-
-      if (quality === 'High') {
-        hook = 'High urgency, clear value proposition. 🔥';
-        readability = 'Excellent use of line breaks (4 lines/paragraph). ✅';
-        hashtags = 'Highly relevant, 90% niche-specific. 🎯';
-        cta = 'Clear call-to-action to save and comment. 💬';
-      } else if (quality === 'Medium') {
-        hook = 'Decent hook, could be more specific and engaging. 👍';
-        readability = 'Good structure, but a few blocks are too dense. ⚠️';
-        hashtags = 'Mix of niche and broad tags (50/50). 💡';
-        cta = 'General CTA, needs more direction. ❓';
-      } else {
-        hook = 'Vague hook, lacks clear value proposition.👎';
-        readability = 'Dense wall of text, poor line break usage.❌';
-        hashtags = 'Too generic, mostly broad tags. 💡';
-        cta = 'No clear CTA, relying on vague engagement. ❓';
-      }
-
-      return { score, hook, readability, hashtags, cta };
-    }
-
+    // GENERATION LOGIC
     async function tryGenerate(forceFull = false) {
-      if (isGenerating || !userEmail || !ideaInput || !platformSelect || !form || !toneEl) return; 
+      if (isGenerating || !userEmail || !ideaInput || !platformSelect || !form || !toneEl) return;
 
       const idea = ideaInput.value.trim();
       const platform = platformSelect.value;
@@ -1122,21 +1160,18 @@
       if (!idea || !platform || !tone) {
         if (result) result.classList.add('hidden');
         if (paywall) paywall.classList.add('hidden');
-        if (engagementBox) engagementBox.style.display = 'none';
         return;
       }
 
       if (!isPro && freeUses >= MAX_FREE_USES) {
         if (paywall) paywall.classList.remove('hidden');
         if (result) result.classList.add('hidden');
-        if (engagementBox) engagementBox.style.display = 'none';
         return;
       }
 
       isGenerating = true;
       if (loading) loading.classList.remove('hidden');
       if (result) result.classList.add('hidden');
-      if (engagementBox) engagementBox.style.display = 'none';
       if (paywall) paywall.classList.add('hidden');
       if (generateBtn) {
         generateBtn.disabled = true;
@@ -1149,64 +1184,61 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idea, platform, tone, email: userEmail })
         });
-
         const data = await res.json();
 
         if (res.status === 402 || (!isPro && freeUses >= MAX_FREE_USES)) {
           if (paywall) paywall.classList.remove('hidden');
           if (result) result.classList.add('hidden');
-          if (engagementBox) engagementBox.style.display = 'none';
         } else if (res.ok) {
+          lastRawResult = data.result;
           if (output) output.textContent = data.result;
           if (result) result.classList.remove('hidden');
           if (paywall) paywall.classList.add('hidden');
-          if (copyBtn) {
-            copyBtn.classList.remove('copied');
-            copyBtn.textContent = 'Copy All';
-          }
-
-          const newScore = computeEngagementScore(data.result, idea, platform, tone);
-          if (engagementScoreValue && engagementBox) {
-            engagementScoreValue.textContent = newScore;
-            engagementBox.style.display = 'block';
-
-            // Reset delta on fresh generation
-            engagementScoreDelta.textContent = '';
-            engagementScoreDelta.style.color = '';
-          }
-          lastEngagementScore = newScore;
 
           if (!isPro) {
             freeUses++;
             localStorage.setItem('freeUses', freeUses.toString());
-            updateGenerateButtonState();
+          }
+
+          // Engagement score for fresh generation
+          const score = computeEngagementScore(data.result, idea, platform, tone);
+          lastScore = score;
+          boostedForCurrent = false;
+
+          if (engagementBar && engagementScoreEl && engagementDeltaEl) {
+            engagementBar.classList.remove('hidden');
+            engagementScoreEl.textContent = score;
+            engagementDeltaEl.textContent = '';
+            engagementDeltaEl.className = '';
+          }
+          if (boostBtn) {
+            boostBtn.disabled = false;
+            boostBtn.textContent = 'Boost My Score';
           }
         }
       } catch (err) {
-        console.error(err);
+        console.error('Generate failed', err);
         if (forceFull) {
           const fallback = `## Captions
-1. "Just launched my coffee shop! ☕✨"
-2. "Fresh brews, cozy vibes ☕❤️"
+1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"
+2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"
 3. "Your new favorite morning spot!"
-4. "Handcrafted with love 🍃"
-5. "Come say hi! 👋"
+4. "Handcrafted with love ${emojiMap['Leaf']}"
+5. "Come say hi! ${emojiMap['Hand Wave']}"
 
 ## Hashtags
 #CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
           if (output) output.textContent = fallback;
           if (result) result.classList.remove('hidden');
-          const newScore = computeEngagementScore(fallback, idea, platform, tone);
-          if (engagementScoreValue && engagementBox) {
-            engagementScoreValue.textContent = newScore;
-            engagementBox.style.display = 'block';
-          }
-          lastEngagementScore = newScore;
 
-          if (!isPro) {
-            freeUses++;
-            localStorage.setItem('freeUses', freeUses.toString());
-            updateGenerateButtonState();
+          const score = computeEngagementScore(fallback, idea, platform, tone);
+          lastScore = score;
+          boostedForCurrent = false;
+          if (engagementBar && engagementScoreEl && engagementDeltaEl) {
+            engagementBar.classList.remove('hidden');
+            engagementScoreEl.textContent = score;
+            engagementDeltaEl.textContent = '';
+            engagementDeltaEl.className = '';
           }
         }
       } finally {
@@ -1216,96 +1248,11 @@
           generateBtn.textContent = 'Generate Captions';
         }
         isGenerating = false;
+        updateGenerateButtonState();
       }
     }
 
-    async function boostCaptions() {
-      if (!output || !output.textContent.trim()) return;
-      if (!ideaInput || !platformSelect || !toneEl) return;
-      const idea = ideaInput.value.trim();
-      const platform = platformSelect.value;
-      const tone = toneEl.value;
-
-      if (!idea || !platform || !tone) return;
-
-      if (!isPro && freeUses >= MAX_FREE_USES) {
-        if (paywall) paywall.classList.remove('hidden');
-        return;
-      }
-
-      if (boostBtn) {
-        boostBtn.disabled = true;
-        boostBtn.textContent = 'Boosting...';
-      }
-      if (loading) loading.classList.remove('hidden');
-
-      try {
-        const res = await fetch(`${API_URL}/boost`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            idea,
-            platform,
-            tone,
-            email: userEmail,
-            captions: output.textContent
-          })
-        });
-
-        const data = await res.json();
-
-        if (res.status === 402) {
-          if (paywall) paywall.classList.remove('hidden');
-          return;
-        }
-
-        if (res.ok && data.result) {
-          output.textContent = data.result;
-          if (result) result.classList.remove('hidden');
-
-          const newScore = computeEngagementScore(data.result, idea, platform, tone);
-          if (engagementScoreValue && engagementBox) {
-            engagementScoreValue.textContent = newScore;
-            engagementBox.style.display = 'block';
-
-            if (typeof lastEngagementScore === 'number') {
-              const delta = newScore - lastEngagementScore;
-              if (delta > 0) {
-                engagementScoreDelta.textContent = `(+${delta})`;
-                engagementScoreDelta.style.color = '#16a34a';
-              } else if (delta < 0) {
-                engagementScoreDelta.textContent = `(${delta})`;
-                engagementScoreDelta.style.color = '#dc2626';
-              } else {
-                engagementScoreDelta.textContent = '(no change)';
-                engagementScoreDelta.style.color = '#6b7280';
-              }
-            } else {
-              engagementScoreDelta.textContent = '';
-              engagementScoreDelta.style.color = '';
-            }
-          }
-          lastEngagementScore = newScore;
-
-          if (!isPro) {
-            freeUses++;
-            localStorage.setItem('freeUses', freeUses.toString());
-            updateGenerateButtonState();
-          }
-        }
-      } catch (err) {
-        console.error('Boost failed', err);
-        alert('Boost failed. Please try again.');
-      } finally {
-        if (loading) loading.classList.add('hidden');
-        if (boostBtn) {
-          boostBtn.disabled = false;
-          boostBtn.textContent = '⚡ Boost My Score';
-        }
-      }
-    }
-
-    // Startup: email gate
+    // EMAIL GATE STARTUP
     if (!userEmail) {
       emailSubmit.addEventListener('click', () => {
         const email = emailInput.value.trim();
@@ -1328,7 +1275,6 @@
       if (mainApp) mainApp.style.display = 'block';
       bootstrapApp();
     }
-
   });
   </script>
 </body>
