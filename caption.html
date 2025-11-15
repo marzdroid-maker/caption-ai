@@ -825,13 +825,19 @@
 
     // === UI BOOTSTRAP FUNCTION (Runs after state is verified and listeners are ready) ===
     function updateUIState() {
-        // 1. Templates 
+        // 1. Templates (FIX for showing templates to non-Pro users)
         if (isPro) {
-            if (templateContainer) templateContainer.classList.remove('hidden');
+            if (templateContainer) {
+                templateContainer.classList.remove('hidden');
+                templateContainer.style.display = 'grid'; // Explicitly set display for PRO
+            }
             if (templateTeaser) templateTeaser.style.display = 'none';
             showPage(1); 
         } else {
-            if (templateContainer) templateContainer.classList.add('hidden');
+            if (templateContainer) {
+                templateContainer.classList.add('hidden');
+                templateContainer.style.display = 'none'; // Explicitly set display for non-PRO
+            }
             if (templateTeaser) templateTeaser.style.display = 'block';
         }
         
