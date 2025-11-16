@@ -729,6 +729,8 @@
     // --- Engagement scoring (Option C: nuanced & less predictable) ---
         // --- Engagement scoring (Option A: calmer + platform-aware) ---
     // --- Engagement scoring (Rebalanced across all platforms) ---
+    
+    // --- Engagement scoring (Rebalanced across all platforms) ---
     function computeEngagementScore(text, idea, platform, tone) {
         if (!text || typeof text !== "string") return 30;
 
@@ -745,49 +747,49 @@
 
         const lines = text.split("\n");
         const captionLines = lines.filter((l) => /^\s*\d+\./.test(l));
-        const firstCaption = (captionLines[0] || "")
-            .replace(/^\s*\d+\.\s*/, "")
-            .trim();
         const allHashtags = text.match(/#[\p{L}\p{N}_]+/gu) || [];
         const totalChars = text.length;
         const totalWords = text.split(/\s+/).filter(Boolean).length;
 
-        // Base score
+        // Start from a neutral mid-range
         let score = 45;
 
-        // Generic idea penalties
+        // Generic idea penalties (any platform)
         if (isGenericIdea) score -= 18;
 
         // Word count effects
-        if (totalWords < 15) score -= 12;
-        if (totalWords > 200) score += 4;
+        if (totalWords < 30) score -= 10;        // too light
+        if (totalWords < 15) score -= 8;         // really thin
+        if (totalWords > 200) score += 4;        // longer, more substance
 
-        // Structure
-        if (captionLines.length >= 3) score += 6;
+        // Structure (multiple numbered captions)
+        if (captionLines.length >= 5) score += 8;
+        else if (captionLines.length >= 3) score += 5;
         else if (captionLines.length >= 1) score += 2;
 
-        // Hashtags
-        if (allHashtags.length >= 8 && allHashtags.length <= 25) score += 6;
+        // Hashtags band
+        if (allHashtags.length >= 12 && allHashtags.length <= 30) score += 8;
+        else if (allHashtags.length >= 6 && allHashtags.length < 12) score += 4;
 
         // Platform-specific adjustments
         if (platformKey === "twitter") {
-            score -= 6;                   // overall lower
-            if (totalChars > 240) score -= 5;
+            score -= 6;                            // overall lower band
+            if (totalChars > 240) score -= 6;      // too long for a tweet
         }
         else if (platformKey === "instagram") {
-            if (allHashtags.length >= 12) score += 5;
+            if (allHashtags.length >= 15) score += 5;
             if (totalChars < 150) score -= 5;
         }
         else if (platformKey === "tiktok") {
-            if (/[🔥✨💥🚀]/.test(text)) score += 5;
-            if (totalWords < 20) score -= 8;
+            if (/[🔥✨💥🚀]/.test(text)) score += 4;
+            if (totalWords < 25) score -= 8;
         }
         else if (platformKey === "linkedin") {
-            score -= 10;                  // bring LinkedIn baseline down
-            if (totalWords < 30) score -= 10;
+            score -= 10;                           // bring baseline down
+            if (totalWords < 40) score -= 10;      // punish short/light posts
             if (isGenericIdea) score -= 12;
-            if (tLower.includes("professional") && totalWords >= 40)
-                score += 4;
+            if (tLower.includes("professional") && totalWords >= 60)
+                score += 4;                        // reward real professional depth
         }
 
         // Clamp
@@ -795,8 +797,8 @@
         if (score > 90) score = 90;
 
         return Math.round(score);
-    }(score);
     }
+
 
     function updateEngagementUI(score, boosted = false) {
       if (!engagementBox || !engagementValue) return;
