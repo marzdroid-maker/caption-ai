@@ -1342,7 +1342,19 @@
       isPro = true;
       window.history.replaceState({}, document.title, window.location.pathname);
       alert('Welcome to Pro! Unlimited generations, Boost, Templates, and Analyzer unlocked.');
+    
+  // Refresh template state immediately
+  try {
+    if (typeof templateContainer !== 'undefined' && templateContainer) {
+      templateContainer.classList.remove('hidden');
+      templateContainer.style.display = 'grid';
     }
+    if (typeof templateTeaser !== 'undefined' && templateTeaser) {
+      templateTeaser.style.display = 'none';
+    }
+    if (typeof showPage !== 'undefined') showPage(1);
+  } catch(e) { console.error(e); }
+}
 
     // --- Email gate bootstrap ---
     if (!userEmail) {
