@@ -347,6 +347,77 @@
         transform: translateX(-50%) translateY(5px);
       }
     }
+  
+    /* Toast notification */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #111827;
+      color: white;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      font-size: 0.9rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 99999;
+    }
+    #toast.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    #toast.toast-success { background: #047857; }
+    #toast.toast-error { background: #b91c1c; }
+    #toast.toast-info { background: #111827; }
+
+    /* Pro badge */
+    #proBadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      border-radius: 999px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    #proBadge.hidden {
+      display: none;
+    }
+
+    /* Free usage bar */
+    #freeUsageBar {
+      margin: 0.75rem 0 1.25rem;
+      font-size: 0.85rem;
+      color: #4b5563;
+    }
+    #freeUsageBar.hidden {
+      display: none;
+    }
+    .free-usage-track {
+      width: 100%;
+      background: #e5e7eb;
+      border-radius: 999px;
+      height: 0.6rem;
+      margin-top: 0.35rem;
+      overflow: hidden;
+    }
+    .free-usage-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6, #10b981);
+      transition: width 0.25s ease;
+    }
+
   </style>
 </head>
 <body>
@@ -363,8 +434,15 @@
 
   <!-- Main app -->
   <div class="container" id="mainApp" style="display: none;">
-    <h1>AI Caption + Hashtag Generator</h1>
+    <h1>AI Caption + Hashtag Generator <span id="proBadge" class="hidden">PRO</span></h1>
     <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
+    <div id="freeUsageBar" class="hidden">
+      <div><span id="freeUsageText">10 free generations remaining.</span></div>
+      <div class="free-usage-track">
+        <div class="free-usage-fill" id="freeUsageFill"></div>
+      </div>
+    </div>
+
 
     <div class="proof">
       <strong>Stop guessing and start optimizing. The only AI Caption Generator with a built-in Engagement & Boost Score.</strong>
@@ -608,7 +686,28 @@
     let lastPlatform = '';
     let lastTone = '';
 
-    // --- Elements ---
+    
+    // --- Auto-detect Pro status from backend if email known ---
+    async function hydrateProFromServer() {
+      try {
+        if (!userEmail) return;
+        const res = await fetch(`${API_URL}/check-subscription?email=${encodeURIComponent(userEmail)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.isPro) {
+          isPro = true;
+          localStorage.setItem('isPro', 'true');
+        } else if (data && data.isPro === false) {
+          isPro = false;
+          localStorage.setItem('isPro', 'false');
+        }
+        refreshProUI();
+        updateGenerateButtonState();
+      } catch (e) {
+        console.error('hydrateProFromServer error', e);
+      }
+    }
+// --- Elements ---
     const modal        = document.getElementById('emailModal');
     const mainApp      = document.getElementById('mainApp');
     const emailInput   = document.getElementById('emailInput');
@@ -658,7 +757,79 @@
 
     const tipElement = document.getElementById('dailyTipText');
 
-    // --- Emoji map (for templates & fallback) ---
+    
+    // --- Toast helper ---
+    const toastEl = document.getElementById('toast');
+    function showToast(message, type = 'info') {
+      if (!toastEl) return;
+      toastEl.textContent = message;
+      toastEl.classList.remove('toast-success', 'toast-error', 'toast-info', 'show');
+      toastEl.classList.add(`toast-${type}`);
+      // small reflow
+      void toastEl.offsetWidth;
+      toastEl.classList.add('show');
+      setTimeout(() => {
+        toastEl.classList.remove('show');
+      }, 3500);
+    }
+
+    // --- Free usage progress helper ---
+    const freeUsageBar = document.getElementById('freeUsageBar');
+    const freeUsageText = document.getElementById('freeUsageText');
+    const freeUsageFill = document.getElementById('freeUsageFill');
+
+    function updateFreeUsageBar() {
+      if (!freeUsageBar || !freeUsageFill || !freeUsageText) return;
+      if (isPro) {
+        freeUsageBar.classList.add('hidden');
+        return;
+      }
+      const used = Math.min(freeUses, MAX_FREE_USES);
+      const remaining = Math.max(MAX_FREE_USES - used, 0);
+      const pct = (used / MAX_FREE_USES) * 100;
+      freeUsageBar.classList.remove('hidden');
+      freeUsageFill.style.width = `${pct}%`;
+      freeUsageText.textContent = `${remaining} free generation${remaining === 1 ? '' : 's'} remaining.`;
+    }
+
+    // --- Central Pro UI refresh ---
+    const proBadge = document.getElementById('proBadge');
+
+    function refreshProUI() {
+      try {
+        // Pro badge
+        if (proBadge) {
+          if (isPro) proBadge.classList.remove('hidden');
+          else proBadge.classList.add('hidden');
+        }
+
+        // Free usage bar
+        updateFreeUsageBar();
+
+        // Templates visibility
+        if (templateContainer && templateTeaser) {
+          if (isPro) {
+            templateContainer.classList.remove('hidden');
+            templateContainer.style.display = 'grid';
+            templateTeaser.style.display = 'none';
+          } else {
+            templateContainer.classList.add('hidden');
+            templateContainer.style.display = 'none';
+            templateTeaser.style.display = 'block';
+          }
+        }
+
+        // Analyze paywall
+        if (analysisPaywall && analyzeContent) {
+          if (isPro) {
+            analysisPaywall.classList.add('hidden');
+          }
+        }
+      } catch (e) {
+        console.error('refreshProUI error', e);
+      }
+    }
+// --- Emoji map (for templates & fallback) ---
     const emojiMap = {
       'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
       'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
@@ -812,17 +983,26 @@
       }
     }
 
-    function updateGenerateButtonState() {
+        function updateGenerateButtonState() {
       if (!generateBtn) return;
       if (isPro) {
         generateBtn.disabled = false;
         if (paywallEl) paywallEl.classList.add('hidden');
+        updateFreeUsageBar();
         return;
       }
       if (freeUses >= MAX_FREE_USES) {
         generateBtn.disabled = true;
         if (currentTab === 'generateContent' && paywallEl) {
           paywallEl.classList.remove('hidden');
+        }
+      } else {
+        generateBtn.disabled = false;
+        if (paywallEl) paywallEl.classList.add('hidden');
+      }
+      updateFreeUsageBar();
+    }
+       paywallEl.classList.remove('hidden');
         }
       } else {
         generateBtn.disabled = false;
@@ -1021,6 +1201,7 @@
           if (!isPro) {
             freeUses++;
             localStorage.setItem('freeUses', String(freeUses));
+            updateFreeUsageBar();
           }
         }
       } catch (err) {
@@ -1046,6 +1227,7 @@
           if (!isPro) {
             freeUses++;
             localStorage.setItem('freeUses', String(freeUses));
+            updateFreeUsageBar();
           }
         }
       } finally {
@@ -1135,6 +1317,7 @@
             if (!isPro) {
                 freeUses++;
                 localStorage.setItem("freeUses", String(freeUses));
+                updateFreeUsageBar();
             }
         } catch (err) {
             console.error("Boost error:", err);
@@ -1366,6 +1549,7 @@
           modal.style.display = 'none';
           mainApp.style.display = 'block';
           userEmail = email;
+          hydrateProFromServer();
           updateGenerateButtonState();
           showTab(currentTab);
         } else {
@@ -1376,13 +1560,17 @@
     } else {
       modal.style.display = 'none';
       mainApp.style.display = 'block';
+      hydrateProFromServer();
     }
 
     // Initial UI sync
+    refreshProUI();
     updateGenerateButtonState();
     showTab(currentTab);
   });
   
 </script>
+
+<div id="toast" class="toast hidden"></div>
 </body>
 </html>
