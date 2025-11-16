@@ -418,7 +418,21 @@
       transition: width 0.25s ease;
     }
 
-  </style>
+  
+.change-email-btn {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  text-decoration: underline;
+}
+.change-email-btn:hover {
+  color: #374151;
+}
+
+</style>
 </head>
 <body>
 
@@ -427,8 +441,29 @@
     <div class="modal-content">
       <h2>Welcome!</h2>
       <p>Enter your email to get <strong>10 free generations</strong>.</p>
+<button id="changeEmailBtn" class="change-email-btn">Not you? Change email</button>
+
       <input type="email" id="emailInput" placeholder="you@example.com" required />
       <button id="emailSubmit">Start Generating</button>
+
+if (changeEmailBtn) {
+  changeEmailBtn.addEventListener('click', () => {
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('isPro');
+    localStorage.removeItem('freeUses');
+    userEmail = null;
+    isPro = false;
+    freeUses = 0;
+    refreshProUI();
+    updateGenerateButtonState();
+    modal.style.display = 'block';
+    mainApp.style.display = 'none';
+    if (emailInput) {
+      emailInput.value = '';
+      emailInput.focus();
+    }
+  });
+}
     </div>
   </div>
 
@@ -718,6 +753,7 @@
     const toneSel      = document.getElementById('tone');
 
     const generateBtn  = document.getElementById('generateBtn');
+const changeEmailBtn = document.getElementById('changeEmailBtn');
     const resultBox    = document.getElementById('result');
     const outputEl     = document.getElementById('output');
     const loadingEl    = document.getElementById('loading');
