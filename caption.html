@@ -728,18 +728,21 @@
 
     // --- Engagement scoring (Option C: nuanced & less predictable) ---
         // --- Engagement scoring (Option A: calmer + platform-aware) ---
+    // --- Engagement scoring (Rebalanced across all platforms) ---
     function computeEngagementScore(text, idea, platform, tone) {
-        if (!text || typeof text !== "string") return 40;
-        const ideaStr = (idea || "").trim();
-        const ideaLength = ideaStr.length;
+        if (!text || typeof text !== "string") return 30;
+
         const platformKey = (platform || "").toLowerCase();
         const tLower = (tone || "").toLowerCase();
+        const ideaStr = (idea || "").trim();
+
         const isGenericIdea =
-            ideaLength > 0 &&
-            ideaLength <= 40 &&
+            ideaStr.length > 0 &&
+            ideaStr.length <= 40 &&
             !/[?!]/.test(ideaStr) &&
             !/[#@]/.test(ideaStr) &&
             !/[🔥✨💥🚀⭐💯😱😍🤯]/.test(ideaStr);
+
         const lines = text.split("\n");
         const captionLines = lines.filter((l) => /^\s*\d+\./.test(l));
         const firstCaption = (captionLines[0] || "")
@@ -748,122 +751,51 @@
         const allHashtags = text.match(/#[\p{L}\p{N}_]+/gu) || [];
         const totalChars = text.length;
         const totalWords = text.split(/\s+/).filter(Boolean).length;
-        const firstLen = firstCaption.length;
-        const hasHookyPhrases = /can.?t believe|what just happened|you won.?t believe|breaking|thread|story time|here.?s why|no one talks about/i.test(firstCaption);
-        const hasQ = firstCaption.includes("?");
-        const hasEmojis = /[🔥✨💥🚀⭐💯😱😍🤯]/.test(firstCaption);
-        const hasStrongVerb = /\b(stop|start|build|grow|learn|double|triple|save|fix|steal)\b/i.test(firstCaption);
-        let baseScore = 55;
-        if (firstLen < 40 && !hasHookyPhrases && !hasQ && !hasEmojis && !hasStrongVerb) {
-            baseScore = 30;
-        } else if (firstLen < 80 && (hasHookyPhrases || hasQ || hasEmojis || hasStrongVerb)) {
-            baseScore = 50;
-        }
-        let hookScore = 0;
-        const first140 = text.slice(0, 140);
-        if (/^["“'#]/.test(first140.trim())) hookScore += 4;
-        if (/[?!]/.test(first140)) hookScore += 4;
-        if (/[0-9]/.test(first140)) hookScore += 3;
-        if (hasEmojis) hookScore += 3;
-        const ideaWord = (idea || "").split(/\s+/)[0] || "";
-        if (ideaWord && first140.toLowerCase().includes(ideaWord.toLowerCase())) {
-            hookScore += 3;
-        }
-        hookScore = Math.min(hookScore, 15);
-        let structScore = 0;
-        const captionCount = captionLines.length;
-        const lineBreaks = lines.length;
-        if (captionCount >= 5) structScore += 5;
-        else if (captionCount >= 3) structScore += 3;
-        if (lineBreaks >= 8 && lineBreaks <= 30) structScore += 5;
-        if (totalChars >= 500 && totalChars <= 1400) structScore += 3;
-        if (/[.!?]\s+[A-Z]/.test(text)) structScore += 2;
-        structScore = Math.min(structScore, 15);
-        let hashScore = 0;
-        const tagCount = allHashtags.length;
-        if (tagCount >= 15 && tagCount <= 35) hashScore += 6;
-        else if (tagCount >= 8) hashScore += 3;
-        const nicheTags = allHashtags.filter((h) => h.length >= 10).length;
-        if (nicheTags >= 8) hashScore += 5;
-        else if (nicheTags >= 4) hashScore += 2;
-        const platformTagMatch = allHashtags.some((h) =>
-            h.toLowerCase().includes(platformKey)
-        );
-        if (platformTagMatch) hashScore += 2;
-        hashScore = Math.min(hashScore, 15);
-        let ctaScore = 0;
-        if (/save this|bookmark this|save for later/i.test(text)) ctaScore += 5;
-        if (/tag a friend|tag someone/i.test(text)) ctaScore += 4;
-        if (/comment|reply/i.test(text)) ctaScore += 3;
-        if (/link in bio|check the link|click the link/i.test(text)) ctaScore += 2;
-        if (/share this|send this/i.test(text)) ctaScore += 2;
-        ctaScore = Math.min(ctaScore, 15);
-        let fitScore = 0;
-        if (platformKey === "linkedin") {
-            if (tLower.includes("professional")) fitScore += 5;
-            if (!/😫|💩|👻/.test(text)) fitScore += 3;
-        } else if (platformKey === "tiktok") {
-            if (tLower.includes("fun") || tLower.includes("playful")) fitScore += 5;
-            if (hasEmojis) fitScore += 3;
-        } else if (platformKey === "instagram") {
-            if (hasEmojis) fitScore += 3;
-            if (tagCount >= 12) fitScore += 4;
-        } else if (platformKey === "twitter") {
-            if (totalChars <= 280) fitScore += 4;
-            if (tLower.includes("bold") || tLower.includes("confident")) fitScore += 3;
-        }
-        fitScore = Math.min(fitScore, 10);
-        let varietyPenalty = 0;
-        if (captionLines.length > 0) {
-            const capsNormalized = captionLines.map((c) =>
-                c.toLowerCase().replace(/\W+/g, " ").trim()
-            );
-            const uniqueSet = new Set(capsNormalized);
-            if (uniqueSet.size <= Math.max(1, Math.floor(captionLines.length / 2))) {
-                varietyPenalty = 5;
-            }
-        }
-        let lengthPenalty = 0;
-        if (totalChars < 300) lengthPenalty += 8;
-        if (totalChars > 1800) lengthPenalty += 6;
-        let score =
-            baseScore +
-            hookScore +
-            structScore +
-            hashScore +
-            ctaScore +
-            fitScore -
-            varietyPenalty -
-            lengthPenalty;
-        if (isGenericIdea) {
-            if (platformKey === "twitter") score -= 18;
-            else score -= 12;
-        }
-        let scale = 1;
-        let bias = 0;
+
+        // Base score
+        let score = 45;
+
+        // Generic idea penalties
+        if (isGenericIdea) score -= 18;
+
+        // Word count effects
+        if (totalWords < 15) score -= 12;
+        if (totalWords > 200) score += 4;
+
+        // Structure
+        if (captionLines.length >= 3) score += 6;
+        else if (captionLines.length >= 1) score += 2;
+
+        // Hashtags
+        if (allHashtags.length >= 8 && allHashtags.length <= 25) score += 6;
+
+        // Platform-specific adjustments
         if (platformKey === "twitter") {
-            scale = 0.85;
-            bias = -5;
-            if (isGenericIdea && tLower.includes("professional")) {
-                score = Math.min(score, 42);
-            }
-        } else if (platformKey === "instagram") {
-            scale = 0.95;
-        } else if (platformKey === "tiktok") {
-            scale = 1.05;
-        } else if (platformKey === "linkedin") {
-            scale = 0.9;
-            bias = -3;
+            score -= 6;                   // overall lower
+            if (totalChars > 240) score -= 5;
         }
-        score = score * scale + bias;
-        const seedInput =
-            (text.slice(0, 200) || "") + "|" + idea + "|" + platform + "|" + tone;
-        const seed = hashString(seedInput || "seed");
-        const jitter = seededRandom(seed, -3, 3);
-        score += jitter;
+        else if (platformKey === "instagram") {
+            if (allHashtags.length >= 12) score += 5;
+            if (totalChars < 150) score -= 5;
+        }
+        else if (platformKey === "tiktok") {
+            if (/[🔥✨💥🚀]/.test(text)) score += 5;
+            if (totalWords < 20) score -= 8;
+        }
+        else if (platformKey === "linkedin") {
+            score -= 10;                  // bring LinkedIn baseline down
+            if (totalWords < 30) score -= 10;
+            if (isGenericIdea) score -= 12;
+            if (tLower.includes("professional") && totalWords >= 40)
+                score += 4;
+        }
+
+        // Clamp
         if (score < 10) score = 10;
         if (score > 90) score = 90;
+
         return Math.round(score);
+    }(score);
     }
 
     function updateEngagementUI(score, boosted = false) {
