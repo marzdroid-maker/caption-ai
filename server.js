@@ -277,6 +277,23 @@ app.get('/health', (req, res) => {
 });
 
 // Start server
+
+// Check subscription status for frontend auto-detect
+app.get('/check-subscription', async (req, res) => {
+  const email = (req.query.email || '').trim();
+  if (!email) return res.json({ isPro: false });
+  try {
+    const isSubscribed = await refreshStripeSubscriptionStatus(email);
+    const { key, record } = getUserUsage(email);
+    record.subscribed = isSubscribed;
+    usage[key] = record;
+    res.json({ isPro: isSubscribed });
+  } catch (err) {
+    console.error("Error checking subscription:", err.message);
+    res.json({ isPro: false });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Live URL: https://caption-ai-ze13.onrender.com`);
