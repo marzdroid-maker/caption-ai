@@ -1019,6 +1019,13 @@
       }
       updateFreeUsageBar();
     }
+       paywallEl.classList.remove('hidden');
+        }
+      } else {
+        generateBtn.disabled = false;
+        if (paywallEl) paywallEl.classList.add('hidden');
+      }
+    }
 
     function showTab(tabName) {
       currentTab = tabName;
@@ -1573,7 +1580,28 @@
       hydrateProFromServer();
     }
 
-    // Initial UI sync
+    
+    // --- Email validation & auto-clear ---
+    if (userEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) {
+        // invalid email, clear it
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('isPro');
+        localStorage.removeItem('freeUses');
+        userEmail = null;
+        isPro = false;
+        freeUses = 0;
+    }
+    const validEmail = userEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail);
+    if (!validEmail) {
+        modal.style.display = 'block';
+        mainApp.style.display = 'none';
+    } else {
+        modal.style.display = 'none';
+        mainApp.style.display = 'block';
+        hydrateProFromServer();
+    }
+
+// Initial UI sync
     refreshProUI();
     updateGenerateButtonState();
     showTab(currentTab);
