@@ -1550,51 +1550,54 @@
   } catch(e) { console.error(e); }
 }
 
-    // --- Email gate bootstrap ---
-    if (!userEmail) {
+    
+    // --- Email validation, auto-clear & gate bootstrap ---
+    function isValidEmail(value) {
+      if (!value) return false;
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+    }
+
+    // If stored email is invalid, clear it
+    if (userEmail && !isValidEmail(userEmail)) {
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('isPro');
+      localStorage.removeItem('freeUses');
+      userEmail = null;
+      isPro = false;
+      freeUses = 0;
+    }
+
+    // Always attach email submit handler
+    if (emailSubmit) {
       emailSubmit.addEventListener('click', () => {
         const email = (emailInput.value || '').trim();
-        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        if (isValidEmail(email)) {
           localStorage.setItem('userEmail', email);
           localStorage.setItem('freeUses', '0');
+          userEmail = email;
           modal.style.display = 'none';
           mainApp.style.display = 'block';
-          userEmail = email;
           hydrateProFromServer();
           updateGenerateButtonState();
           showTab(currentTab);
         } else {
-          emailInput.style.borderColor = '#ef4444';
-          emailInput.focus();
+          if (emailInput) {
+            emailInput.style.borderColor = '#ef4444';
+            emailInput.focus();
+          }
         }
       });
+    }
+
+    // Initial gate state on load
+    if (!userEmail) {
+      modal.style.display = 'block';
+      mainApp.style.display = 'none';
     } else {
       modal.style.display = 'none';
       mainApp.style.display = 'block';
       hydrateProFromServer();
     }
-
-    
-    // --- Email validation & auto-clear ---
-    if (userEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) {
-        // invalid email, clear it
-        localStorage.removeItem('userEmail');
-        localStorage.removeItem('isPro');
-        localStorage.removeItem('freeUses');
-        userEmail = null;
-        isPro = false;
-        freeUses = 0;
-    }
-    const validEmail = userEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail);
-    if (!validEmail) {
-        modal.style.display = 'block';
-        mainApp.style.display = 'none';
-    } else {
-        modal.style.display = 'none';
-        mainApp.style.display = 'block';
-        hydrateProFromServer();
-    }
-
 
     // Change email handler
     if (changeEmailBtn) {
