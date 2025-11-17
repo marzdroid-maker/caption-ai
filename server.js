@@ -1,171 +1,152 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const { Groq } = require('groq-sdk');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
-// === CONFIG ===
-const FREE_TIER_LIMIT_PER_EMAIL = 10;
-const FREE_TIER_LIMIT_PER_IP = 20;   // secondary protection
-const DAILY_RESET_MS = 24 * 60 * 60 * 1000;
-
-// === USAGE TRACKERS ===
-let freeUsageTracker = {};       // { email: { count, lastReset } }
-let ipUsageTracker = {};         // { ip: { count, lastReset } }
-
-// === HELPERS ===
-function shouldReset(record) {
-  if (!record) return true;
-  return Date.now() - record.lastReset > DAILY_RESET_MS;
-}
-
-function incrementUsage(tracker, key) {
-  if (!tracker[key] || shouldReset(tracker[key])) {
-    tracker[key] = { count: 1, lastReset: Date.now() };
-  } else {
-    tracker[key].count += 1;
-  }
-}
-
-function getUsage(tracker, key) {
-  if (!tracker[key] || shouldReset(tracker[key])) return 0;
-  return tracker[key].count;
-}
-
-// === MIDDLEWARE ===
+// ===== MIDDLEWARE =====
 app.use(cors());
-app.use(express.static('.'));  // Serve static files including caption.html
+app.use(express.json());
 
-// Raw body needed ONLY for Stripe webhook
-app.use((req, res, next) => {
-  if (req.originalUrl === '/webhook') {
-    next();
-  } else {
-    express.json()(req, res, next);
-  }
+// ===== SERVE FRONTEND (caption.html) =====
+// This guarantees Render ALWAYS loads your UI.
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'caption.html'));
 });
 
-// === IN-MEMORY SUBSCRIBERS ===
-let subscribers = {};   // { email: true }
+// ===== STATIC FILES =====
+// Allows linked CSS/JS/images in caption.html
+app.use(express.static(__dirname));
 
-// === STRIPE WEBHOOK HANDLER ===
-app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+// ===== FREE TIER LIMIT =====
+const FREE_TIER_LIMIT = 10;
+
+// ===== IN-MEMORY USAGE TRACKING =====
+// (Resets on each server restart — good enough for free-tier)
+const usageTracker = {}; // { email: { freeUses: number, isPro: boolean } }
+
+// ===== STRIPE CHECKOUT =====
+app.post('/create-checkout-session', async (req, res) => {
   try {
-    const event = stripe.webhooks.constructEvent(
-      req.body,
-      req.headers['stripe-signature'],
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
+    const { email } = req.body;
 
-    if (event.type === 'checkout.session.completed') {
-      const email = event.data.object.customer_details.email;
-      if (email) {
-        subscribers[email] = true;
-        console.log(`User upgraded to PRO: ${email}`);
-      }
-    }
-
-    res.sendStatus(200);
-
-  } catch (err) {
-    console.error("Webhook error:", err);
-    res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-});
-
-// === CHECK SUBSCRIPTION ===
-app.get('/check-subscription', (req, res) => {
-  const email = req.query.email;
-  const isPro = !!subscribers[email];
-  res.json({ isPro });
-});
-
-// === GENERATE ROUTE (Free tier + Pro logic) ===
-app.post('/generate', async (req, res) => {
-  try {
-    const { email, prompt } = req.body;
-    const userIP =
-      req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
-
-    const isPro = !!subscribers[email];
-
-    // If NOT PRO, enforce limits
-    if (!isPro) {
-      const emailUsage = getUsage(freeUsageTracker, email);
-      const ipUsage = getUsage(ipUsageTracker, userIP);
-
-      if (emailUsage >= FREE_TIER_LIMIT_PER_EMAIL) {
-        return res.status(429).json({
-          error:
-            "You’ve used all 10 free generations for this account. Upgrade to Pro to continue."
-        });
-      }
-
-      if (ipUsage >= FREE_TIER_LIMIT_PER_IP) {
-        return res.status(429).json({
-          error:
-            "This network has reached its daily free usage limit. Upgrade to Pro to continue."
-        });
-      }
-
-      incrementUsage(freeUsageTracker, email);
-      incrementUsage(ipUsageTracker, userIP);
-    }
-
-    // Groq API call
-    const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
-    const completion = await client.chat.completions.create({
-      messages: [{ role: "user", content: prompt }],
-      model: "llama3-8b-8192"
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'subscription',
+      customer_email: email,
+      line_items: [
+        {
+          price: process.env.STRIPE_PRICE_ID,
+          quantity: 1,
+        },
+      ],
+      success_url: `${process.env.DOMAIN}/?success=true`,
+      cancel_url: `${process.env.DOMAIN}/?canceled=true`,
     });
 
-    res.json({ output: completion.choices[0].message.content });
-
+    res.json({ url: session.url });
   } catch (err) {
-    console.error("Generate error:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error('Checkout session error:', err);
+    res.status(500).json({ error: 'Could not create checkout session' });
   }
 });
 
-// === PRO-ONLY ANALYZE ENDPOINT ===
-app.post('/analyze', (req, res) => {
+// ===== CHECK SUBSCRIPTION =====
+app.post('/check-subscription', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // If user already recorded in tracker as Pro, skip Stripe lookup
+    if (usageTracker[email]?.isPro) {
+      return res.json({ isPro: true, freeUses: 0 });
+    }
+
+    // Otherwise check Stripe
+    const customers = await stripe.customers.list({ email });
+    const customer = customers.data[0];
+
+    if (!customer) {
+      // New user: assign free tier
+      if (!usageTracker[email]) {
+        usageTracker[email] = { freeUses: 0, isPro: false };
+      }
+      return res.json({
+        isPro: false,
+        freeUses: FREE_TIER_LIMIT - usageTracker[email].freeUses,
+      });
+    }
+
+    const subs = await stripe.subscriptions.list({
+      customer: customer.id,
+      status: 'active',
+    });
+
+    if (subs.data.length > 0) {
+      // Mark as Pro in memory
+      usageTracker[email] = { freeUses: 0, isPro: true };
+      return res.json({ isPro: true, freeUses: 0 });
+    }
+
+    // Not Pro — return remaining free uses
+    if (!usageTracker[email]) {
+      usageTracker[email] = { freeUses: 0, isPro: false };
+    }
+
+    return res.json({
+      isPro: false,
+      freeUses: FREE_TIER_LIMIT - usageTracker[email].freeUses,
+    });
+  } catch (err) {
+    console.error('Subscription check error:', err);
+    res.status(500).json({ error: 'Subscription check failed' });
+  }
+});
+
+// ===== TRACK FREE USAGE =====
+app.post('/track', (req, res) => {
   const { email } = req.body;
 
-  if (!subscribers[email]) {
-    return res
-      .status(403)
-      .json({ error: "This feature is Pro only." });
+  if (!usageTracker[email]) {
+    usageTracker[email] = { freeUses: 0, isPro: false };
   }
 
-  res.json({ result: "Pro analysis successful!" });
-});
-
-// === PRO VIRAL POSTS ===
-app.get('/pro-viral-posts', (req, res) => {
-  const email = req.query.email;
-
-  if (!subscribers[email]) {
-    return res.status(403).json({ error: "Pro required" });
+  if (!usageTracker[email].isPro) {
+    usageTracker[email].freeUses += 1;
   }
 
   res.json({
-    posts: [
-      "Here are your viral posts...",
-      "More high-performing content..."
-    ]
+    freeUses: FREE_TIER_LIMIT - usageTracker[email].freeUses,
+    isPro: usageTracker[email].isPro,
   });
 });
 
-// === FRONTEND ROUTE FIX (IMPORTANT) ===
-// THIS FIXES THE "Cannot GET /" ERROR
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/caption.html');
+// ===== GENERATION ENDPOINT =====
+app.post('/generate', async (req, res) => {
+  try {
+    const { prompt } = req.body;
+
+    const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const completion = await client.chat.completions.create({
+      model: 'mixtral-8x7b-32768',
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant.' },
+        { role: 'user', content: prompt },
+      ],
+    });
+
+    const text = completion.choices[0].message.content;
+    res.json({ output: text });
+  } catch (err) {
+    console.error('Groq generate error:', err);
+    res.status(500).json({ error: 'Could not generate content' });
+  }
 });
 
-// === START SERVER ===
+// ===== START SERVER =====
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
