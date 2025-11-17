@@ -425,13 +425,13 @@
   color: #6b7280;
   font-size: 0.85rem;
   cursor: pointer;
+  margin-top: 0.5rem;
   margin-bottom: 1rem;
   text-decoration: underline;
 }
 .change-email-btn:hover {
   color: #374151;
 }
-
 </style>
 </head>
 <body>
@@ -441,35 +441,16 @@
     <div class="modal-content">
       <h2>Welcome!</h2>
       <p>Enter your email to get <strong>10 free generations</strong>.</p>
-<button id="changeEmailBtn" class="change-email-btn">Not you? Change email</button>
-
       <input type="email" id="emailInput" placeholder="you@example.com" required />
       <button id="emailSubmit">Start Generating</button>
-
-if (changeEmailBtn) {
-  changeEmailBtn.addEventListener('click', () => {
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('isPro');
-    localStorage.removeItem('freeUses');
-    userEmail = null;
-    isPro = false;
-    freeUses = 0;
-    refreshProUI();
-    updateGenerateButtonState();
-    modal.style.display = 'block';
-    mainApp.style.display = 'none';
-    if (emailInput) {
-      emailInput.value = '';
-      emailInput.focus();
-    }
-  });
-}
     </div>
   </div>
 
   <!-- Main app -->
   <div class="container" id="mainApp" style="display: none;">
     <h1>AI Caption + Hashtag Generator <span id="proBadge" class="hidden">PRO</span></h1>
+<button id="changeEmailBtn" class="change-email-btn">Not you? Change email</button>
+
     <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
     <div id="freeUsageBar" class="hidden">
       <div><span id="freeUsageText">10 free generations remaining.</span></div>
@@ -752,8 +733,8 @@ if (changeEmailBtn) {
     const platformSel  = document.getElementById('platform');
     const toneSel      = document.getElementById('tone');
 
-    const generateBtn  = document.getElementById('generateBtn');
-const changeEmailBtn = document.getElementById('changeEmailBtn');
+    const changeEmailBtn = document.getElementById('changeEmailBtn');
+  const generateBtn  = document.getElementById('generateBtn');
     const resultBox    = document.getElementById('result');
     const outputEl     = document.getElementById('output');
     const loadingEl    = document.getElementById('loading');
@@ -1038,7 +1019,13 @@ const changeEmailBtn = document.getElementById('changeEmailBtn');
       }
       updateFreeUsageBar();
     }
-
+       paywallEl.classList.remove('hidden');
+        }
+      } else {
+        generateBtn.disabled = false;
+        if (paywallEl) paywallEl.classList.add('hidden');
+      }
+    }
 
     function showTab(tabName) {
       currentTab = tabName;
@@ -1588,15 +1575,9 @@ const changeEmailBtn = document.getElementById('changeEmailBtn');
         }
       });
     } else {
-      const validEmail = userEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail);
-      if (!validEmail) {
-        modal.style.display = 'block';
-        mainApp.style.display = 'none';
-      } else {
-        modal.style.display = 'none';
-        mainApp.style.display = 'block';
-        hydrateProFromServer();
-      }
+      modal.style.display = 'none';
+      mainApp.style.display = 'block';
+      hydrateProFromServer();
     }
 
     // Initial UI sync
