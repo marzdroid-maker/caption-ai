@@ -710,7 +710,7 @@
     async function hydrateProFromServer() {
       try {
         if (!userEmail) return;
-        const res = await fetch(`${API_URL
+        const res = await fetch(`${API_URL}/check-subscription?email=${encodeURIComponent(userEmail)}`
   const loggedInEmailEl = document.getElementById('loggedInEmail');
   function updateLoggedInEmailUI(){
     if(loggedInEmailEl){
@@ -1197,7 +1197,7 @@
       }
 
       try {
-        const res = await fetch(`${API_URL}/generate`, {
+        const res = await fetch(`${API_URL}/check-subscription?email=${encodeURIComponent(userEmail)}`}/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idea, platform, tone, email: userEmail })
@@ -1281,7 +1281,7 @@
         boostBtn.textContent = "Boosting...";
     
         try {
-            const res = await fetch(`${API_URL}/optimize`, {
+            const res = await fetch(`${API_URL}/check-subscription?email=${encodeURIComponent(userEmail)}`}/optimize`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -1524,7 +1524,7 @@
     if (subscribeBtn) {
       subscribeBtn.addEventListener('click', async () => {
         try {
-          const res = await fetch(`${API_URL}/create-checkout-session`, {
+          const res = await fetch(`${API_URL}/check-subscription?email=${encodeURIComponent(userEmail)}`}/create-checkout-session`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: userEmail })
