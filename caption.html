@@ -23,7 +23,8 @@
       background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
       color: #111;
       min-height: 100vh;
-      padding: 2rem 1rem;
+      margin: 0;
+      padding: 0;
     }
     .container { max-width: 600px; margin: 0 auto; }
     h1 { font-size: 2.25rem; font-weight: 700; text-align: center; margin-bottom: .5rem; }
@@ -1592,6 +1593,30 @@
         modal.style.display = 'none';
         mainApp.style.display = 'block';
         hydrateProFromServer();
+    }
+
+
+    // Change email handler
+    if (changeEmailBtn) {
+      changeEmailBtn.addEventListener('click', () => {
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('isPro');
+        localStorage.removeItem('freeUses');
+        userEmail = null;
+        isPro = false;
+        freeUses = 0;
+        refreshProUI();
+        updateGenerateButtonState();
+        if (modal && mainApp) {
+          modal.style.display = 'block';
+          mainApp.style.display = 'none';
+        }
+        if (emailInput) {
+          emailInput.value = '';
+          emailInput.style.borderColor = '#e5e7eb';
+          emailInput.focus();
+        }
+      });
     }
 
 // Initial UI sync
