@@ -19,13 +19,13 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-      color: #111;
-      min-height: 100vh;
-      margin: 0;
-      padding: 0;
-    }
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  color: #111;
+  min-height: 100vh;
+  margin:0;
+  padding:0 !important;
+}
     .container { max-width: 600px; margin: 0 auto; }
     h1 { font-size: 2.25rem; font-weight: 700; text-align: center; margin-bottom: .5rem; }
     p.subtitle { text-align: center; color: var(--gray); margin-bottom: 1.5rem; font-size: 1.1rem; }
@@ -60,6 +60,7 @@
 
     /* Email modal */
     #emailModal {
+  display:flex !important; align-items:center !important; justify-content:center !important;
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.7); display: flex; align-items: center;
       justify-content: center; z-index: 9999;
@@ -451,6 +452,7 @@
   <div class="container" id="mainApp" style="display: none;">
     <h1>AI Caption + Hashtag Generator <span id="proBadge" class="hidden">PRO</span></h1>
 <button id="changeEmailBtn" class="change-email-btn">Not you? Change email</button>
+<div id="loggedInEmail" style="font-size:0.9rem;color:#555;margin-top:6px;"></div>
 
     <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
     <div id="freeUsageBar" class="hidden">
@@ -708,7 +710,20 @@
     async function hydrateProFromServer() {
       try {
         if (!userEmail) return;
-        const res = await fetch(`${API_URL}/check-subscription?email=${encodeURIComponent(userEmail)}`);
+        const res = await fetch(`${API_URL
+  const loggedInEmailEl = document.getElementById('loggedInEmail');
+  function updateLoggedInEmailUI(){
+    if(loggedInEmailEl){
+      if(userEmail){
+        loggedInEmailEl.textContent = "Logged in as: " + userEmail;
+        loggedInEmailEl.style.display="block";
+      } else {
+        loggedInEmailEl.style.display="none";
+      }
+    }
+  }
+  updateLoggedInEmailUI();
+}/check-subscription?email=${encodeURIComponent(userEmail)}`);
         if (!res.ok) return;
         const data = await res.json();
         if (data && data.isPro) {
