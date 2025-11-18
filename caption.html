@@ -1492,6 +1492,48 @@
     updateGenerateButtonState();
     showTab(currentTab);
   });
-  </script>
+  
+
+// === Affiliate & Checkout Overrides inserted by AI ===
+
+async function handleAffiliateClick() {
+  if (!userEmail) {
+    alert("First enter your email.");
+    return;
+  }
+  try {
+    affiliateBtn.disabled = true;
+    const res = await fetch(`${API_URL}/affiliate/onboard?email=${encodeURIComponent(userEmail)}`);
+    const data = await res.json();
+    if (data.referralCode) {
+      referralCode = data.referralCode;
+      localStorage.setItem('referralCode', referralCode);
+      alert("Your affiliate link: " + window.location.origin + "?ref=" + referralCode);
+    }
+    if (data.url) window.open(data.url, "_blank");
+  } catch(e) { console.error(e); }
+  affiliateBtn.disabled = false;
+}
+
+affiliateBtn.addEventListener('click', (e)=>{e.preventDefault(); handleAffiliateClick();});
+
+async function startStripeCheckout() {
+  if (!userEmail) { alert("Enter email first."); return; }
+  const res = await fetch(`${API_URL}/create-checkout-session`, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ email:userEmail, referralCode })
+  });
+  const data = await res.json();
+  if(data.url) window.location.href = data.url;
+}
+
+subscribeBtn.addEventListener('click', (e)=>{e.preventDefault(); startStripeCheckout();});
+subscribeAnalyzeBtn.addEventListener('click', (e)=>{e.preventDefault(); startStripeCheckout();});
+
+// === End Affiliate Overrides ===
+
+</script>
+
 </body>
 </html>
