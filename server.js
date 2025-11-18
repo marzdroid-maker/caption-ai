@@ -295,6 +295,29 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
   res.json({ received: true });
 });
 
+
+// === CHECK SUBSCRIPTION & VIP OVERRIDE ===
+app.get('/check-subscription', (req, res) => {
+  const email = (req.query.email || '').trim().toLowerCase();
+
+  if (!email) return res.json({ isPro: false });
+
+  // VIP override
+  try {
+    const raw = fs.readFileSync(path.join(__dirname, 'free-pro-users.json'),'utf8');
+    const data = JSON.parse(raw);
+    const vip = (data.emails || []).map(e=>String(e).toLowerCase().trim());
+    if (vip.includes(email)) {
+      return res.json({ isPro: true, vip: true });
+    }
+  } catch(e) {
+    console.error("VIP file error", e);
+  }
+
+  // Default: not Pro (Stripe handled in generate only)
+  return res.json({ isPro: false });
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
