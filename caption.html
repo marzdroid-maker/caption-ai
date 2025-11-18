@@ -674,6 +674,7 @@
     // --- Global state ---
     let userEmail = localStorage.getItem('userEmail');
     let isPro    = localStorage.getItem('isPro') === 'true';
+    let isVip = localStorage.getItem('isVip') === 'true';
     let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
     let currentTab = localStorage.getItem('lastTab') || 'generateContent';
 
@@ -695,12 +696,36 @@
         if (!res.ok) return;
         const data = await res.json();
         if (data && data.isPro) {
-          isPro = true;
-          localStorage.setItem('isPro', 'true');
-        } else if (data && data.isPro === false) {
-          isPro = false;
-          localStorage.setItem('isPro', 'false');
-        }
+            isPro = true;
+            localStorage.setItem('isPro', 'true');
+            if (data.vip) {
+              isVip = true;
+              localStorage.setItem('isVip','true');
+            } else {
+              isVip = false;
+              localStorage.removeItem('isVip');
+            }
+          } else if (data && data.isPro === false) {
+            isPro = false;
+            localStorage.setItem('isPro', 'false');
+            isVip = false;
+            localStorage.removeItem('isVip');
+          } else if (data && data.isPro) {
+            isPro = true;
+            localStorage.setItem('isPro', 'true');
+            if (data.vip) {
+              isVip = true;
+              localStorage.setItem('isVip','true');
+            } else {
+              isVip = false;
+              localStorage.removeItem('isVip');
+            }
+          } else if (data && data.isPro === false) {
+            isPro = false;
+            localStorage.setItem('isPro', 'false');
+            isVip = false;
+            localStorage.removeItem('isVip');
+          }
         refreshProUI();
         updateGenerateButtonState();
       } catch (e) {
@@ -799,7 +824,7 @@
       try {
         // Pro badge
         if (proBadge) {
-          if (isPro) proBadge.classList.remove('hidden');
+          if (isPro) { proBadge.classList.remove('hidden'); proBadge.innerHTML = isVip ? "PRO <span style='color: gold; font-weight: 700;'>(VIP)</span>" : "PRO"; }
           else proBadge.classList.add('hidden');
         }
 

@@ -76,42 +76,34 @@ async function refreshStripeSubscriptionStatus(email) {
   }
 }
 
+
+// === NIGHTLY STRIPE SYNC ===
+async function nightlyStripeRefresh() {
+  console.log("Running nightly Stripe subscription sync...");
+  for (const email of Object.keys(usage)) {
+    try {
+      if (isVipEmail(email)) {
+        usage[email].subscribed = true;
+        continue;
+      }
+      const isSubscribed = await refreshStripeSubscriptionStatus(email);
+      usage[email].subscribed = !!isSubscribed;
+    } catch (err) {
+      console.error("Nightly sync error for", email, err.message);
+    }
+  }
+  console.log("Nightly Stripe sync complete.");
+}
+
+// Kick off initial sync and schedule every 24 hours
+nightlyStripeRefresh();
+setInterval(nightlyStripeRefresh, 24 * 60 * 60 * 1000);
 // === ROUTES ===
 
 // Homepage
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/caption.html');
 });
-
-// Check subscription (Stripe + VIP override) for frontend
-app.get('/check-subscription', async (req, res) => {
-  try {
-    const email = (req.query.email || '').trim().toLowerCase();
-    if (!email) {
-      return res.json({ isPro: false });
-    }
-
-    // VIP override: emails in free-pro-users.json are always Pro
-    if (isVipEmail(email)) {
-      const { key, record } = getUserUsage(email);
-      record.subscribed = true;
-      usage[key] = record;
-      return res.json({ isPro: true, vip: true });
-    }
-
-    // Fallback to Stripe subscription check
-    const isSubscribed = await refreshStripeSubscriptionStatus(email);
-    const { key, record } = getUserUsage(email);
-    record.subscribed = isSubscribed;
-    usage[key] = record;
-    return res.json({ isPro: !!isSubscribed });
-
-  } catch (err) {
-    console.error('Error in /check-subscription:', err.message);
-    return res.json({ isPro: false });
-  }
-});
-
 
 // Generate captions
 app.post('/generate', async (req, res) => {
