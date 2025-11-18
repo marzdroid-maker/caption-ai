@@ -3,12 +3,12 @@ const express = require('express');
 const cors = require('cors');
 const { Groq } = require('groq-sdk');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const fs = require('fs');
-const path = require('path');
-
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Base URL for redirects (Stripe onboarding, success links)
+const APP_BASE_URL = process.env.APP_BASE_URL || 'https://caption-ai-ze13.onrender.com';
 
 // === CONFIG ===
 const FREE_TIER_LIMIT = 10; // 🔟 free generations per email
@@ -31,28 +31,28 @@ app.use((req, res, next) => {
 // === IN-MEMORY USAGE TRACKING ===
 const usage = {};
 
+// === AFFILIATE SYSTEM (30% recurring revenue share) ===
+// In-memory affiliate registry: affiliateEmail -> { referralCode, stripeAccountId, createdAt }
+const affiliates = {};
+
+// Track who referred which subscriber: subscriberEmail -> { referrerEmail, codeUsed, createdAt }
+const referrals = {};
+
+// Generate a stable referral code from email
+function generateReferralCode(email) {
+  return Buffer.from(email.toLowerCase().trim())
+    .toString('base64')
+    .replace(/=/g, '')
+    .slice(0, 12);
+}
+
+
 // === GROQ AI SETUP ===
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
 // Small helper to get or init usage record
-
-// === VIP PRO LIST (influencers, etc.) ===
-const VIP_LIST_PATH = path.join(__dirname, 'free-pro-users.json');
-
-function isVipEmail(email) {
-  if (!email) return false;
-  try {
-    const raw = fs.readFileSync(VIP_LIST_PATH, 'utf8');
-    const data = JSON.parse(raw);
-    const list = (data.emails || []).map(e => String(e).toLowerCase().trim());
-    return list.includes(String(email).toLowerCase().trim());
-  } catch (err) {
-    console.error('VIP list read error:', err.message);
-    return false;
-  }
-}
 function getUserUsage(email) {
   const key = email.toLowerCase().trim();
   if (!usage[key]) {
@@ -76,64 +76,12 @@ async function refreshStripeSubscriptionStatus(email) {
   }
 }
 
-
-// === NIGHTLY STRIPE SYNC ===
-async function nightlyStripeRefresh() {
-  console.log("Running nightly Stripe subscription sync...");
-  for (const email of Object.keys(usage)) {
-    try {
-      if (isVipEmail(email)) {
-        usage[email].subscribed = true;
-        continue;
-      }
-      const isSubscribed = await refreshStripeSubscriptionStatus(email);
-      usage[email].subscribed = !!isSubscribed;
-    } catch (err) {
-      console.error("Nightly sync error for", email, err.message);
-    }
-  }
-  console.log("Nightly Stripe sync complete.");
-}
-
-// Kick off initial sync and schedule every 24 hours
-nightlyStripeRefresh();
-setInterval(nightlyStripeRefresh, 24 * 60 * 60 * 1000);
 // === ROUTES ===
 
 // Homepage
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/caption.html');
 });
-
-// Check subscription (Stripe + VIP override) for frontend
-app.get('/check-subscription', async (req, res) => {
-  try {
-    const email = (req.query.email || '').trim().toLowerCase();
-    if (!email) {
-      return res.json({ isPro: false });
-    }
-
-    // VIP override: emails in free-pro-users.json are always Pro
-    if (isVipEmail(email)) {
-      const { key, record } = getUserUsage(email);
-      record.subscribed = true;
-      usage[key] = record;
-      return res.json({ isPro: true, vip: true });
-    }
-
-    // Stripe subscription check
-    const isSubscribed = await refreshStripeSubscriptionStatus(email);
-    const { key, record } = getUserUsage(email);
-    record.subscribed = !!isSubscribed;
-    usage[key] = record;
-
-    return res.json({ isPro: !!isSubscribed });
-  } catch (err) {
-    console.error('Error in /check-subscription:', err.message);
-    return res.json({ isPro: false });
-  }
-});
-
 
 // Generate captions
 app.post('/generate', async (req, res) => {
@@ -145,15 +93,10 @@ app.post('/generate', async (req, res) => {
 
   const { key, record } = getUserUsage(email);
 
-  // VIP override: influencers get full Pro access without Stripe
-  if (isVipEmail(email)) {
+  // Check Stripe subscription (best-effort)
+  const isSubscribed = await refreshStripeSubscriptionStatus(email);
+  if (isSubscribed) {
     record.subscribed = true;
-  } else {
-    // Check Stripe subscription (best-effort)
-    const isSubscribed = await refreshStripeSubscriptionStatus(email);
-    if (isSubscribed) {
-      record.subscribed = true;
-    }
   }
 
   // Enforce free tier
@@ -292,28 +235,138 @@ Format EXACTLY the same as before:
 });
 
 // Create checkout session
+
+// === AFFILIATE ONBOARDING & INFO ===
+
+// Any user can become an affiliate and earn 30% recurring commissions.
+app.get('/affiliate/onboard', async (req, res) => {
+  try {
+    const email = (req.query.email || '').trim().toLowerCase();
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    // Reuse existing affiliate record if present
+    let record = affiliates[email];
+
+    if (!record) {
+      // 1) Create a Stripe Connect Standard account for this user
+      const account = await stripe.accounts.create({
+        type: 'standard',
+        email
+      });
+
+      // 2) Generate a referral code for this affiliate
+      const referralCode = generateReferralCode(email);
+
+      record = affiliates[email] = {
+        stripeAccountId: account.id,
+        referralCode,
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    // 3) Create onboarding link so Stripe can collect payout details
+    const link = await stripe.accountLinks.create({
+      account: record.stripeAccountId,
+      refresh_url: `${APP_BASE_URL}/affiliate/retry`,
+      return_url: `${APP_BASE_URL}/affiliate/success?email=${encodeURIComponent(email)}`,
+      type: 'account_onboarding'
+    });
+
+    return res.json({
+      url: link.url,
+      referralCode: record.referralCode
+    });
+  } catch (err) {
+    console.error('Error in /affiliate/onboard:', err.message);
+    return res.status(500).json({ error: 'Failed to start affiliate onboarding' });
+  }
+});
+
+// Get affiliate info (for showing their referral link)
+app.get('/affiliate/info', (req, res) => {
+  const email = (req.query.email || '').trim().toLowerCase();
+  if (!email) return res.json({ isAffiliate: false });
+
+  const record = affiliates[email];
+  if (!record) return res.json({ isAffiliate: false });
+
+  res.json({
+    isAffiliate: true,
+    referralCode: record.referralCode,
+    referralLink: `${APP_BASE_URL}?ref=${record.referralCode}`
+  });
+});
+
 app.post('/create-checkout-session', async (req, res) => {
-  const { email } = req.body || {};
+  const { email, referralCode } = req.body || {};
   if (!email) return res.status(400).json({ error: 'Email required' });
 
+  const customerEmail = email.toLowerCase().trim();
+
   try {
+    // Try to resolve affiliate from referralCode
+    let affiliateRecord = null;
+    let referrerEmail = null;
+
+    if (referralCode) {
+      for (const [affEmail, rec] of Object.entries(affiliates)) {
+        if (rec.referralCode === referralCode) {
+          affiliateRecord = rec;
+          referrerEmail = affEmail;
+          break;
+        }
+      }
+    }
+
+    // Record referral mapping for analytics
+    if (affiliateRecord && referrerEmail && !referrals[customerEmail]) {
+      referrals[customerEmail] = {
+        referrerEmail,
+        codeUsed: referralCode,
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    const priceId = process.env.STRIPE_PRICE_ID;
+
+    let paymentIntentData;
+    if (affiliateRecord && affiliateRecord.stripeAccountId) {
+      try {
+        const price = await stripe.prices.retrieve(priceId);
+        const amountCents = price.unit_amount || 0;
+        const appFee = Math.round(amountCents * 0.70); // your 70%
+
+        paymentIntentData = {
+          application_fee_amount: appFee,
+          transfer_data: {
+            destination: affiliateRecord.stripeAccountId // affiliate gets the remainder (~30%)
+          }
+        };
+      } catch (err) {
+        console.error('Failed to retrieve price for affiliate split:', err.message);
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
-          price: process.env.STRIPE_PRICE_ID,
+          price: priceId,
           quantity: 1,
         },
       ],
       mode: 'subscription',
-      customer_email: email,
-      success_url: `${req.headers.origin}?success=true`,
-      cancel_url: `${req.headers.origin}?canceled=true`,
+      customer_email: customerEmail,
+      success_url: `${APP_BASE_URL}?success=true`,
+      cancel_url: `${APP_BASE_URL}?canceled=true`,
+      payment_intent_data: paymentIntentData
     });
 
     res.json({ url: session.url });
   } catch (err) {
-    console.error('Stripe Error (checkout):', err.message);
+    console.error('Error creating checkout session:', err.message);
     res.status(500).json({ error: 'Checkout failed' });
   }
 });
