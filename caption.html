@@ -588,7 +588,34 @@
     </footer>
   </div>
 
-  <script>
+  <script>    let userEmail = localStorage.getItem('userEmail');
+    let isPro    = localStorage.getItem('isPro') === 'true';
+    let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
+    let currentTab = localStorage.getItem('lastTab') || 'generateContent';
+
+    let debounceTimer;
+    let isGenerating = false;
+    let hasBoostedCurrentOutput = false;
+    let lastResultText = '';
+    let lastScore = null;
+    let lastIdea = '';
+    let lastPlatform = '';
+    let lastTone = '';
+    let referralCode = localStorage.getItem('referralCode') || null;
+      let hash = 0;
+
+      let baseScore;
+      let hookScore = 0;
+      let structScore = 0;
+      let hashScore = 0;
+      let ctaScore = 0;
+      let fitScore = 0;
+      let varietyPenalty = 0;
+      let lengthPenalty = 0;
+      let score = baseScore + hookScore + structScore + hashScore + ctaScore + fitScore;
+
+      let hook, readability, hashtags, cta;
+
   document.addEventListener('DOMContentLoaded', () => {
     // --- URL params: referral + Stripe success ---
     const urlParams = new URLSearchParams(window.location.search);
@@ -639,20 +666,19 @@
     const MAX_FREE_USES = 10;
 
     // --- Global state ---
-    let userEmail = localStorage.getItem('userEmail');
-    let isPro    = localStorage.getItem('isPro') === 'true';
-    let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
-    let currentTab = localStorage.getItem('lastTab') || 'generateContent';
 
-    let debounceTimer;
-    let isGenerating = false;
-    let hasBoostedCurrentOutput = false;
-    let lastResultText = '';
-    let lastScore = null;
-    let lastIdea = '';
-    let lastPlatform = '';
-    let lastTone = '';
-    let referralCode = localStorage.getItem('referralCode') || null;
+
+
+
+
+
+
+
+
+
+
+
+
 
     // --- Elements ---
     const modal        = document.getElementById('emailModal');
@@ -758,7 +784,7 @@
 
     // --- Utility: hash & pseudo-random (for scoring jitter) ---
     function hashString(str) {
-      let hash = 0;
+
       for (let i = 0; i < str.length; i++) {
         const chr = str.charCodeAt(i);
         hash = ((hash << 5) - hash) + chr;
@@ -795,7 +821,6 @@
       const hasEmojis = /[🔥✨💥🚀⭐💯😱😍🤯]/.test(firstCaption);
       const hasStrongVerb = /\b(stop|start|build|grow|learn|double|triple|save|fix|steal)\b/i.test(firstCaption);
 
-      let baseScore;
       if (firstLen < 40 && !hasHookyPhrases && !hasQ && !hasEmojis && !hasStrongVerb) {
         // Short + boring
         baseScore = 35;
@@ -807,7 +832,7 @@
       }
 
       // --- 2. Hook (0–20) ---
-      let hookScore = 0;
+
       const first140 = (text.slice(0, 140) || '');
 
       if (/^["“'#]/.test(first140.trim())) hookScore += 5;
@@ -819,7 +844,7 @@
       hookScore = Math.min(hookScore, 20);
 
       // --- 3. Structure & readability (0–20) ---
-      let structScore = 0;
+
       const captionCount = captionLines.length;
       if (captionCount >= 5) structScore += 6;
       else if (captionCount >= 3) structScore += 3;
@@ -834,7 +859,7 @@
       structScore = Math.min(structScore, 20);
 
       // --- 4. Hashtag depth (0–20) ---
-      let hashScore = 0;
+
       const tagCount = allHashtags.length;
       if (tagCount >= 15 && tagCount <= 35) hashScore += 8;
       else if (tagCount >= 8) hashScore += 4;
@@ -854,7 +879,7 @@
       hashScore = Math.min(hashScore, 20);
 
       // --- 5. CTA & conversion intent (0–20) ---
-      let ctaScore = 0;
+
       if (/save this|bookmark this|save for later/i.test(text)) ctaScore += 6;
       if (/tag a friend|tag someone/i.test(text)) ctaScore += 5;
       if (/comment|reply/i.test(text)) ctaScore += 3;
@@ -863,7 +888,7 @@
       ctaScore = Math.min(ctaScore, 20);
 
       // --- 6. Platform fit (0–15) ---
-      let fitScore = 0;
+
       const tLower = (tone || '').toLowerCase();
 
       if (platform === 'LinkedIn') {
@@ -882,7 +907,7 @@
       fitScore = Math.min(fitScore, 15);
 
       // --- 7. Variety / repetition penalty ---
-      let varietyPenalty = 0;
+
       if (captionLines.length > 0) {
         const capsNormalized = captionLines.map(c =>
           c.toLowerCase().replace(/\W+/g, ' ').trim()
@@ -894,12 +919,12 @@
       }
 
       // --- 8. Length sanity check ---
-      let lengthPenalty = 0;
+
       if (totalChars < 300) lengthPenalty += 8;          // too short overall
       if (totalChars > 1800) lengthPenalty += 6;         // probably too long for a caption+tags
 
       // --- Base combine ---
-      let score = baseScore + hookScore + structScore + hashScore + ctaScore + fitScore;
+
       score -= (varietyPenalty + lengthPenalty);
 
       // --- Jitter (per text, not just platform/tone) ---
@@ -1043,7 +1068,6 @@
       const score = (seed % 35) + 65; // 65–99
       const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
 
-      let hook, readability, hashtags, cta;
       if (quality === 'High') {
         hook = 'High urgency, clear value proposition. 🔥';
         readability = 'Excellent use of line breaks. ✅';
