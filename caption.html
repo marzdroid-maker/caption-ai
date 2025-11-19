@@ -590,6 +590,51 @@
 
   <script>
   document.addEventListener('DOMContentLoaded', () => {
+    // --- URL params: referral + Stripe success ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const successParam = urlParams.get('success');
+    const canceledParam = urlParams.get('canceled');
+    const refFromUrl = urlParams.get('ref');
+
+    // Persist referral code if present
+    if (refFromUrl) {
+      localStorage.setItem('referralCode', refFromUrl);
+      referralCode = refFromUrl;
+    }
+
+    // After Stripe checkout success, re-check subscription on backend
+    (async () => {
+      if (successParam === 'true' && userEmail) {
+        try {
+          const res = await fetch(`${API_URL}/check-subscription?email=${encodeURIComponent(userEmail)}`);
+          const data = await res.json();
+          if (data && data.subscribed) {
+            isPro = true;
+            localStorage.setItem('isPro', 'true');
+
+            // Unlock Pro UI
+            if (paywallEl) paywallEl.classList.add('hidden');
+            if (analysisPaywall) analysisPaywall.classList.add('hidden');
+            if (analyzeForm) analyzeForm.classList.remove('hidden');
+            if (templateContainer) {
+              templateContainer.classList.remove('hidden');
+              templateContainer.style.display = 'grid';
+            }
+            if (templateTeaser) templateTeaser.style.display = 'none';
+
+            updateGenerateButtonState();
+
+            // Optional UX signal
+            try {
+              alert("🎉 You're now a Pro subscriber! Unlimited generations unlocked.");
+            } catch (_) {}
+          }
+        } catch (err) {
+          console.error('Error checking subscription after Stripe success:', err);
+        }
+      }
+    })();
+
     const API_URL = 'https://caption-ai-ze13.onrender.com';
     const MAX_FREE_USES = 10;
 
