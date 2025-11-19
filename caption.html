@@ -347,6 +347,77 @@
         transform: translateX(-50%) translateY(5px);
       }
     }
+  
+    /* Toast notification */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #111827;
+      color: white;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      font-size: 0.9rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 99999;
+    }
+    #toast.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    #toast.toast-success { background: #047857; }
+    #toast.toast-error { background: #b91c1c; }
+    #toast.toast-info { background: #111827; }
+
+    /* Pro badge */
+    #proBadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      border-radius: 999px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    #proBadge.hidden {
+      display: none;
+    }
+
+    /* Free usage bar */
+    #freeUsageBar {
+      margin: 0.75rem 0 1.25rem;
+      font-size: 0.85rem;
+      color: #4b5563;
+    }
+    #freeUsageBar.hidden {
+      display: none;
+    }
+    .free-usage-track {
+      width: 100%;
+      background: #e5e7eb;
+      border-radius: 999px;
+      height: 0.6rem;
+      margin-top: 0.35rem;
+      overflow: hidden;
+    }
+    .free-usage-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6, #10b981);
+      transition: width 0.25s ease;
+    }
+
   </style>
 </head>
 <body>
@@ -363,8 +434,15 @@
 
   <!-- Main app -->
   <div class="container" id="mainApp" style="display: none;">
-    <h1>AI Caption + Hashtag Generator</h1>
+    <h1>AI Caption + Hashtag Generator <span id="proBadge" class="hidden">PRO</span></h1>
     <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
+    <div id="freeUsageBar" class="hidden">
+      <div><span id="freeUsageText">10 free generations remaining.</span></div>
+      <div class="free-usage-track">
+        <div class="free-usage-fill" id="freeUsageFill"></div>
+      </div>
+    </div>
+
 
     <div class="proof">
       <strong>Stop guessing and start optimizing. The only AI Caption Generator with a built-in Engagement & Boost Score.</strong>
@@ -596,6 +674,7 @@
     // --- Global state ---
     let userEmail = localStorage.getItem('userEmail');
     let isPro    = localStorage.getItem('isPro') === 'true';
+    let isVip = localStorage.getItem('isVip') === 'true';
     let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
     let currentTab = localStorage.getItem('lastTab') || 'generateContent';
 
@@ -608,7 +687,52 @@
     let lastPlatform = '';
     let lastTone = '';
 
-    // --- Elements ---
+    
+    // --- Auto-detect Pro status from backend if email known ---
+    async function hydrateProFromServer() {
+      try {
+        if (!userEmail) return;
+        const res = await fetch(`${API_URL}/check-subscription?email=${encodeURIComponent(userEmail)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.isPro) {
+            isPro = true;
+            localStorage.setItem('isPro', 'true');
+            if (data.vip) {
+              isVip = true;
+              localStorage.setItem('isVip','true');
+            } else {
+              isVip = false;
+              localStorage.removeItem('isVip');
+            }
+          } else if (data && data.isPro === false) {
+            isPro = false;
+            localStorage.setItem('isPro', 'false');
+            isVip = false;
+            localStorage.removeItem('isVip');
+          } else if (data && data.isPro) {
+            isPro = true;
+            localStorage.setItem('isPro', 'true');
+            if (data.vip) {
+              isVip = true;
+              localStorage.setItem('isVip','true');
+            } else {
+              isVip = false;
+              localStorage.removeItem('isVip');
+            }
+          } else if (data && data.isPro === false) {
+            isPro = false;
+            localStorage.setItem('isPro', 'false');
+            isVip = false;
+            localStorage.removeItem('isVip');
+          }
+        refreshProUI();
+        updateGenerateButtonState();
+      } catch (e) {
+        console.error('hydrateProFromServer error', e);
+      }
+    }
+// --- Elements ---
     const modal        = document.getElementById('emailModal');
     const mainApp      = document.getElementById('mainApp');
     const emailInput   = document.getElementById('emailInput');
@@ -658,7 +782,79 @@
 
     const tipElement = document.getElementById('dailyTipText');
 
-    // --- Emoji map (for templates & fallback) ---
+    
+    // --- Toast helper ---
+    const toastEl = document.getElementById('toast');
+    function showToast(message, type = 'info') {
+      if (!toastEl) return;
+      toastEl.textContent = message;
+      toastEl.classList.remove('toast-success', 'toast-error', 'toast-info', 'show');
+      toastEl.classList.add(`toast-${type}`);
+      // small reflow
+      void toastEl.offsetWidth;
+      toastEl.classList.add('show');
+      setTimeout(() => {
+        toastEl.classList.remove('show');
+      }, 3500);
+    }
+
+    // --- Free usage progress helper ---
+    const freeUsageBar = document.getElementById('freeUsageBar');
+    const freeUsageText = document.getElementById('freeUsageText');
+    const freeUsageFill = document.getElementById('freeUsageFill');
+
+    function updateFreeUsageBar() {
+      if (!freeUsageBar || !freeUsageFill || !freeUsageText) return;
+      if (isPro) {
+        freeUsageBar.classList.add('hidden');
+        return;
+      }
+      const used = Math.min(freeUses, MAX_FREE_USES);
+      const remaining = Math.max(MAX_FREE_USES - used, 0);
+      const pct = (used / MAX_FREE_USES) * 100;
+      freeUsageBar.classList.remove('hidden');
+      freeUsageFill.style.width = `${pct}%`;
+      freeUsageText.textContent = `${remaining} free generation${remaining === 1 ? '' : 's'} remaining.`;
+    }
+
+    // --- Central Pro UI refresh ---
+    const proBadge = document.getElementById('proBadge');
+
+    function refreshProUI() {
+      try {
+        // Pro badge
+        if (proBadge) {
+          if (isPro) { proBadge.classList.remove('hidden'); proBadge.innerHTML = isVip ? "PRO <span style='color: gold; font-weight: 700;'>(VIP)</span>" : "PRO"; }
+          else proBadge.classList.add('hidden');
+        }
+
+        // Free usage bar
+        updateFreeUsageBar();
+
+        // Templates visibility
+        if (templateContainer && templateTeaser) {
+          if (isPro) {
+            templateContainer.classList.remove('hidden');
+            templateContainer.style.display = 'grid';
+            templateTeaser.style.display = 'none';
+          } else {
+            templateContainer.classList.add('hidden');
+            templateContainer.style.display = 'none';
+            templateTeaser.style.display = 'block';
+          }
+        }
+
+        // Analyze paywall
+        if (analysisPaywall && analyzeContent) {
+          if (isPro) {
+            analysisPaywall.classList.add('hidden');
+          }
+        }
+      } catch (e) {
+        console.error('refreshProUI error', e);
+      }
+    }
+// --- Emoji map (for templates & fallback) ---
     const emojiMap = {
       'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
       'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
@@ -727,148 +923,78 @@
     }
 
     // --- Engagement scoring (Option C: nuanced & less predictable) ---
+        // --- Engagement scoring (Option A: calmer + platform-aware) ---
+    // --- Engagement scoring (Rebalanced across all platforms) ---
+    
+    // --- Engagement scoring (Rebalanced across all platforms) ---
     function computeEngagementScore(text, idea, platform, tone) {
-      if (!text || typeof text !== 'string') return 50;
+        if (!text || typeof text !== "string") return 30;
 
-      const lower = text.toLowerCase();
-      const ideaWord = (idea || '').split(/\s+/)[0] || '';
+        const platformKey = (platform || "").toLowerCase();
+        const tLower = (tone || "").toLowerCase();
+        const ideaStr = (idea || "").trim();
 
-      // Extract captions block for short/long checks
-      const lines = text.split('\n');
-      const captionLines = lines.filter(l => /^\s*\d+\./.test(l));
-      const firstCaption = (captionLines[0] || '').replace(/^\s*\d+\.\s*/, '').trim();
-      const allHashtags = (text.match(/#[\p{L}\p{N}_]+/gu) || []);
+        const isGenericIdea =
+            ideaStr.length > 0 &&
+            ideaStr.length <= 40 &&
+            !/[?!]/.test(ideaStr) &&
+            !/[#@]/.test(ideaStr) &&
+            !/[🔥✨💥🚀⭐💯😱😍🤯]/.test(ideaStr);
 
-      const totalChars = text.length;
-      const totalWords = text.split(/\s+/).filter(Boolean).length;
+        const lines = text.split("\n");
+        const captionLines = lines.filter((l) => /^\s*\d+\./.test(l));
+        const allHashtags = text.match(/#[\p{L}\p{N}_]+/gu) || [];
+        const totalChars = text.length;
+        const totalWords = text.split(/\s+/).filter(Boolean).length;
 
-      // --- 1. Short caption handling (C) ---
-      const firstLen = firstCaption.length;
-      const hasHookyPhrases = /can.?t believe|what just happened|you won.?t believe|breaking|thread|story time|here.?s why|no one talks about/i.test(firstCaption);
-      const hasQ = firstCaption.includes('?');
-      const hasEmojis = /[🔥✨💥🚀⭐💯😱😍🤯]/.test(firstCaption);
-      const hasStrongVerb = /\b(stop|start|build|grow|learn|double|triple|save|fix|steal)\b/i.test(firstCaption);
+        // Start from a neutral mid-range
+        let score = 45;
 
-      let baseScore;
-      if (firstLen < 40 && !hasHookyPhrases && !hasQ && !hasEmojis && !hasStrongVerb) {
-        // Short + boring
-        baseScore = 35;
-      } else if (firstLen < 80 && (hasHookyPhrases || hasQ || hasEmojis || hasStrongVerb)) {
-        // Short but punchy
-        baseScore = 55;
-      } else {
-        baseScore = 60;
-      }
+        // Generic idea penalties (any platform)
+        if (isGenericIdea) score -= 18;
 
-      // --- 2. Hook (0–20) ---
-      let hookScore = 0;
-      const first140 = (text.slice(0, 140) || '');
+        // Word count effects
+        if (totalWords < 30) score -= 10;        // too light
+        if (totalWords < 15) score -= 8;         // really thin
+        if (totalWords > 200) score += 4;        // longer, more substance
 
-      if (/^["“'#]/.test(first140.trim())) hookScore += 5;
-      if (/[?!]/.test(first140)) hookScore += 4;
-      if (/[0-9]/.test(first140)) hookScore += 3;
-      if (hasEmojis) hookScore += 4;
-      if (ideaWord && first140.toLowerCase().includes(ideaWord.toLowerCase())) hookScore += 4;
+        // Structure (multiple numbered captions)
+        if (captionLines.length >= 5) score += 8;
+        else if (captionLines.length >= 3) score += 5;
+        else if (captionLines.length >= 1) score += 2;
 
-      hookScore = Math.min(hookScore, 20);
+        // Hashtags band
+        if (allHashtags.length >= 12 && allHashtags.length <= 30) score += 8;
+        else if (allHashtags.length >= 6 && allHashtags.length < 12) score += 4;
 
-      // --- 3. Structure & readability (0–20) ---
-      let structScore = 0;
-      const captionCount = captionLines.length;
-      if (captionCount >= 5) structScore += 6;
-      else if (captionCount >= 3) structScore += 3;
-
-      const lineBreaks = lines.length;
-      if (lineBreaks >= 8 && lineBreaks <= 30) structScore += 6;
-
-      if (totalChars >= 500 && totalChars <= 1400) structScore += 5;
-
-      if (/[.!?]\s+[A-Z]/.test(text)) structScore += 3;
-
-      structScore = Math.min(structScore, 20);
-
-      // --- 4. Hashtag depth (0–20) ---
-      let hashScore = 0;
-      const tagCount = allHashtags.length;
-      if (tagCount >= 15 && tagCount <= 35) hashScore += 8;
-      else if (tagCount >= 8) hashScore += 4;
-
-      const nicheTags = allHashtags.filter(h => h.length >= 10);
-      if (nicheTags.length >= 8) hashScore += 6;
-      else if (nicheTags.length >= 4) hashScore += 3;
-
-      const platformTagMatch = allHashtags.some(h =>
-        h.toLowerCase().includes(platform.toLowerCase()) ||
-        h.toLowerCase().includes('reels') ||
-        h.toLowerCase().includes('shorts') ||
-        h.toLowerCase().includes('tiktok')
-      );
-      if (platformTagMatch) hashScore += 3;
-
-      hashScore = Math.min(hashScore, 20);
-
-      // --- 5. CTA & conversion intent (0–20) ---
-      let ctaScore = 0;
-      if (/save this|bookmark this|save for later/i.test(text)) ctaScore += 6;
-      if (/tag a friend|tag someone/i.test(text)) ctaScore += 5;
-      if (/comment|reply/i.test(text)) ctaScore += 3;
-      if (/link in bio|check the link|click the link/i.test(text)) ctaScore += 3;
-      if (/share this|send this/i.test(text)) ctaScore += 3;
-      ctaScore = Math.min(ctaScore, 20);
-
-      // --- 6. Platform fit (0–15) ---
-      let fitScore = 0;
-      const tLower = (tone || '').toLowerCase();
-
-      if (platform === 'LinkedIn') {
-        if (tLower.includes('professional')) fitScore += 7;
-        if (!/😫|💩|👻/.test(text)) fitScore += 3;
-      } else if (platform === 'TikTok') {
-        if (tLower.includes('fun') || tLower.includes('playful')) fitScore += 7;
-        if (hasEmojis) fitScore += 4;
-      } else if (platform === 'Instagram') {
-        if (hasEmojis) fitScore += 4;
-        if (tagCount >= 12) fitScore += 5;
-      } else if (platform === 'Twitter') {
-        if (totalChars <= 800) fitScore += 4;
-        if (tLower.includes('bold') || tLower.includes('confident')) fitScore += 5;
-      }
-      fitScore = Math.min(fitScore, 15);
-
-      // --- 7. Variety / repetition penalty ---
-      let varietyPenalty = 0;
-      if (captionLines.length > 0) {
-        const capsNormalized = captionLines.map(c =>
-          c.toLowerCase().replace(/\W+/g, ' ').trim()
-        );
-        const uniqueSet = new Set(capsNormalized);
-        if (uniqueSet.size <= Math.max(1, Math.floor(captionLines.length / 2))) {
-          varietyPenalty = 5;
+        // Platform-specific adjustments
+        if (platformKey === "twitter") {
+            score -= 6;                            // overall lower band
+            if (totalChars > 240) score -= 6;      // too long for a tweet
         }
-      }
+        else if (platformKey === "instagram") {
+            if (allHashtags.length >= 15) score += 5;
+            if (totalChars < 150) score -= 5;
+        }
+        else if (platformKey === "tiktok") {
+            if (/[🔥✨💥🚀]/.test(text)) score += 4;
+            if (totalWords < 25) score -= 8;
+        }
+        else if (platformKey === "linkedin") {
+            score -= 10;                           // bring baseline down
+            if (totalWords < 40) score -= 10;      // punish short/light posts
+            if (isGenericIdea) score -= 12;
+            if (tLower.includes("professional") && totalWords >= 60)
+                score += 4;                        // reward real professional depth
+        }
 
-      // --- 8. Length sanity check ---
-      let lengthPenalty = 0;
-      if (totalChars < 300) lengthPenalty += 8;          // too short overall
-      if (totalChars > 1800) lengthPenalty += 6;         // probably too long for a caption+tags
+        // Clamp
+        if (score < 10) score = 10;
+        if (score > 90) score = 90;
 
-      // --- Base combine ---
-      let score = baseScore + hookScore + structScore + hashScore + ctaScore + fitScore;
-      score -= (varietyPenalty + lengthPenalty);
-
-      // --- Jitter (per text, not just platform/tone) ---
-      const seedInput = text.slice(0, 200) + '|' + idea + '|' + platform + '|' + tone;
-      const seed = hashString(seedInput || 'seed');
-      const jitter = seededRandom(seed, -4, 4);
-      score += jitter;
-
-      // Clamp & normalize
-      if (score < 15) score = 15;
-      if (score > 95) score = 95;
-
-      // Round to int
-      return Math.round(score);
+        return Math.round(score);
     }
+
 
     function updateEngagementUI(score, boosted = false) {
       if (!engagementBox || !engagementValue) return;
@@ -882,11 +1008,12 @@
       }
     }
 
-    function updateGenerateButtonState() {
+        function updateGenerateButtonState() {
       if (!generateBtn) return;
       if (isPro) {
         generateBtn.disabled = false;
         if (paywallEl) paywallEl.classList.add('hidden');
+        updateFreeUsageBar();
         return;
       }
       if (freeUses >= MAX_FREE_USES) {
@@ -898,7 +1025,9 @@
         generateBtn.disabled = false;
         if (paywallEl) paywallEl.classList.add('hidden');
       }
+      updateFreeUsageBar();
     }
+
 
     function showTab(tabName) {
       currentTab = tabName;
@@ -1091,6 +1220,7 @@
           if (!isPro) {
             freeUses++;
             localStorage.setItem('freeUses', String(freeUses));
+            updateFreeUsageBar();
           }
         }
       } catch (err) {
@@ -1116,6 +1246,7 @@
           if (!isPro) {
             freeUses++;
             localStorage.setItem('freeUses', String(freeUses));
+            updateFreeUsageBar();
           }
         }
       } finally {
@@ -1130,86 +1261,92 @@
     }
 
     // --- Boost logic (one-time per generation, never decreases score) ---
-    async function tryBoost() {
-      if (hasBoostedCurrentOutput) return;
-      if (!lastResultText || !lastIdea || !lastPlatform || !lastTone) return;
-
-      if (!isPro && freeUses >= MAX_FREE_USES) {
-        if (paywallEl) paywallEl.classList.remove('hidden');
-        return;
-      }
-
-      if (!boostBtn) return;
-
-      boostBtn.disabled = true;
-      boostBtn.textContent = 'Boosting...';
-
-      try {
-        const res = await fetch(`${API_URL}/optimize`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            idea: lastIdea,
-            platform: lastPlatform,
-            tone: lastTone,
-            email: userEmail,
-            captions: lastResultText,
-            previousScore: lastScore
-          })
-        });
-
-        const data = await res.json();
-
-        if (res.status === 402) {
-          if (paywallEl) paywallEl.classList.remove('hidden');
-          boostBtn.disabled = false;
-          boostBtn.textContent = 'Boost My Score';
-          return;
+        async function tryBoost() {
+        if (hasBoostedCurrentOutput) return;
+        if (!lastResultText || !lastIdea || !lastPlatform || !lastTone) return;
+    
+        if (!isPro && freeUses >= MAX_FREE_USES) {
+            if (paywallEl) paywallEl.classList.remove("hidden");
+            return;
         }
-
-        if (res.ok && data.result) {
-          lastResultText = data.result;
-          if (outputEl) outputEl.textContent = data.result;
-
-          let boostedScore = computeEngagementScore(
-            data.result,
-            lastIdea,
-            lastPlatform,
-            lastTone
-          );
-
-          // Ensure boost never decreases score; guarantee at least small bump
-          if (lastScore != null) {
-            if (boostedScore <= lastScore) {
-              const seed = hashString(data.result.slice(0, 150) + '|boost');
-              const bump = Math.round(seededRandom(seed, 3, 9)); // 3–9 pts
-              boostedScore = Math.min(lastScore + bump, 96);
-            }
-            // Cap insane 95+ only when there is clear CTA + hashtags
-            const strongCTA = /save this|bookmark this|tag a friend|comment below|link in bio|share this/i.test(lastResultText);
-            const enoughTags = (lastResultText.match(/#[\p{L}\p{N}_]+/gu) || []).length >= 15;
-            if (!strongCTA || !enoughTags) {
-              boostedScore = Math.min(boostedScore, 92);
-            }
-          }
-
-          lastScore = boostedScore;
-          updateEngagementUI(boostedScore, true);
-        }
-
-        if (!isPro) {
-          freeUses++;
-          localStorage.setItem('freeUses', String(freeUses));
-        }
-      } catch (err) {
-        console.error('Boost error:', err);
-      } finally {
-        hasBoostedCurrentOutput = true;
+    
         boostBtn.disabled = true;
-        boostBtn.classList.add('used');
-        boostBtn.textContent = 'Boost Applied';
-        updateGenerateButtonState();
-      }
+        boostBtn.textContent = "Boosting...";
+    
+        try {
+            const res = await fetch(`${API_URL}/optimize`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    idea: lastIdea,
+                    platform: lastPlatform,
+                    tone: lastTone,
+                    email: userEmail,
+                    captions: lastResultText,
+                    previousScore: lastScore
+                })
+            });
+    
+            const data = await res.json();
+    
+            if (res.status === 402) {
+                if (paywallEl) paywallEl.classList.remove("hidden");
+                boostBtn.disabled = false;
+                boostBtn.textContent = "Boost My Score";
+                return;
+            }
+    
+            if (res.ok && data.result) {
+                lastResultText = data.result;
+                outputEl.textContent = data.result;
+    
+                let boostedScore = computeEngagementScore(
+                    data.result,
+                    lastIdea,
+                    lastPlatform,
+                    lastTone
+                );
+    
+                let original = lastScore || 0;
+    
+                // Option A: medium but meaningful bump
+                let minBoost = 10;
+                if (original < 40) minBoost = 15;
+                if (original < 30) minBoost = 18;
+    
+                let maxBoost = minBoost + 10; // e.g. +18 to +28
+    
+                const seed = hashString(data.result.slice(0, 150) + "|boostA");
+                const bump = Math.round(seededRandom(seed, minBoost, maxBoost));
+                boostedScore = original + bump;
+    
+                const caps = {
+                    twitter: 85,
+                    linkedin: 88,
+                    instagram: 92,
+                    tiktok: 95
+                };
+                const cap = caps[lastPlatform.toLowerCase()] || 90;
+                boostedScore = Math.min(boostedScore, cap);
+    
+                lastScore = boostedScore;
+                updateEngagementUI(boostedScore, true);
+            }
+    
+            if (!isPro) {
+                freeUses++;
+                localStorage.setItem("freeUses", String(freeUses));
+                updateFreeUsageBar();
+            }
+        } catch (err) {
+            console.error("Boost error:", err);
+        } finally {
+            hasBoostedCurrentOutput = true;
+            boostBtn.disabled = true;
+            boostBtn.classList.add("used");
+            boostBtn.textContent = "Boost Applied";
+            updateGenerateButtonState();
+        }
     }
 
     // --- Analyze form submit ---
@@ -1407,7 +1544,19 @@
       isPro = true;
       window.history.replaceState({}, document.title, window.location.pathname);
       alert('Welcome to Pro! Unlimited generations, Boost, Templates, and Analyzer unlocked.');
+    
+  // Refresh template state immediately
+  try {
+    if (typeof templateContainer !== 'undefined' && templateContainer) {
+      templateContainer.classList.remove('hidden');
+      templateContainer.style.display = 'grid';
     }
+    if (typeof templateTeaser !== 'undefined' && templateTeaser) {
+      templateTeaser.style.display = 'none';
+    }
+    if (typeof showPage !== 'undefined') showPage(1);
+  } catch(e) { console.error(e); }
+}
 
     // --- Email gate bootstrap ---
     if (!userEmail) {
@@ -1419,6 +1568,7 @@
           modal.style.display = 'none';
           mainApp.style.display = 'block';
           userEmail = email;
+          hydrateProFromServer();
           updateGenerateButtonState();
           showTab(currentTab);
         } else {
@@ -1429,12 +1579,17 @@
     } else {
       modal.style.display = 'none';
       mainApp.style.display = 'block';
+      hydrateProFromServer();
     }
 
     // Initial UI sync
+    refreshProUI();
     updateGenerateButtonState();
     showTab(currentTab);
   });
-  </script>
+  
+</script>
+
+<div id="toast" class="toast hidden"></div>
 </body>
 </html>
