@@ -1458,8 +1458,8 @@
     if (tipElement) tipElement.textContent = getTodayTip();
 
     // --- Handle Stripe success ?success=true ---
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success') === 'true') {
+    const urlParams2 = new URLSearchParams(window.location.search);
+    if (urlParams2.get('success') === 'true') {
       localStorage.setItem('isPro', 'true');
       isPro = true;
       window.history.replaceState({}, document.title, window.location.pathname);
