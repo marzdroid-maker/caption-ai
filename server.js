@@ -7,6 +7,27 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// === VIP LIST (Pro VIP emails) ===
+const fs = require('fs');
+const path = require('path');
+
+let vipEmails = new Set();
+try {
+  const vipRaw = fs.readFileSync(path.join(__dirname, 'free-pro-users.json'), 'utf8');
+  const vipJson = JSON.parse(vipRaw);
+  if (vipJson && Array.isArray(vipJson.emails)) {
+    vipEmails = new Set(vipJson.emails.map(e => e.toLowerCase().trim()));
+  }
+  console.log(`[VIP] Loaded ${vipEmails.size} VIP emails.`);
+} catch (err) {
+  console.error('[VIP] Failed to load free-pro-users.json:', err.message);
+}
+
+function isVipEmail(email) {
+  if (!email) return false;
+  return vipEmails.has(email.toLowerCase().trim());
+}
+
 // === CONFIG ===
 const FREE_TIER_LIMIT = 10; // 🔟 free generations per email
 
@@ -57,18 +78,6 @@ async function refreshStripeSubscriptionStatus(email) {
   }
 }
 
-
-// Check subscription status
-app.get('/check-subscription', async (req, res) => {
-  const email = req.query.email;
-  if (!email) return res.status(400).json({ subscribed:false });
-  try {
-    const isSubscribed = await refreshStripeSubscriptionStatus(email);
-    res.json({ subscribed: !!isSubscribed });
-  } catch(e){
-    res.json({ subscribed:false });
-  }
-});
 // === ROUTES ===
 
 // Homepage
@@ -86,13 +95,15 @@ app.post('/generate', async (req, res) => {
 
   const { key, record } = getUserUsage(email);
 
+  const vip = isVipEmail(email);
+
   // Check Stripe subscription (best-effort)
   const isSubscribed = await refreshStripeSubscriptionStatus(email);
-  if (isSubscribed) {
+  if (isSubscribed || vip) {
     record.subscribed = true;
   }
 
-  // Enforce free tier
+  // Enforce free tier (VIP + subscribed are unlimited)
   if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
     return res.status(402).json({ error: 'Upgrade required' });
   }
@@ -163,13 +174,15 @@ app.post('/optimize', async (req, res) => {
 
   const { key, record } = getUserUsage(email);
 
+  const vip = isVipEmail(email);
+
   // Check subscription again
   const isSubscribed = await refreshStripeSubscriptionStatus(email);
-  if (isSubscribed) {
+  if (isSubscribed || vip) {
     record.subscribed = true;
   }
 
-  // Enforce free tier for Boost calls as well
+  // Enforce free tier for Boost calls as well (VIP + subscribed are unlimited)
   if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
     return res.status(402).json({ error: 'Upgrade required' });
   }
@@ -304,4 +317,25 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Live URL: https://caption-ai-ze13.onrender.com`);
   console.log(`Webhook URL: https://caption-ai-ze13.onrender.com/webhook`);
+});// Check subscription + VIP status (used by frontend hydrate)
+app.get('/check-subscription', async (req, res) => {
+  const email = req.query.email;
+  if (!email) return res.status(400).json({ isPro: false, vip: false, subscribed: false });
+
+  try {
+    const subscribed = await refreshStripeSubscriptionStatus(email);
+    const vip = isVipEmail(email);
+    const isPro = !!subscribed || vip;
+
+    return res.json({
+      isPro,
+      vip,
+      subscribed: !!subscribed
+    });
+  } catch (e) {
+    console.error('Error in /check-subscription:', e.message);
+    return res.status(500).json({ isPro: false, vip: false, subscribed: false });
+  }
 });
+
+
