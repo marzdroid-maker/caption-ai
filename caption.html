@@ -592,8 +592,6 @@
     let isPro    = localStorage.getItem('isPro') === 'true';
     let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
     let currentTab = localStorage.getItem('lastTab') || 'generateContent';
-
-    let debounceTimer;
     let isGenerating = false;
     let hasBoostedCurrentOutput = false;
     let lastResultText = '';
@@ -603,8 +601,6 @@
     let lastTone = '';
     let referralCode = localStorage.getItem('referralCode') || null;
       let hash = 0;
-
-      let baseScore;
       let hookScore = 0;
       let structScore = 0;
       let hashScore = 0;
@@ -613,8 +609,7 @@
       let varietyPenalty = 0;
       let lengthPenalty = 0;
       let score = baseScore + hookScore + structScore + hashScore + ctaScore + fitScore;
-
-      let hook, readability, hashtags, cta;
+          let boostedScore = computeEngagementScore(
 
   document.addEventListener('DOMContentLoaded', () => {
     // --- URL params: referral + Stripe success ---
@@ -626,7 +621,7 @@
     // Persist referral code if present
     if (refFromUrl) {
       localStorage.setItem('referralCode', refFromUrl);
-      referralCode = refFromUrl;
+      
     }
 
     // After Stripe checkout success, re-check subscription on backend
@@ -671,6 +666,7 @@
 
 
 
+    let debounceTimer;
 
 
 
@@ -821,6 +817,7 @@
       const hasEmojis = /[🔥✨💥🚀⭐💯😱😍🤯]/.test(firstCaption);
       const hasStrongVerb = /\b(stop|start|build|grow|learn|double|triple|save|fix|steal)\b/i.test(firstCaption);
 
+      let baseScore;
       if (firstLen < 40 && !hasHookyPhrases && !hasQ && !hasEmojis && !hasStrongVerb) {
         // Short + boring
         baseScore = 35;
@@ -1068,6 +1065,7 @@
       const score = (seed % 35) + 65; // 65–99
       const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
 
+      let hook, readability, hashtags, cta;
       if (quality === 'High') {
         hook = 'High urgency, clear value proposition. 🔥';
         readability = 'Excellent use of line breaks. ✅';
@@ -1241,7 +1239,7 @@
           lastResultText = data.result;
           if (outputEl) outputEl.textContent = data.result;
 
-          let boostedScore = computeEngagementScore(
+
             data.result,
             lastIdea,
             lastPlatform,
