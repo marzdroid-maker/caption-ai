@@ -1446,20 +1446,6 @@
     // --- Daily tip ---
     if (tipElement) tipElement.textContent = getTodayTip();
 
-    // --- Handle Stripe success ?success=true ---
-    const urlParams = new URLSearchParams(window.location.search);
-    const refFromUrl = urlParams.get('ref');
-    if (refFromUrl) {
-      referralCode = refFromUrl;
-      localStorage.setItem('referralCode', refFromUrl);
-    }
-    if (urlParams.get('success') === 'true') {
-      localStorage.setItem('isPro', 'true');
-      isPro = true;
-      window.history.replaceState({}, document.title, window.location.pathname);
-      alert('Welcome to Pro! Unlimited generations, Boost, Templates, and Analyzer unlocked.');
-    }
-
     // --- Email gate bootstrap ---
     if (!userEmail) {
       emailSubmit.addEventListener('click', () => {

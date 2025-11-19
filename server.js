@@ -58,22 +58,17 @@ async function refreshStripeSubscriptionStatus(email) {
 }
 
 
-// Check subscription status (used by frontend after Stripe redirect)
+// Check subscription status
 app.get('/check-subscription', async (req, res) => {
   const email = req.query.email;
-  if (!email) {
-    return res.status(400).json({ subscribed: false });
-  }
-
+  if (!email) return res.status(400).json({ subscribed:false });
   try {
     const isSubscribed = await refreshStripeSubscriptionStatus(email);
-    return res.json({ subscribed: !!isSubscribed });
-  } catch (err) {
-    console.error('Error in /check-subscription:', err.message);
-    return res.status(500).json({ subscribed: false });
+    res.json({ subscribed: !!isSubscribed });
+  } catch(e){
+    res.json({ subscribed:false });
   }
 });
-
 // === ROUTES ===
 
 // Homepage
