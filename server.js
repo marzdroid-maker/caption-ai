@@ -3,9 +3,6 @@ const express = require('express');
 const cors = require('cors');
 const { Groq } = require('groq-sdk');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const fs = require('fs');
-const path = require('path');
-
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,22 +34,6 @@ const groq = new Groq({
 });
 
 // Small helper to get or init usage record
-
-// === VIP PRO LIST (influencers, etc.) ===
-const VIP_LIST_PATH = path.join(__dirname, 'free-pro-users.json');
-
-function isVipEmail(email) {
-  if (!email) return false;
-  try {
-    const raw = fs.readFileSync(VIP_LIST_PATH, 'utf8');
-    const data = JSON.parse(raw);
-    const list = (data.emails || []).map(e => String(e).toLowerCase().trim());
-    return list.includes(String(email).toLowerCase().trim());
-  } catch (err) {
-    console.error('VIP list read error:', err.message);
-    return false;
-  }
-}
 function getUserUsage(email) {
   const key = email.toLowerCase().trim();
   if (!usage[key]) {
@@ -76,64 +57,12 @@ async function refreshStripeSubscriptionStatus(email) {
   }
 }
 
-
-// === NIGHTLY STRIPE SYNC ===
-async function nightlyStripeRefresh() {
-  console.log("Running nightly Stripe subscription sync...");
-  for (const email of Object.keys(usage)) {
-    try {
-      if (isVipEmail(email)) {
-        usage[email].subscribed = true;
-        continue;
-      }
-      const isSubscribed = await refreshStripeSubscriptionStatus(email);
-      usage[email].subscribed = !!isSubscribed;
-    } catch (err) {
-      console.error("Nightly sync error for", email, err.message);
-    }
-  }
-  console.log("Nightly Stripe sync complete.");
-}
-
-// Kick off initial sync and schedule every 24 hours
-nightlyStripeRefresh();
-setInterval(nightlyStripeRefresh, 24 * 60 * 60 * 1000);
 // === ROUTES ===
 
 // Homepage
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/caption.html');
 });
-
-// Check subscription (Stripe + VIP override) for frontend
-app.get('/check-subscription', async (req, res) => {
-  try {
-    const email = (req.query.email || '').trim().toLowerCase();
-    if (!email) {
-      return res.json({ isPro: false });
-    }
-
-    // VIP override: emails in free-pro-users.json are always Pro
-    if (isVipEmail(email)) {
-      const { key, record } = getUserUsage(email);
-      record.subscribed = true;
-      usage[key] = record;
-      return res.json({ isPro: true, vip: true });
-    }
-
-    // Stripe subscription check
-    const isSubscribed = await refreshStripeSubscriptionStatus(email);
-    const { key, record } = getUserUsage(email);
-    record.subscribed = !!isSubscribed;
-    usage[key] = record;
-
-    return res.json({ isPro: !!isSubscribed });
-  } catch (err) {
-    console.error('Error in /check-subscription:', err.message);
-    return res.json({ isPro: false });
-  }
-});
-
 
 // Generate captions
 app.post('/generate', async (req, res) => {
@@ -145,15 +74,10 @@ app.post('/generate', async (req, res) => {
 
   const { key, record } = getUserUsage(email);
 
-  // VIP override: influencers get full Pro access without Stripe
-  if (isVipEmail(email)) {
+  // Check Stripe subscription (best-effort)
+  const isSubscribed = await refreshStripeSubscriptionStatus(email);
+  if (isSubscribed) {
     record.subscribed = true;
-  } else {
-    // Check Stripe subscription (best-effort)
-    const isSubscribed = await refreshStripeSubscriptionStatus(email);
-    if (isSubscribed) {
-      record.subscribed = true;
-    }
   }
 
   // Enforce free tier
@@ -292,8 +216,9 @@ Format EXACTLY the same as before:
 });
 
 // Create checkout session
+
 app.post('/create-checkout-session', async (req, res) => {
-  const { email } = req.body || {};
+  const { email, referralCode } = req.body || {};
   if (!email) return res.status(400).json({ error: 'Email required' });
 
   try {
@@ -309,6 +234,16 @@ app.post('/create-checkout-session', async (req, res) => {
       customer_email: email,
       success_url: `${req.headers.origin}?success=true`,
       cancel_url: `${req.headers.origin}?canceled=true`,
+      metadata: {
+        user_email: email,
+        referral_code: referralCode || ''
+      },
+      subscription_data: {
+        metadata: {
+          user_email: email,
+          referral_code: referralCode || ''
+        }
+      }
     });
 
     res.json({ url: session.url });
@@ -318,7 +253,7 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 });
 
-// Stripe webhook to mark user as subscribed
+// Stripe webhook// Stripe webhook to mark user as subscribed
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
