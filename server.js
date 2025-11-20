@@ -268,7 +268,7 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 });
 
-// Stripe webhook to mark user as subscribed (REVISED LOGIC)
+// Stripe webhook to mark user as subscribed (REVISED LOGIC to handle payment failed)
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -289,7 +289,6 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     case 'invoice.payment_succeeded': 
         {
             const session = event.data.object;
-            // The email might be on the session or in the metadata, depending on the event
             const email = session.customer_email || (session.metadata ? session.metadata.user_email : null);
             if (email) {
                 const key = email.toLowerCase().trim();
@@ -300,11 +299,20 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
         }
         break;
 
-    // IMPORTANT: We explicitly ignore 'customer.subscription.deleted' 
-    // to allow the user to continue using their subscription until the paid period ends.
-    // The regular API calls (/generate, /optimize, /check-subscription) will automatically
-    // downgrade the user when the subscription's status changes from 'active' to 'canceled'
-    // after the current billing period expires.
+    case 'invoice.payment_failed': 
+        {
+            const invoice = event.data.object;
+            // Get email from invoice (or metadata if customer_email isn't directly present on invoice)
+            const email = invoice.customer_email || (invoice.metadata ? invoice.metadata.user_email : null);
+
+            if (email && !isVipEmail(email)) { // Do not reset VIP status
+                const { key, record } = getUserUsage(email);
+                record.subscribed = false;
+                record.generations = 0; // Reset count as access is revoked
+                console.log(`Subscription payment failed. User downgraded: ${email}`);
+            }
+        }
+        break;
 
     default:
         // No action needed for other events
