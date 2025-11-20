@@ -673,8 +673,8 @@
 
     // --- Global state ---
     let userEmail = localStorage.getItem('userEmail');
-    let isPro    = localStorage.getItem('isPro') === 'true';
-    let isVip = localStorage.getItem('isVip') === 'true';
+    let isPro = false;
+    let isVip = false;
     let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
     let currentTab = localStorage.getItem('lastTab') || 'generateContent';
 
@@ -1591,5 +1591,31 @@
 </script>
 
 <div id="toast" class="toast hidden"></div>
+
+<script>
+async function hydrateSubscriptionState(email) {
+  try {
+    const resp = await fetch(`${API_URL}/check-subscription?email=${encodeURIComponent(email)}`);
+    const data = await resp.json();
+    const isPro = !!data.isPro;
+    const isVip = !!data.vip;
+    localStorage.setItem('isPro', isPro ? 'true' : 'false');
+    localStorage.setItem('isVip', isVip ? 'true' : 'false');
+    window.__isPro = isPro;
+    window.__isVip = isVip;
+    return {isPro, isVip};
+  } catch(e) {
+    console.error('hydrate error', e);
+    return {isPro:false, isVip:false};
+  }
+}
+document.addEventListener('DOMContentLoaded', async ()=>{
+  const email = localStorage.getItem('userEmail');
+  if(email){
+    await hydrateSubscriptionState(email);
+  }
+});
+</script>
+
 </body>
 </html>
