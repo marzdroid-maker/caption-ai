@@ -57,18 +57,6 @@ async function refreshStripeSubscriptionStatus(email) {
   }
 }
 
-
-// Check subscription status
-app.get('/check-subscription', async (req, res) => {
-  const email = req.query.email;
-  if (!email) return res.status(400).json({ subscribed:false });
-  try {
-    const isSubscribed = await refreshStripeSubscriptionStatus(email);
-    res.json({ subscribed: !!isSubscribed });
-  } catch(e){
-    res.json({ subscribed:false });
-  }
-});
 // === ROUTES ===
 
 // Homepage
@@ -235,6 +223,7 @@ app.post('/create-checkout-session', async (req, res) => {
 
   try {
     const session = await stripe.checkout.sessions.create({
+      metadata: { referralCode: referralCode || '' },
       payment_method_types: ['card'],
       line_items: [
         {
