@@ -452,40 +452,40 @@
       <strong>💡 Today's Tip:</strong>
       <span id="dailyTipText">Loading a viral content tip...</span>
     </div>
-    <div id="affiliateSection" style="margin-top:1.5rem; padding:1rem; border:1px solid #ddd; border-radius:10px; background:#fff;">
-      <h3>🔥 Partner Program — Earn 30% for Life</h3>
-      <p>Earn 30% lifetime commission for every subscriber you refer.</p>
-      <button id="becomeAffiliateBtn" class="btn-primary">Become an Affiliate</button>
-      <button id="getReferralLinkBtn" class="btn-primary" style="margin-left:10px;">Get Referral Link</button>
-      <pre id="affiliateOutput" style="white-space:pre-wrap; margin-top:10px;"></pre>
-    </div>
+<div id="affiliateSection" style="margin-top:1.5rem; padding:1rem; border:1px solid #ddd; border-radius:10px; background:#fff;">
+  <h3>🔥 Partner Program — Earn 30% for Life</h3>
+  <p>Earn 30% lifetime commission for every subscriber you refer.</p>
+  <button id="becomeAffiliateBtn" class="btn-primary">Become an Affiliate</button>
+  <button id="getReferralLinkBtn" class="btn-primary" style="margin-left:10px;">Get Referral Link</button>
+  <pre id="affiliateOutput" style="white-space:pre-wrap; margin-top:10px;"></pre>
+</div>
 
-    <script>
-    document.getElementById('becomeAffiliateBtn').addEventListener('click', async ()=>{
-      const email = localStorage.getItem('userEmail');
-      if(!email){ alert('Enter your email first.'); return; }
-      const resp = await fetch('/create-connect-account', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ email })
-      });
-      const data = await resp.json();
-      document.getElementById('affiliateOutput').textContent =
-        "Connect Account ID: " + data.connectAccountId + "\n" +
-        "Referral Code: " + data.referralCode + "\n" +
-        "Onboarding URL: " + data.onboardingUrl;
-      localStorage.setItem('referralCode', data.referralCode);
-    });
+<script>
+document.getElementById('becomeAffiliateBtn').addEventListener('click', async ()=>{
+  const email = localStorage.getItem('userEmail');
+  if(!email){ alert('Enter your email first.'); return; }
+  const resp = await fetch('/create-connect-account', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ email })
+  });
+  const data = await resp.json();
+  document.getElementById('affiliateOutput').textContent =
+    "Connect Account ID: " + data.connectAccountId + "\n" +
+    "Referral Code: " + data.referralCode + "\n" +
+    "Onboarding URL: " + data.onboardingUrl;
+  localStorage.setItem('referralCode', data.referralCode);
+});
 
-    document.getElementById('getReferralLinkBtn').addEventListener('click', async ()=>{
-      const referralCode = localStorage.getItem('referralCode');
-      if(!referralCode){ alert('Become an affiliate first.'); return; }
-      const resp = await fetch('/referral-link?referralCode='+encodeURIComponent(referralCode));
-      const data = await resp.json();
-      document.getElementById('affiliateOutput').textContent =
-        "Your Referral Link:\n" + data.referralUrl;
-    });
-    </script>
+document.getElementById('getReferralLinkBtn').addEventListener('click', async ()=>{
+  const referralCode = localStorage.getItem('referralCode');
+  if(!referralCode){ alert('Become an affiliate first.'); return; }
+  const resp = await fetch('/referral-link?referralCode='+encodeURIComponent(referralCode));
+  const data = await resp.json();
+  document.getElementById('affiliateOutput').textContent =
+    "Your Referral Link:\n" + data.referralUrl;
+});
+</script>
 
 
     <div id="tabContainer">
@@ -656,41 +656,7 @@
 
       <!-- ANALYZE TAB -->
       <div 
-<!-- Affiliate Program Section -->
-<div id="affiliateSection" style="margin-top:2rem; padding:1rem; border:1px solid #ccc; border-radius:8px;">
-  <h3>🔥 Partner Program — Earn 30% for Life</h3>
-  <p>Earn 30% lifetime commission for every subscriber you refer.</p>
-  <button id="becomeAffiliateBtn" type="button">Become an Affiliate</button>
-  <button id="getReferralLinkBtn" type="button" style="margin-left:10px;">Get Referral Link</button>
-  <pre id="affiliateOutput" style="white-space:pre-wrap;"></pre>
-</div>
 
-<script>
-document.getElementById('becomeAffiliateBtn').addEventListener('click', async ()=>{
-  const email = localStorage.getItem('userEmail');
-  if(!email){ alert('Enter your email first.'); return; }
-  const resp = await fetch('/create-connect-account', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({ email })
-  });
-  const data = await resp.json();
-  document.getElementById('affiliateOutput').textContent = 
-    "Connect Account ID: " + data.connectAccountId + "\n" +
-    "Referral Code: " + data.referralCode + "\n" +
-    "Onboarding URL: " + data.onboardingUrl;
-  localStorage.setItem('referralCode', data.referralCode);
-});
-
-document.getElementById('getReferralLinkBtn').addEventListener('click', async ()=>{
-  const referralCode = localStorage.getItem('referralCode');
-  if(!referralCode){ alert('Become an affiliate first.'); return; }
-  const resp = await fetch('/referral-link?referralCode='+encodeURIComponent(referralCode));
-  const data = await resp.json();
-  document.getElementById('affiliateOutput').textContent = 
-    "Your Referral Link:\n" + data.referralUrl;
-});
-</script>
 id="analyzeContent" class="tab-content hidden">
         <div id="analysisDescription" style="
           background: #f0f9ff;
