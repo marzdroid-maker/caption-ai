@@ -422,7 +422,6 @@
 </head>
 <body>
 
-  <!-- Email gate -->
   <div id="emailModal">
     <div class="modal-content">
       <h2>Welcome!</h2>
@@ -432,7 +431,6 @@
     </div>
   </div>
 
-  <!-- Main app -->
   <div class="container" id="mainApp" style="display: none;">
     <h1>AI Caption + Hashtag Generator <span id="proBadge" class="hidden">PRO</span></h1>
     <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
@@ -459,7 +457,6 @@
         <button id="analyzeTabBtn" class="tab-btn" data-target="analyzeContent">Analyze Competitor (Pro)</button>
       </div>
 
-      <!-- GENERATE TAB -->
       <div id="generateContent" class="tab-content">
         <form id="captionForm">
           <label for="idea">Post Idea</label>
@@ -501,7 +498,6 @@
         <div id="result" class="result hidden">
           <h3>Your AI Captions</h3>
 
-          <!-- Engagement score + Boost -->
           <div id="engagementBox" class="engagement-box">
             <div class="engagement-main">
               <span class="engagement-title">Engagement Score</span>
@@ -518,7 +514,6 @@
           <button type="button" id="copyBtn">Copy All</button>
         </div>
 
-        <!-- Pro Templates -->
         <div id="proTemplates">
           <h3>The Viral Swipe File: Proven 6-Figure Post Structures</h3>
           <p style="margin: 1rem 0 .75rem; font-size: .95rem; color: #065f46; line-height: 1.5;">
@@ -619,7 +614,6 @@
         </div>
       </div>
 
-      <!-- ANALYZE TAB -->
       <div id="analyzeContent" class="tab-content hidden">
         <div id="analysisDescription" style="
           background: #f0f9ff;
@@ -1200,7 +1194,7 @@ localStorage.setItem("referralCode", referralCode);
         const res = await fetch(`${API_URL}/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idea, platform, tone, email: userEmail })
+          body: JSON.stringify({ idea, platform, tone, email: userEmail, currentGenerations: freeUses }) // ⬅️ **MODIFIED: Send current usage**
         });
 
         const data = await res.json();
@@ -1224,9 +1218,9 @@ localStorage.setItem("referralCode", referralCode);
           lastScore = score;
           updateEngagementUI(score, false);
 
-          if (!isPro) {
-            freeUses++;
-            localStorage.setItem('freeUses', String(freeUses));
+          if (!isPro && typeof data.newGenerationsCount === 'number') { // ⬅️ **MODIFIED: Check for server count**
+            freeUses = data.newGenerationsCount; // ⬅️ **MODIFIED: Use server's authoritative count**
+            localStorage.setItem('freeUses', String(freeUses)); // ⬅️ **MODIFIED: Save new count**
             updateFreeUsageBar();
           }
         }
@@ -1250,6 +1244,7 @@ localStorage.setItem("referralCode", referralCode);
           lastScore = score;
           updateEngagementUI(score, false);
 
+          // Fallback manual increment if the API call failed
           if (!isPro) {
             freeUses++;
             localStorage.setItem('freeUses', String(freeUses));
@@ -1290,7 +1285,8 @@ localStorage.setItem("referralCode", referralCode);
                     tone: lastTone,
                     email: userEmail,
                     captions: lastResultText,
-                    previousScore: lastScore
+                    previousScore: lastScore,
+                    currentGenerations: freeUses // ⬅️ **MODIFIED: Send current usage**
                 })
             });
     
@@ -1338,13 +1334,15 @@ localStorage.setItem("referralCode", referralCode);
     
                 lastScore = boostedScore;
                 updateEngagementUI(boostedScore, true);
+
+                if (!isPro && typeof data.newGenerationsCount === 'number') { // ⬅️ **MODIFIED: Check for server count**
+                    freeUses = data.newGenerationsCount; // ⬅️ **MODIFIED: Use server's authoritative count**
+                    localStorage.setItem('freeUses', String(freeUses)); // ⬅️ **MODIFIED: Save new count**
+                    updateFreeUsageBar();
+                }
+
             }
     
-            if (!isPro) {
-                freeUses++;
-                localStorage.setItem("freeUses", String(freeUses));
-                updateFreeUsageBar();
-            }
         } catch (err) {
             console.error("Boost error:", err);
         } finally {
