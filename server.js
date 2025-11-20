@@ -1,8 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-// NOTE: Assuming you are using better-sqlite3 for persistence
-// const Database = require('better-sqlite3'); 
+// const Database = require('better-sqlite3'); // <-- Ensure this module is NOT required
 const { Groq } = require('groq-sdk');
 const stripe = require('stripe');
 
@@ -25,8 +24,7 @@ const stripeClient = stripe(STRIPE_KEY);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// In-memory data store for usage (replace with better-sqlite3 if needed)
-// { 'user@example.com': { subscribed: false, generations: 5 } }
+// In-memory data store for usage 
 const usage = {};
 const VIP_EMAILS = ['admin@caption.ai', 'vip@test.com'];
 
@@ -44,22 +42,14 @@ function getUserUsage(email) {
     return { key, record: usage[key] };
 }
 
-// In a real app, this would hit Stripe/DB. Mocking simplified checks for now.
 async function refreshStripeSubscriptionStatus(email) {
-    // This is a placeholder. In a real app, you would query your database
-    // which is updated by the Stripe webhook.
     const { record } = getUserUsage(email);
     
-    // Simple mock: if record.subscribed is true, assume it still is unless checked recently.
     if (record.subscribed && (Date.now() - record.lastCheck < (1000 * 60 * 60 * 24))) {
         return true;
     }
 
-    // Simulate calling Stripe (heavy operation, usually done via webhooks)
-    // To keep it simple, we just return the in-memory state for this example.
     record.lastCheck = Date.now();
-    
-    // If the mock DB says they are subscribed, assume it's true for this exercise.
     return record.subscribed; 
 }
 
@@ -71,13 +61,11 @@ app.use(cors({
     allowedHeaders: 'Content-Type',
 }));
 
-// Stripe webhook must handle raw body
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     // ... (Stripe webhook logic is omitted for brevity but would go here) ...
     res.json({ received: true });
 });
 
-// JSON body parser for all other routes
 app.use(express.json());
 
 
@@ -107,12 +95,10 @@ app.post('/generate', async (req, res) => {
 
     const { key, record } = getUserUsage(email);
 
-    // FIX: Use the count from client only if the server has no record for this user
     if (record.generations === 0) {
         record.generations = parseInt(currentGenerations) || 0; 
     }
     
-    // Determine Subscription Status
     const isVipUser = isVipEmail(email);
     const isCurrentlySubscribed = await refreshStripeSubscriptionStatus(email);
     
@@ -127,12 +113,10 @@ app.post('/generate', async (req, res) => {
         record.subscribed = true;
     }
     
-    // Enforce free tier
     if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
         return res.status(402).json({ error: 'Upgrade required' });
     }
 
-    // Increment count BEFORE the API call
     record.generations += 1;
     usage[key] = record; 
     
@@ -166,18 +150,16 @@ Example Format:
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userPrompt }
             ],
-            model: "mixtral-8x7b-32768", // Fast and quality model
+            model: "mixtral-8x7b-32768", 
             temperature: 0.7,
         });
 
         const result = completion.choices[0]?.message?.content || 'No result generated.';
         
-        // IMPORTANT: Send back the NEW count so the client can save it
         res.json({ result, newGenerationsCount: record.generations, isPro: record.subscribed, vip: isVipUser }); 
 
     } catch (err) {
         console.error("GROQ API Error:", err);
-        // Decrement count on failure to not penalize the user
         record.generations -= 1; 
         usage[key] = record;
         res.status(500).json({ error: 'AI generation failed.' });
@@ -195,12 +177,10 @@ app.post('/optimize', async (req, res) => {
 
     const { key, record } = getUserUsage(email);
 
-    // FIX: Use the count from client only if the server has no record for this user
     if (record.generations === 0) {
         record.generations = parseInt(currentGenerations) || 0; 
     }
     
-    // Determine Subscription Status
     const isVipUser = isVipEmail(email);
     const isCurrentlySubscribed = await refreshStripeSubscriptionStatus(email);
     
@@ -215,12 +195,10 @@ app.post('/optimize', async (req, res) => {
         record.subscribed = true;
     }
     
-    // Enforce free tier (Optimization is treated as a new generation)
     if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
         return res.status(402).json({ error: 'Upgrade required' });
     }
 
-    // Increment count BEFORE the API call
     record.generations += 1;
     usage[key] = record; 
     
@@ -247,17 +225,15 @@ Target Tone: ${tone}
                 { role: "user", content: userPrompt }
             ],
             model: "mixtral-8x7b-32768",
-            temperature: 0.8, // Slightly higher temp for creative revision
+            temperature: 0.8,
         });
 
         const result = completion.choices[0]?.message?.content || 'Optimization failed.';
         
-        // IMPORTANT: Send back the NEW count so the client can save it
         res.json({ result, newGenerationsCount: record.generations, isPro: record.subscribed, vip: isVipUser });
 
     } catch (err) {
         console.error("GROQ API Error:", err);
-        // Decrement count on failure to not penalize the user
         record.generations -= 1; 
         usage[key] = record;
         res.status(500).json({ error: 'AI optimization failed.' });
@@ -273,12 +249,9 @@ app.post('/create-checkout-session', async (req, res) => {
         return res.status(400).json({ error: 'Email required' });
     }
     
-    // ⚙️ FINAL URL UPDATE APPLIED HERE
     const YOUR_DOMAIN = 'https://caption-ai-ze13.onrender.com';
 
     try {
-        // Find the price ID for your monthly subscription product
-        // In a real app, this would be an environment variable
         const priceId = 'price_1P3y9eJ4tK7L6t8VfR6X0F2g'; // Example price ID for $7/month
 
         const session = await stripeClient.checkout.sessions.create({
@@ -289,7 +262,7 @@ app.post('/create-checkout-session', async (req, res) => {
                 },
             ],
             mode: 'subscription',
-            customer_email: email, // Pre-fill the user's email
+            customer_email: email, 
             success_url: `${YOUR_DOMAIN}?success=true&session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${YOUR_DOMAIN}?canceled=true`,
             metadata: {
