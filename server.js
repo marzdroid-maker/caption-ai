@@ -304,6 +304,62 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 });
 
+
+// --- Create a Stripe Connect account for a user (to receive referral payouts) ---
+app.post('/create-connect-account', async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email) {
+      return res.status(400).json({ error: 'Email required' });
+    }
+
+    // Create an Express Connect account for this user
+    const account = await stripe.accounts.create({
+      type: 'express',
+      email,
+      capabilities: {
+        transfers: { requested: true }
+      },
+      metadata: {
+        user_email: email
+      }
+    });
+
+    // Generate an onboarding link so they can complete KYC and enable payouts
+    const origin = req.headers.origin || process.env.APP_BASE_URL || 'https://example.com';
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: `${origin}/connect/onboarding/refresh`,
+      return_url: `${origin}/connect/onboarding/complete`,
+      type: 'account_onboarding'
+    });
+
+    // We use the Connect account ID as the referral code
+    const referralCode = account.id;
+
+    return res.json({
+      connectAccountId: account.id,
+      referralCode,
+      onboardingUrl: accountLink.url
+    });
+  } catch (err) {
+    console.error('Create Connect account error:', err.message);
+    return res.status(500).json({ error: 'Failed to create Connect account' });
+  }
+});
+
+// --- Simple endpoint to get a referral link for a given referralCode ---
+app.get('/referral-link', (req, res) => {
+  const referralCode = req.query.referralCode;
+  if (!referralCode) {
+    return res.status(400).json({ error: 'referralCode query parameter required' });
+  }
+
+  const origin = req.headers.origin || process.env.APP_BASE_URL || 'https://example.com';
+  const referralUrl = `${origin}/?ref=${encodeURIComponent(referralCode)}`;
+  return res.json({ referralUrl });
+});
+
 // Stripe webhook to mark user as subscribed (REVISED LOGIC to handle payment failed)
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -321,40 +377,90 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
   }
   
   switch (event.type) {
-    case 'checkout.session.completed':
-    case 'invoice.payment_succeeded': 
-        {
-            const session = event.data.object;
-            const email = session.customer_email || (session.metadata ? session.metadata.user_email : null);
-            if (email) {
-                const key = email.toLowerCase().trim();
-                // Mark as subscribed and reset generations upon successful payment
-                usage[key] = { generations: 0, subscribed: true };
-                console.log(`User subscribed: ${email}`);
-            }
-        }
-        break;
+    case 'checkout.session.completed': {
+      const session = event.data.object;
+      const email = session.customer_email || (session.metadata ? session.metadata.user_email : null);
 
-    case 'invoice.payment_failed': 
-        {
-            const invoice = event.data.object;
-            // Get email from invoice (or metadata if customer_email isn't directly present on invoice)
-            const email = invoice.customer_email || (invoice.metadata ? invoice.metadata.user_email : null);
+      if (email) {
+        const key = email.toLowerCase().trim();
+        // Mark as subscribed and reset generations upon successful payment
+        usage[key] = { generations: 0, subscribed: true };
+        console.log(`User subscribed via checkout.session.completed: ${email}`);
+      }
+      break;
+    }
 
-            if (email && !isVipEmail(email)) { // Do not reset VIP status
-                const { key, record } = getUserUsage(email);
-                record.subscribed = false;
-                record.generations = 0; // Reset count as access is revoked
-                console.log(`Subscription payment failed. User downgraded: ${email}`);
+    case 'invoice.payment_succeeded': {
+      const invoice = event.data.object;
+      const email = invoice.customer_email || (invoice.metadata ? invoice.metadata.user_email : null);
+
+      // Mark as subscribed in our in-memory usage map
+      if (email) {
+        const key = email.toLowerCase().trim();
+        usage[key] = { generations: 0, subscribed: true };
+        console.log(`User subscription payment succeeded: ${email}`);
+      }
+
+      // --- Referral commission logic (30% via Stripe Connect) ---
+      try {
+        const subscriptionId = invoice.subscription;
+        if (subscriptionId) {
+          // Retrieve subscription to access metadata, including referral_code
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          const referralCode = subscription.metadata && subscription.metadata.referral_code;
+
+          // We treat referralCode as the Stripe Connect account ID (e.g. acct_xxx)
+          if (referralCode && referralCode.startsWith('acct_')) {
+            const amountPaid = invoice.amount_paid; // in smallest currency unit (e.g. cents)
+            const currency = invoice.currency || 'usd';
+
+            // 30% commission
+            const commissionAmount = Math.round(amountPaid * 0.30);
+
+            if (commissionAmount > 0) {
+              await stripe.transfers.create({
+                amount: commissionAmount,
+                currency,
+                destination: referralCode,
+                metadata: {
+                  referral_code: referralCode,
+                  subscription_id: subscriptionId,
+                  invoice_id: invoice.id,
+                  type: 'referral_commission_30_percent'
+                }
+              });
+
+              console.log(
+                `Referral commission sent: ${commissionAmount} ${currency} to ${referralCode} for subscription ${subscriptionId}`
+              );
             }
+          }
         }
-        break;
+      } catch (err) {
+        console.error('Referral commission error (invoice.payment_succeeded):', err.message);
+      }
+
+      break;
+    }
+
+    case 'invoice.payment_failed': {
+      const invoice = event.data.object;
+      const email = invoice.customer_email || (invoice.metadata ? invoice.metadata.user_email : null);
+
+      if (email && !isVipEmail(email)) { // Do not reset VIP status
+        const { key, record } = getUserUsage(email);
+        record.subscribed = false;
+        record.generations = 0; // Reset count as access is revoked
+        console.log(`Subscription payment failed. User downgraded: ${email}`);
+      }
+      break;
+    }
 
     default:
-        // No action needed for other events
+      // No action needed for other events
   }
 
-  res.json({ received: true });
+res.json({ received: true });
 });
 
 // Health check
