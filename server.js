@@ -10,18 +10,6 @@ const PORT = process.env.PORT || 3000;
 // === CONFIG ===
 const FREE_TIER_LIMIT = 10; // 🔟 free generations per email
 
-// Load VIP emails from the JSON file
-const vipEmails = require('./free-pro-users.json').emails.map(e => e.toLowerCase().trim());
-
-// ADDED DEBUGGING LOG 
-console.log(`VIP list loaded. Found ${vipEmails.length} VIP emails.`);
-
-// Helper function for VIP check
-function isVipEmail(email) {
-  const key = email.toLowerCase().trim();
-  return vipEmails.includes(key);
-}
-
 // === MIDDLEWARE ===
 app.use(cors());
 
@@ -45,39 +33,27 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-// Small helper to get or init usage record (Updated to check VIP)
+// Small helper to get or init usage record
 function getUserUsage(email) {
   const key = email.toLowerCase().trim();
   if (!usage[key]) {
-    // Initialize VIP users as subscribed from the start
-    const isVip = isVipEmail(email);
-    usage[key] = { generations: 0, subscribed: isVip };
+    usage[key] = { generations: 0, subscribed: false };
   }
   return { key, record: usage[key] };
 }
 
-// === REVISED STRIPE CHECK (More robust logic) ===
 async function refreshStripeSubscriptionStatus(email) {
   try {
-    // 1. Find customer by email (Stripe can create multiple, we take the first)
-    const customers = await stripe.customers.list({ email, limit: 1 });
+    const customers = await stripe.customers.list({ email });
     if (customers.data.length === 0) return false;
 
     const customer = customers.data[0];
-
-    // 2. List active subscriptions specifically for that customer ID
-    const activeSubs = await stripe.subscriptions.list({
-        customer: customer.id,
-        status: 'active',
-        limit: 1 // We only need to know if at least one active subscription exists
-    });
-
-    return activeSubs.data.length > 0;
-
+    const subs = await stripe.subscriptions.list({ customer: customer.id });
+    const activeSub = subs.data.find(s => s.status === 'active');
+    return !!activeSub;
   } catch (err) {
-    // Returning null signals that the status is UNKNOWN due to API failure.
     console.error('Stripe subscription check failed:', err.message);
-    return null; 
+    return false;
   }
 }
 
@@ -98,22 +74,20 @@ app.post('/generate', async (req, res) => {
 
   const { key, record } = getUserUsage(email);
 
-  // === SUBSCRIPTION LOGIC START ===
-  const isCurrentlySubscribedOnStripe = await refreshStripeSubscriptionStatus(email);
-  
-  // If Stripe check succeeded and confirmed active, mark as subscribed
-  if (isCurrentlySubscribedOnStripe === true) {
+  // Check Stripe subscription (best-effort)
+  const isSubscribed = await refreshStripeSubscriptionStatus(email);
+    // Quick Patch C: Reset stale subscription state
+    if (!isSubscribed) {
+        const vip = isVipEmail(email);
+        if (!vip) {
+            record.subscribed = false;
+            record.generations = record.generations || 0;
+        }
+    }
+
+  if (isSubscribed) {
     record.subscribed = true;
-  } 
-  // If Stripe check succeeded and confirmed NOT active, AND the user is not a VIP,
-  // then we set subscribed to false and reset generations.
-  else if (isCurrentlySubscribedOnStripe === false && !isVipEmail(email)) {
-    record.subscribed = false;
-    record.generations = record.generations || 0; 
   }
-  // NOTE: If isCurrentlySubscribedOnStripe is null (Stripe error), 
-  // we rely on the existing 'record.subscribed' state.
-  // === SUBSCRIPTION LOGIC END ===
 
   // Enforce free tier
   if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
@@ -186,22 +160,20 @@ app.post('/optimize', async (req, res) => {
 
   const { key, record } = getUserUsage(email);
 
-  // === SUBSCRIPTION LOGIC START (Same as /generate) ===
-  const isCurrentlySubscribedOnStripe = await refreshStripeSubscriptionStatus(email);
+  // Check subscription again
+  const isSubscribed = await refreshStripeSubscriptionStatus(email);
+    // Quick Patch C: Reset stale subscription state
+    if (!isSubscribed) {
+        const vip = isVipEmail(email);
+        if (!vip) {
+            record.subscribed = false;
+            record.generations = record.generations || 0;
+        }
+    }
 
-  // If Stripe check succeeded and confirmed active, mark as subscribed
-  if (isCurrentlySubscribedOnStripe === true) {
+  if (isSubscribed) {
     record.subscribed = true;
   }
-  // If Stripe check succeeded and confirmed NOT active, AND the user is not a VIP,
-  // then we set subscribed to false and reset generations.
-  else if (isCurrentlySubscribedOnStripe === false && !isVipEmail(email)) {
-    record.subscribed = false;
-    record.generations = record.generations || 0;
-  }
-  // NOTE: If isCurrentlySubscribedOnStripe is null (Stripe error), 
-  // we rely on the existing 'record.subscribed' state.
-  // === SUBSCRIPTION LOGIC END ===
 
   // Enforce free tier for Boost calls as well
   if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
@@ -262,6 +234,7 @@ Format EXACTLY the same as before:
 });
 
 // Create checkout session
+
 app.post('/create-checkout-session', async (req, res) => {
   const { email, referralCode } = req.body || {};
   if (!email) return res.status(400).json({ error: 'Email required' });
@@ -298,7 +271,7 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 });
 
-// Stripe webhook to mark user as subscribed
+// Stripe webhook// Stripe webhook to mark user as subscribed
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -319,8 +292,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     const email = session.customer_email;
     if (email) {
       const key = email.toLowerCase().trim();
-      // When checkout completes, immediately mark the user as subscribed and reset generations
-      usage[key] = { generations: 0, subscribed: true }; 
+      usage[key] = { generations: 0, subscribed: true };
       console.log(`User subscribed: ${email}`);
     }
   }

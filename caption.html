@@ -667,13 +667,6 @@
   </div>
 
   <script>
-// --- Referral Code Capture ---
-const urlParams = new URLSearchParams(window.location.search);
-const referralCode = urlParams.get("ref") || "";
-localStorage.setItem("referralCode", referralCode);
-
-// ---
-
   document.addEventListener('DOMContentLoaded', () => {
     const API_URL = 'https://caption-ai-ze13.onrender.com';
     const MAX_FREE_USES = 10;
@@ -1527,7 +1520,7 @@ localStorage.setItem("referralCode", referralCode);
           const res = await fetch(`${API_URL}/create-checkout-session`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: userEmail, referralCode: localStorage.getItem('referralCode') || '' })
+            body: JSON.stringify({ email: userEmail })
           });
           const data = await res.json();
           if (data && data.url) {
