@@ -638,7 +638,10 @@
       }
     }
 
-    async function hydrateProFromServer() {
+    /**
+     * Checks subscription status from the server and updates client state (isPro, isVip).
+     */
+    async function hydrateSubscriptionState() { // <-- CORRECTED NAME
       if (!userEmail) return;
 
       try {
@@ -651,7 +654,7 @@
         localStorage.setItem('isVip', isVip ? 'true' : 'false');
         
       } catch (e) {
-        console.error('hydrateProFromServer error', e);
+        console.error('hydrateSubscriptionState error', e);
         isPro = false;
         isVip = false;
         localStorage.setItem('isPro', 'false');
@@ -771,7 +774,7 @@
      * Helper to run all post-login initialization
      */
     function onUserLoggedIn() {
-        hydrateProFromServer();
+        hydrateSubscriptionState(); // <-- CORRECTED CALL
         checkAffiliateStatus(); // New: Check affiliate status on login
         updateGenerateButtonState();
         showTab(currentTab);
@@ -779,8 +782,6 @@
 
 
     // --- AI / Analysis Logic (Rest of your existing code) ---
-
-    // ... (rest of the functions like generateDeterministicScore, detectPlatform, etc. go here if they were in the script block)
 
     // Placeholder for AI/Analysis helper functions
     const emojiMap = {
@@ -897,13 +898,13 @@
       } else {
         modal.style.display = 'none';
         mainApp.style.display = 'block';
-        onUserLoggedIn(); // Use the new combined function
+        onUserLoggedIn(); // <-- Corrected call
       }
       
       // Initial UI sync
       refreshProUI();
-      updateGenerateButtonState();
-      showTab(currentTab);
+      // updateGenerateButtonState(); // Redundant, included in onUserLoggedIn/hydrateSubscriptionState
+      // showTab(currentTab); // Redundant, included in onUserLoggedIn
 
 
       // --- Event Listeners ---
@@ -918,9 +919,7 @@
             modal.style.display = 'none';
             mainApp.style.display = 'block';
             userEmail = email;
-            onUserLoggedIn(); // Use the new combined function
-            updateGenerateButtonState();
-            showTab(currentTab);
+            onUserLoggedIn(); // <-- Corrected call
           } else {
             emailInput.style.borderColor = '#ef4444';
             emailInput.focus();
@@ -976,7 +975,8 @@
 
             if (resp.status === 402) {
               if (loadingEl) loadingEl.classList.add('hidden');
-              return; // Paywall is already visible/handled by refreshProUI
+              refreshProUI(); // Ensure paywall is shown if server blocks generation
+              return; 
             }
 
             const data = await resp.json();
