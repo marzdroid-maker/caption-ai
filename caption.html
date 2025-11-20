@@ -452,22 +452,51 @@
       <strong>💡 Today's Tip:</strong>
       <span id="dailyTipText">Loading a viral content tip...</span>
     </div>
-<div id="affiliateSection" style="margin-top:1.5rem; padding:1rem; border:1px solid #ddd; border-radius:10px; background:#fff;">
+<style>
+.affiliate-btn{
+  background:#4f6df5;
+  color:white;
+  padding:10px 18px;
+  border-radius:25px;
+  border:none;
+  font-size:14px;
+  cursor:pointer;
+  margin-top:10px;
+  width:fit-content;
+}
+.affiliate-btn.secondary{
+  background:white;
+  color:#4f6df5;
+  border:2px solid #4f6df5;
+}
+#affiliateSection{
+  margin-top:1.5rem;
+  padding:1rem;
+  border:1px solid #ddd;
+  border-radius:10px;
+  background:#fff;
+}
+</style>
+
+<div id="affiliateSection">
   <h3>🔥 Partner Program — Earn 30% for Life</h3>
   <p>Earn 30% lifetime commission for every subscriber you refer.</p>
-  <button id="becomeAffiliateBtn" class="btn-primary">Become an Affiliate</button>
-  <button id="getReferralLinkBtn" class="btn-primary" style="margin-left:10px;">Get Referral Link</button>
+  <button id="becomeAffiliateBtn" class="affiliate-btn">Become an Affiliate</button><br/>
+  <button id="getReferralLinkBtn" class="affiliate-btn secondary">Get Referral Link</button>
   <pre id="affiliateOutput" style="white-space:pre-wrap; margin-top:10px;"></pre>
 </div>
 
 <script>
 document.getElementById('becomeAffiliateBtn').addEventListener('click', async ()=>{
   const email = localStorage.getItem('userEmail');
-  if(!email){ alert('Enter your email first.'); return; }
-  const resp = await fetch('/create-connect-account', {
+  if(!email || email === "undefined" || !email.includes("@")){
+    alert("Please enter your email at the top first.");
+    return;
+  }
+  const resp = await fetch('/create-connect-account',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({ email })
+    body:JSON.stringify({email})
   });
   const data = await resp.json();
   document.getElementById('affiliateOutput').textContent =
@@ -477,15 +506,19 @@ document.getElementById('becomeAffiliateBtn').addEventListener('click', async ()
   localStorage.setItem('referralCode', data.referralCode);
 });
 
-document.getElementById('getReferralLinkBtn').addEventListener('click', async ()=>{
+document.getElementById('getReferralLinkBtn').addEventListener('click', async()=>{
   const referralCode = localStorage.getItem('referralCode');
-  if(!referralCode){ alert('Become an affiliate first.'); return; }
+  if(!referralCode){
+    alert("Become an affiliate first.");
+    return;
+  }
   const resp = await fetch('/referral-link?referralCode='+encodeURIComponent(referralCode));
   const data = await resp.json();
-  document.getElementById('affiliateOutput').textContent =
-    "Your Referral Link:\n" + data.referralUrl;
+  document.getElementById('affiliateOutput').textContent = "Your Referral Link:\n" + data.referralUrl;
 });
 </script>
+
+
 
 
     <div id="tabContainer">
