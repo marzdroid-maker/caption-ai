@@ -1,285 +1,334 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
-// const Database = require('better-sqlite3'); // <-- Ensure this module is NOT required
 const { Groq } = require('groq-sdk');
-const stripe = require('stripe');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-dotenv.config();
-
-// --- Configuration ---
-const STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
-const FREE_TIER_LIMIT = 10;
-
-if (!STRIPE_KEY || !GROQ_API_KEY || !STRIPE_WEBHOOK_SECRET) {
-  console.error("Missing required environment variables.");
-  process.exit(1);
-}
-
-// Initialize clients
-const groq = new Groq({ apiKey: GROQ_API_KEY });
-const stripeClient = stripe(STRIPE_KEY);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// In-memory data store for usage 
-const usage = {};
-const VIP_EMAILS = ['admin@caption.ai', 'vip@test.com'];
+// === CONFIG ===
+const FREE_TIER_LIMIT = 10; // 🔟 free generations per email
 
-// --- Utility Functions (Mocking a database) ---
+// Load VIP emails and define helper functions
+const vipEmails = require('./free-pro-users.json').emails.map(e => e.toLowerCase().trim());
+console.log(`VIP list loaded. Found ${vipEmails.length} VIP emails.`);
 
 function isVipEmail(email) {
-    return VIP_EMAILS.includes(email.toLowerCase());
+  const key = email.toLowerCase().trim();
+  return vipEmails.includes(key);
 }
 
+// === MIDDLEWARE ===
+app.use(cors());
+app.use(express.static('.'));
+
+// Parse JSON for all routes EXCEPT /webhook
+app.use((req, res, next) => {
+  if (req.originalUrl === '/webhook') {
+    next();
+  } else {
+    express.json()(req, res, next);
+  }
+});
+
+// === IN-MEMORY USAGE TRACKING ===
+const usage = {};
+
+// === GROQ AI SETUP ===
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+});
+
 function getUserUsage(email) {
-    const key = email.toLowerCase().trim();
-    if (!usage[key]) {
-        usage[key] = { subscribed: false, generations: 0, lastCheck: 0 };
-    }
-    return { key, record: usage[key] };
+  const key = email.toLowerCase().trim();
+  if (!usage[key]) {
+    const isVip = isVipEmail(email);
+    usage[key] = { generations: 0, subscribed: isVip };
+  }
+  return { key, record: usage[key] };
 }
 
 async function refreshStripeSubscriptionStatus(email) {
-    const { record } = getUserUsage(email);
-    
-    if (record.subscribed && (Date.now() - record.lastCheck < (1000 * 60 * 60 * 24))) {
-        return true;
-    }
+  try {
+    const customers = await stripe.customers.list({ email, limit: 1 });
+    if (customers.data.length === 0) return false;
 
-    record.lastCheck = Date.now();
-    return record.subscribed; 
+    const customer = customers.data[0];
+    const activeSubs = await stripe.subscriptions.list({
+        customer: customer.id,
+        status: 'active',
+        limit: 1 
+    });
+    return activeSubs.data.length > 0;
+  } catch (err) {
+    console.error('Stripe subscription check failed:', err.message);
+    return null; 
+  }
 }
 
+// === ROUTES ===
 
-// --- Middleware ---
-app.use(cors({
-    origin: ['http://localhost:8080', 'http://127.0.0.1:5500', 'https://caption-ai-ze13.onrender.com'], 
-    methods: 'GET,POST',
-    allowedHeaders: 'Content-Type',
-}));
-
-app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-    // ... (Stripe webhook logic is omitted for brevity but would go here) ...
-    res.json({ received: true });
-});
-
-app.use(express.json());
-
-
-// --- API Endpoints ---
-
-// 1. Check Subscription Status
 app.get('/check-subscription', async (req, res) => {
     const email = req.query.email;
+
     if (!email) {
-        return res.status(400).json({ error: 'Email required' });
+        return res.status(400).json({ error: 'Email query parameter required' });
     }
 
-    const isVipUser = isVipEmail(email);
-    const isSubscribed = await refreshStripeSubscriptionStatus(email);
+    const isVip = isVipEmail(email);
+    let isPro = false;
 
-    res.json({ isPro: isSubscribed || isVipUser, vip: isVipUser });
+    if (isVip) {
+        isPro = true;
+    } else {
+        const isStripeSubscribed = await refreshStripeSubscriptionStatus(email);
+        if (isStripeSubscribed === true) {
+            isPro = true;
+        }
+    }
+
+    res.json({ 
+        isPro: isPro,
+        isVip: isVip,
+    });
 });
 
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/caption.html');
+});
 
-// 2. Generate Content (Core AI Logic)
+// Generate captions
 app.post('/generate', async (req, res) => {
-    const { idea, platform, tone, email, currentGenerations } = req.body || {};
+  const { idea, platform, tone, email } = req.body || {};
 
-    if (!idea || !platform || !tone || !email) {
-        return res.status(400).json({ error: 'All fields required' });
-    }
+  if (!idea || !platform || !tone || !email) {
+    return res.status(400).json({ error: 'All fields required' });
+  }
 
-    const { key, record } = getUserUsage(email);
+  const { key, record } = getUserUsage(email);
 
-    if (record.generations === 0) {
-        record.generations = parseInt(currentGenerations) || 0; 
-    }
-    
-    const isVipUser = isVipEmail(email);
-    const isCurrentlySubscribed = await refreshStripeSubscriptionStatus(email);
-    
-    if (isCurrentlySubscribed) {
-        record.subscribed = true;
-    } else if (!isVipUser) {
-        record.subscribed = false;
-        record.generations = record.generations || 0; 
-    }
+  // Subscription Logic
+  const isVip = isVipEmail(email);
+  const isCurrentlySubscribedOnStripe = await refreshStripeSubscriptionStatus(email);
+  
+  if (isCurrentlySubscribedOnStripe === true) {
+    record.subscribed = true;
+  } 
+  else if (isCurrentlySubscribedOnStripe === false && !isVip) {
+    record.subscribed = false;
+    record.generations = record.generations || 0; 
+  }
+  if (isVip) {
+      record.subscribed = true;
+  }
 
-    if (isVipUser) {
-        record.subscribed = true;
-    }
-    
-    if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
-        return res.status(402).json({ error: 'Upgrade required' });
-    }
+  // Enforce free tier
+  if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
+    return res.status(402).json({ error: 'Upgrade required' });
+  }
 
-    record.generations += 1;
-    usage[key] = record; 
-    
-    const systemPrompt = `You are a viral social media content generator. Your task is to turn a simple "Post Idea" into a set of 5 professional, viral-ready caption options and a block of 30 highly relevant hashtags.
+  record.generations += 1;
+  usage[key] = record;
 
-Instructions:
-1. Generate 5 distinct caption ideas (numbered 1-5).
-2. The captions must match the requested Tone and Platform.
-3. Incorporate engaging elements (questions, hooks, emojis, CTAs).
-4. After the 5 captions, include a single "## Hashtags" section.
-5. Provide exactly 30 hashtags, separated by spaces. Use a mix of broad, medium, and niche tags.
-6. The final output MUST contain only the captions and hashtags. Do not include any introductory or concluding text outside of the requested format.
+  const prompt = `
+You are a viral social media copywriter.
 
-Example Format:
+Platform: ${platform}
+Tone: ${tone}
+Post Idea: "${idea}"
+
+Write:
+- 5 short, punchy captions (under 280 characters each)
+- 30 relevant, trending hashtags
+
+Rules:
+- Keep everything brand-safe.
+- Match the tone and platform norms.
+- Do NOT explain anything.
+- Do NOT number hashtags.
+
+Format exactly:
+
 ## Captions
-1. [Caption 1 text]
-2. [Caption 2 text]
-3. [Caption 3 text]
-4. [Caption 4 text]
-5. [Caption 5 text]
+1. "..."
+2. "..."
+3. "..."
+4. "..."
+5. "..."
 
 ## Hashtags
-#hashtag1 #hashtag2 #hashtag3 ... #hashtag30
-`;
-    
-    const userPrompt = `Post Idea: ${idea}\nPlatform: ${platform}\nTone: ${tone}`;
+#tag1 #tag2 #tag3 ...
+`.trim();
 
-    try {
-        const completion = await groq.chat.completions.create({
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userPrompt }
-            ],
-            model: "mixtral-8x7b-32768", 
-            temperature: 0.7,
-        });
+  try {
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: 'llama-3.3-70b-versatile',
+      temperature: 0.7,
+      max_tokens: 600,
+    });
 
-        const result = completion.choices[0]?.message?.content || 'No result generated.';
-        
-        res.json({ result, newGenerationsCount: record.generations, isPro: record.subscribed, vip: isVipUser }); 
-
-    } catch (err) {
-        console.error("GROQ API Error:", err);
-        record.generations -= 1; 
-        usage[key] = record;
-        res.status(500).json({ error: 'AI generation failed.' });
-    }
+    const result = completion.choices[0]?.message?.content || 'No result';
+    res.json({ result });
+  } catch (err) {
+    console.error('AI Error (/generate):', err.message);
+    res.status(500).json({ error: 'AI generation failed' });
+  }
 });
 
-
-// 3. Optimize Content (Boost Score)
+// Optimize / boost captions
 app.post('/optimize', async (req, res) => {
-    const { idea, platform, tone, email, captions, currentGenerations } = req.body || {};
+  const { idea, platform, tone, email, captions, previousScore } = req.body || {};
 
-    if (!captions || !email) {
-        return res.status(400).json({ error: 'Captions and email required' });
-    }
+  if (!idea || !platform || !tone || !email || !captions) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
 
-    const { key, record } = getUserUsage(email);
+  const { key, record } = getUserUsage(email);
 
-    if (record.generations === 0) {
-        record.generations = parseInt(currentGenerations) || 0; 
-    }
-    
-    const isVipUser = isVipEmail(email);
-    const isCurrentlySubscribed = await refreshStripeSubscriptionStatus(email);
-    
-    if (isCurrentlySubscribed) {
-        record.subscribed = true;
-    } else if (!isVipUser) {
-        record.subscribed = false;
-        record.generations = record.generations || 0; 
-    }
+  // Subscription Logic
+  const isVip = isVipEmail(email);
+  const isCurrentlySubscribedOnStripe = await refreshStripeSubscriptionStatus(email);
 
-    if (isVipUser) {
-        record.subscribed = true;
-    }
-    
-    if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
-        return res.status(402).json({ error: 'Upgrade required' });
-    }
+  if (isCurrentlySubscribedOnStripe === true) {
+    record.subscribed = true;
+  }
+  else if (isCurrentlySubscribedOnStripe === false && !isVip) {
+    record.subscribed = false;
+    record.generations = record.generations || 0;
+  }
+  if (isVip) {
+      record.subscribed = true;
+  }
 
-    record.generations += 1;
-    usage[key] = record; 
-    
-    const systemPrompt = `You are a viral social media optimization engine. Your task is to take a set of existing captions and hashtags and *improve* them for maximum engagement (saves, comments, shares) based on the target platform and tone.
+  // Enforce free tier for Boost calls as well
+  if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
+    return res.status(402).json({ error: 'Upgrade required' });
+  }
 
-Instructions for Optimization:
-1. Improve the hook of each caption (the first sentence) for better scroll-stopping power.
-2. Ensure there is a strong, specific Call-to-Action (CTA) in at least 3 of the 5 captions.
-3. Optimize the hashtag list for maximum niche relevance and discoverability. You must return exactly 30 hashtags.
-4. Maintain the original structure of 5 numbered captions followed by the "## Hashtags" block.
-5. The output MUST ONLY contain the revised captions and hashtags.
+  record.generations += 1;
+  usage[key] = record;
 
-Original Post Idea: ${idea}
-Target Platform: ${platform}
-Target Tone: ${tone}
-`;
-    
-    const userPrompt = `REVISE THESE CAPTIONS AND HASHTAGS:\n\n${captions}`;
+  const boostPrompt = `
+You are a senior social media copywriter.
+...
+`.trim();
 
-    try {
-        const completion = await groq.chat.completions.create({
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userPrompt }
-            ],
-            model: "mixtral-8x7b-32768",
-            temperature: 0.8,
-        });
+  try {
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: 'user', content: boostPrompt }],
+      model: 'llama-3.3-70b-versatile',
+      temperature: 0.8,
+      max_tokens: 700,
+    });
 
-        const result = completion.choices[0]?.message?.content || 'Optimization failed.';
-        
-        res.json({ result, newGenerationsCount: record.generations, isPro: record.subscribed, vip: isVipUser });
-
-    } catch (err) {
-        console.error("GROQ API Error:", err);
-        record.generations -= 1; 
-        usage[key] = record;
-        res.status(500).json({ error: 'AI optimization failed.' });
-    }
+    const result = completion.choices[0]?.message?.content || 'No result';
+    res.json({ result });
+  } catch (err) {
+    console.error('AI Error (/optimize):', err.message);
+    res.status(500).json({ error: 'AI optimization failed' });
+  }
 });
 
-
-// 4. Stripe Checkout Session Creation
+// Create checkout session
 app.post('/create-checkout-session', async (req, res) => {
-    const { email, referralCode } = req.body;
+  const { email, referralCode } = req.body || {};
+  if (!email) return res.status(400).json({ error: 'Email required' });
 
-    if (!email) {
-        return res.status(400).json({ error: 'Email required' });
-    }
-    
-    const YOUR_DOMAIN = 'https://caption-ai-ze13.onrender.com';
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: process.env.STRIPE_PRICE_ID,
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      customer_email: email,
+      success_url: `${req.headers.origin}?success=true`,
+      cancel_url: `${req.headers.origin}?canceled=true`,
+      metadata: {
+        user_email: email,
+        referral_code: referralCode || ''
+      },
+      subscription_data: {
+        metadata: {
+          user_email: email,
+          referral_code: referralCode || ''
+        }
+      }
+    });
 
-    try {
-        const priceId = 'price_1P3y9eJ4tK7L6t8VfR6X0F2g'; // Example price ID for $7/month
-
-        const session = await stripeClient.checkout.sessions.create({
-            line_items: [
-                {
-                    price: priceId,
-                    quantity: 1,
-                },
-            ],
-            mode: 'subscription',
-            customer_email: email, 
-            success_url: `${YOUR_DOMAIN}?success=true&session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${YOUR_DOMAIN}?canceled=true`,
-            metadata: {
-                referral_code: referralCode || 'none',
-                user_email: email,
-            },
-        });
-
-        res.json({ url: session.url });
-    } catch (error) {
-        console.error("Stripe Checkout Error:", error);
-        res.status(500).json({ error: 'Failed to create Stripe checkout session.' });
-    }
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error('Stripe Error (checkout):', err.message);
+    res.status(500).json({ error: 'Checkout failed' });
+  }
 });
 
+// Stripe webhook to mark user as subscribed (REVISED LOGIC to handle payment failed)
+app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
 
-// --- Server Start ---
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    console.error('Webhook signature failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+  
+  switch (event.type) {
+    case 'checkout.session.completed':
+    case 'invoice.payment_succeeded': 
+        {
+            const session = event.data.object;
+            const email = session.customer_email || (session.metadata ? session.metadata.user_email : null);
+            if (email) {
+                const key = email.toLowerCase().trim();
+                // Mark as subscribed and reset generations upon successful payment
+                usage[key] = { generations: 0, subscribed: true };
+                console.log(`User subscribed: ${email}`);
+            }
+        }
+        break;
+
+    case 'invoice.payment_failed': 
+        {
+            const invoice = event.data.object;
+            // Get email from invoice (or metadata if customer_email isn't directly present on invoice)
+            const email = invoice.customer_email || (invoice.metadata ? invoice.metadata.user_email : null);
+
+            if (email && !isVipEmail(email)) { // Do not reset VIP status
+                const { key, record } = getUserUsage(email);
+                record.subscribed = false;
+                record.generations = 0; // Reset count as access is revoked
+                console.log(`Subscription payment failed. User downgraded: ${email}`);
+            }
+        }
+        break;
+
+    default:
+        // No action needed for other events
+  }
+
+  res.json({ received: true });
+});
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
+// Start server
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Live URL: https://caption-ai-ze13.onrender.com`);
+  console.log(`Webhook URL: https://caption-ai-ze13.onrender.com/webhook`);
 });
