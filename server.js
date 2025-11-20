@@ -12,6 +12,8 @@ const FREE_TIER_LIMIT = 10; // 🔟 free generations per email
 
 // Load VIP emails from the JSON file
 const vipEmails = require('./free-pro-users.json').emails.map(e => e.toLowerCase().trim());
+
+// ADDED DEBUGGING LOG 
 console.log(`VIP list loaded. Found ${vipEmails.length} VIP emails.`);
 
 // Helper function for VIP check
@@ -40,10 +42,10 @@ const usage = {};
 
 // === GROQ AI SETUP ===
 const groq = new Groq({
-  apiKey: process.env.ENV.GROQ_API_KEY,
+  apiKey: process.env.GROQ_API_KEY,
 });
 
-// Small helper to get or init usage record
+// Small helper to get or init usage record (Updated to check VIP)
 function getUserUsage(email) {
   const key = email.toLowerCase().trim();
   if (!usage[key]) {
@@ -81,36 +83,6 @@ async function refreshStripeSubscriptionStatus(email) {
 
 // === ROUTES ===
 
-// New endpoint for the frontend to check subscription status
-app.get('/check-subscription', async (req, res) => {
-    const email = req.query.email;
-
-    if (!email) {
-        return res.status(400).json({ error: 'Email query parameter required' });
-    }
-
-    const isVip = isVipEmail(email);
-    let isPro = false;
-
-    if (isVip) {
-        isPro = true; // VIP users are Pro
-    } else {
-        // Only check Stripe if they are not VIP
-        const isStripeSubscribed = await refreshStripeSubscriptionStatus(email);
-        if (isStripeSubscribed === true) {
-            isPro = true; // Stripe active users are Pro
-        }
-        // No need to handle the in-memory update here, the /generate route will handle it 
-        // and the front-end just needs the status.
-    }
-
-    // This endpoint must return true if the user is EITHER a VIP OR a Stripe subscriber.
-    res.json({ 
-        isPro: isPro,
-        isVip: isVip,
-    });
-});
-
 // Homepage
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/caption.html');
@@ -127,7 +99,6 @@ app.post('/generate', async (req, res) => {
   const { key, record } = getUserUsage(email);
 
   // === SUBSCRIPTION LOGIC START ===
-  const isVip = isVipEmail(email);
   const isCurrentlySubscribedOnStripe = await refreshStripeSubscriptionStatus(email);
   
   // If Stripe check succeeded and confirmed active, mark as subscribed
@@ -136,16 +107,12 @@ app.post('/generate', async (req, res) => {
   } 
   // If Stripe check succeeded and confirmed NOT active, AND the user is not a VIP,
   // then we set subscribed to false and reset generations.
-  else if (isCurrentlySubscribedOnStripe === false && !isVip) {
+  else if (isCurrentlySubscribedOnStripe === false && !isVipEmail(email)) {
     record.subscribed = false;
     record.generations = record.generations || 0; 
   }
-  // The user is also subscribed if they are a VIP, regardless of Stripe check.
-  if (isVip) {
-      record.subscribed = true;
-  }
   // NOTE: If isCurrentlySubscribedOnStripe is null (Stripe error), 
-  // we rely on the existing 'record.subscribed' state, which is correct.
+  // we rely on the existing 'record.subscribed' state.
   // === SUBSCRIPTION LOGIC END ===
 
   // Enforce free tier
@@ -158,8 +125,33 @@ app.post('/generate', async (req, res) => {
 
   const prompt = `
 You are a viral social media copywriter.
-... (rest of prompt)
-`.trim(); // Prompt content removed for brevity but is unchanged.
+
+Platform: ${platform}
+Tone: ${tone}
+Post Idea: "${idea}"
+
+Write:
+- 5 short, punchy captions (under 280 characters each)
+- 30 relevant, trending hashtags
+
+Rules:
+- Keep everything brand-safe.
+- Match the tone and platform norms.
+- Do NOT explain anything.
+- Do NOT number hashtags.
+
+Format exactly:
+
+## Captions
+1. "..."
+2. "..."
+3. "..."
+4. "..."
+5. "..."
+
+## Hashtags
+#tag1 #tag2 #tag3 ...
+`.trim();
 
   try {
     const completion = await groq.chat.completions.create({
@@ -179,7 +171,14 @@ You are a viral social media copywriter.
 
 // Optimize / boost captions
 app.post('/optimize', async (req, res) => {
-  const { idea, platform, tone, email, captions, previousScore } = req.body || {};
+  const {
+    idea,
+    platform,
+    tone,
+    email,
+    captions,
+    previousScore,
+  } = req.body || {};
 
   if (!idea || !platform || !tone || !email || !captions) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -188,7 +187,6 @@ app.post('/optimize', async (req, res) => {
   const { key, record } = getUserUsage(email);
 
   // === SUBSCRIPTION LOGIC START (Same as /generate) ===
-  const isVip = isVipEmail(email);
   const isCurrentlySubscribedOnStripe = await refreshStripeSubscriptionStatus(email);
 
   // If Stripe check succeeded and confirmed active, mark as subscribed
@@ -197,14 +195,12 @@ app.post('/optimize', async (req, res) => {
   }
   // If Stripe check succeeded and confirmed NOT active, AND the user is not a VIP,
   // then we set subscribed to false and reset generations.
-  else if (isCurrentlySubscribedOnStripe === false && !isVip) {
+  else if (isCurrentlySubscribedOnStripe === false && !isVipEmail(email)) {
     record.subscribed = false;
     record.generations = record.generations || 0;
   }
-  // The user is also subscribed if they are a VIP, regardless of Stripe check.
-  if (isVip) {
-      record.subscribed = true;
-  }
+  // NOTE: If isCurrentlySubscribedOnStripe is null (Stripe error), 
+  // we rely on the existing 'record.subscribed' state.
   // === SUBSCRIPTION LOGIC END ===
 
   // Enforce free tier for Boost calls as well
@@ -217,8 +213,37 @@ app.post('/optimize', async (req, res) => {
 
   const boostPrompt = `
 You are a senior social media copywriter.
-... (rest of boostPrompt)
-`.trim(); // Prompt content removed for brevity but is unchanged.
+
+A creator has this current AI output:
+
+${captions}
+
+Platform: ${platform}
+Tone: ${tone}
+Idea: "${idea}"
+Current engagement score (0-100): ${typeof previousScore === 'number' ? previousScore : 'unknown'}
+
+Your job:
+- Rewrite the 5 captions and hashtags to realistically increase engagement.
+- Make hooks stronger, CTAs clearer, and hashtags more targeted and niche-rich.
+- Keep the core idea and brand-safe tone.
+- Keep length in a similar range (don't write a novel).
+- Match platform norms (LinkedIn more professional, TikTok more playful, etc.).
+- Do NOT explain what you did.
+- Do NOT add extra sections.
+
+Format EXACTLY the same as before:
+
+## Captions
+1. "..."
+2. "..."
+3. "..."
+4. "..."
+5. "..."
+
+## Hashtags
+#tag1 #tag2 #tag3 ...
+`.trim();
 
   try {
     const completion = await groq.chat.completions.create({
@@ -238,71 +263,69 @@ You are a senior social media copywriter.
 
 // Create checkout session
 app.post('/create-checkout-session', async (req, res) => {
-    // ... (unchanged)
-    const { email, referralCode } = req.body || {};
-    if (!email) return res.status(400).json({ error: 'Email required' });
+  const { email, referralCode } = req.body || {};
+  if (!email) return res.status(400).json({ error: 'Email required' });
 
-    try {
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            line_items: [
-                {
-                    price: process.env.STRIPE_PRICE_ID,
-                    quantity: 1,
-                },
-            ],
-            mode: 'subscription',
-            customer_email: email,
-            success_url: `${req.headers.origin}?success=true`,
-            cancel_url: `${req.headers.origin}?canceled=true`,
-            metadata: {
-                user_email: email,
-                referral_code: referralCode || ''
-            },
-            subscription_data: {
-                metadata: {
-                    user_email: email,
-                    referral_code: referralCode || ''
-                }
-            }
-        });
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: process.env.STRIPE_PRICE_ID,
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      customer_email: email,
+      success_url: `${req.headers.origin}?success=true`,
+      cancel_url: `${req.headers.origin}?canceled=true`,
+      metadata: {
+        user_email: email,
+        referral_code: referralCode || ''
+      },
+      subscription_data: {
+        metadata: {
+          user_email: email,
+          referral_code: referralCode || ''
+        }
+      }
+    });
 
-        res.json({ url: session.url });
-    } catch (err) {
-        console.error('Stripe Error (checkout):', err.message);
-        res.status(500).json({ error: 'Checkout failed' });
-    }
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error('Stripe Error (checkout):', err.message);
+    res.status(500).json({ error: 'Checkout failed' });
+  }
 });
 
 // Stripe webhook to mark user as subscribed
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-    // ... (unchanged)
-    const sig = req.headers['stripe-signature'];
-    let event;
+  const sig = req.headers['stripe-signature'];
+  let event;
 
-    try {
-        event = stripe.webhooks.constructEvent(
-            req.body,
-            sig,
-            process.env.STRIPE_WEBHOOK_SECRET
-        );
-    } catch (err) {
-        console.error('Webhook signature failed:', err.message);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    console.error('Webhook signature failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const email = session.customer_email;
+    if (email) {
+      const key = email.toLowerCase().trim();
+      // When checkout completes, immediately mark the user as subscribed and reset generations
+      usage[key] = { generations: 0, subscribed: true }; 
+      console.log(`User subscribed: ${email}`);
     }
+  }
 
-    if (event.type === 'checkout.session.completed') {
-        const session = event.data.object;
-        const email = session.customer_email;
-        if (email) {
-            const key = email.toLowerCase().trim();
-            // When checkout completes, immediately mark the user as subscribed and reset generations
-            usage[key] = { generations: 0, subscribed: true };
-            console.log(`User subscribed: ${email}`);
-        }
-    }
-
-    res.json({ received: true });
+  res.json({ received: true });
 });
 
 // Health check
