@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 // === CONFIG ===
 const FREE_TIER_LIMIT = 10; // 🔟 free generations per email
 
-// Fix 1: Load VIP emails and define helper functions
+// Load VIP emails and define helper functions
 const vipEmails = require('./free-pro-users.json').emails.map(e => e.toLowerCase().trim());
 console.log(`VIP list loaded. Found ${vipEmails.length} VIP emails.`);
 
@@ -21,8 +21,6 @@ function isVipEmail(email) {
 
 // === MIDDLEWARE ===
 app.use(cors());
-
-// Serve static files (caption.html, terms, etc.)
 app.use(express.static('.'));
 
 // Parse JSON for all routes EXCEPT /webhook
@@ -42,11 +40,9 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-// Fix 2: Update getUserUsage to check VIP status on initialization
 function getUserUsage(email) {
   const key = email.toLowerCase().trim();
   if (!usage[key]) {
-    // Initialize VIP users as subscribed from the start
     const isVip = isVipEmail(email);
     usage[key] = { generations: 0, subscribed: isVip };
   }
@@ -55,7 +51,6 @@ function getUserUsage(email) {
 
 async function refreshStripeSubscriptionStatus(email) {
   try {
-    // Use a more robust check: find the customer, then check their subscriptions
     const customers = await stripe.customers.list({ email, limit: 1 });
     if (customers.data.length === 0) return false;
 
@@ -68,14 +63,12 @@ async function refreshStripeSubscriptionStatus(email) {
     return activeSubs.data.length > 0;
   } catch (err) {
     console.error('Stripe subscription check failed:', err.message);
-    // Return null to signal UNKNOWN status, allowing existing state to persist
     return null; 
   }
 }
 
 // === ROUTES ===
 
-// Fix 4: Add missing endpoint for the frontend to check subscription status
 app.get('/check-subscription', async (req, res) => {
     const email = req.query.email;
 
@@ -89,21 +82,18 @@ app.get('/check-subscription', async (req, res) => {
     if (isVip) {
         isPro = true;
     } else {
-        // Only check Stripe if they are not VIP
         const isStripeSubscribed = await refreshStripeSubscriptionStatus(email);
         if (isStripeSubscribed === true) {
             isPro = true;
         }
     }
 
-    // Returns true if the user is EITHER a VIP OR a Stripe subscriber.
     res.json({ 
         isPro: isPro,
         isVip: isVip,
     });
 });
 
-// Homepage
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/caption.html');
 });
@@ -118,23 +108,20 @@ app.post('/generate', async (req, res) => {
 
   const { key, record } = getUserUsage(email);
 
-  // Fix 3: Refactored Subscription Logic
+  // Subscription Logic
   const isVip = isVipEmail(email);
   const isCurrentlySubscribedOnStripe = await refreshStripeSubscriptionStatus(email);
   
   if (isCurrentlySubscribedOnStripe === true) {
     record.subscribed = true;
   } 
-  // If Stripe confirms inactive AND they are not VIP, set subscribed to false.
   else if (isCurrentlySubscribedOnStripe === false && !isVip) {
     record.subscribed = false;
     record.generations = record.generations || 0; 
   }
-  // VIP status guarantees subscribed = true
   if (isVip) {
       record.subscribed = true;
   }
-  // End Fix 3
 
   // Enforce free tier
   if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
@@ -146,7 +133,32 @@ app.post('/generate', async (req, res) => {
 
   const prompt = `
 You are a viral social media copywriter.
-...
+
+Platform: ${platform}
+Tone: ${tone}
+Post Idea: "${idea}"
+
+Write:
+- 5 short, punchy captions (under 280 characters each)
+- 30 relevant, trending hashtags
+
+Rules:
+- Keep everything brand-safe.
+- Match the tone and platform norms.
+- Do NOT explain anything.
+- Do NOT number hashtags.
+
+Format exactly:
+
+## Captions
+1. "..."
+2. "..."
+3. "..."
+4. "..."
+5. "..."
+
+## Hashtags
+#tag1 #tag2 #tag3 ...
 `.trim();
 
   try {
@@ -167,14 +179,7 @@ You are a viral social media copywriter.
 
 // Optimize / boost captions
 app.post('/optimize', async (req, res) => {
-  const {
-    idea,
-    platform,
-    tone,
-    email,
-    captions,
-    previousScore,
-  } = req.body || {};
+  const { idea, platform, tone, email, captions, previousScore } = req.body || {};
 
   if (!idea || !platform || !tone || !email || !captions) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -182,7 +187,7 @@ app.post('/optimize', async (req, res) => {
 
   const { key, record } = getUserUsage(email);
 
-  // Fix 3: Refactored Subscription Logic (Same as /generate)
+  // Subscription Logic
   const isVip = isVipEmail(email);
   const isCurrentlySubscribedOnStripe = await refreshStripeSubscriptionStatus(email);
 
@@ -196,7 +201,6 @@ app.post('/optimize', async (req, res) => {
   if (isVip) {
       record.subscribed = true;
   }
-  // End Fix 3
 
   // Enforce free tier for Boost calls as well
   if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
@@ -264,7 +268,7 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 });
 
-// Stripe webhook to mark user as subscribed
+// Stripe webhook to mark user as subscribed (REVISED LOGIC)
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -279,16 +283,31 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     console.error('Webhook signature failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
+  
+  switch (event.type) {
+    case 'checkout.session.completed':
+    case 'invoice.payment_succeeded': 
+        {
+            const session = event.data.object;
+            // The email might be on the session or in the metadata, depending on the event
+            const email = session.customer_email || (session.metadata ? session.metadata.user_email : null);
+            if (email) {
+                const key = email.toLowerCase().trim();
+                // Mark as subscribed and reset generations upon successful payment
+                usage[key] = { generations: 0, subscribed: true };
+                console.log(`User subscribed: ${email}`);
+            }
+        }
+        break;
 
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-    const email = session.customer_email;
-    if (email) {
-      const key = email.toLowerCase().trim();
-      // When checkout completes, immediately mark the user as subscribed and reset generations
-      usage[key] = { generations: 0, subscribed: true };
-      console.log(`User subscribed: ${email}`);
-    }
+    // IMPORTANT: We explicitly ignore 'customer.subscription.deleted' 
+    // to allow the user to continue using their subscription until the paid period ends.
+    // The regular API calls (/generate, /optimize, /check-subscription) will automatically
+    // downgrade the user when the subscription's status changes from 'active' to 'canceled'
+    // after the current billing period expires.
+
+    default:
+        // No action needed for other events
   }
 
   res.json({ received: true });
