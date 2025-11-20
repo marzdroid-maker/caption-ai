@@ -76,6 +76,15 @@ app.post('/generate', async (req, res) => {
 
   // Check Stripe subscription (best-effort)
   const isSubscribed = await refreshStripeSubscriptionStatus(email);
+    // Quick Patch C: Reset stale subscription state
+    if (!isSubscribed) {
+        const vip = isVipEmail(email);
+        if (!vip) {
+            record.subscribed = false;
+            record.generations = record.generations || 0;
+        }
+    }
+
   if (isSubscribed) {
     record.subscribed = true;
   }
@@ -153,6 +162,15 @@ app.post('/optimize', async (req, res) => {
 
   // Check subscription again
   const isSubscribed = await refreshStripeSubscriptionStatus(email);
+    // Quick Patch C: Reset stale subscription state
+    if (!isSubscribed) {
+        const vip = isVipEmail(email);
+        if (!vip) {
+            record.subscribed = false;
+            record.generations = record.generations || 0;
+        }
+    }
+
   if (isSubscribed) {
     record.subscribed = true;
   }
@@ -223,7 +241,6 @@ app.post('/create-checkout-session', async (req, res) => {
 
   try {
     const session = await stripe.checkout.sessions.create({
-      metadata: { referralCode: referralCode || '' },
       payment_method_types: ['card'],
       line_items: [
         {
