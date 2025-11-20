@@ -665,6 +665,19 @@
     const mainApp      = document.getElementById('mainApp');
     const emailInput   = document.getElementById('emailInput');
     const emailSubmit  = document.getElementById('emailSubmit');
+emailSubmit.addEventListener('click', () => {
+   const email = (emailInput.value || '').trim();
+   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { 
+        emailInput.style.borderColor='#ef4444'; 
+        return;
+   }
+   localStorage.setItem('userEmail', email);
+   userEmail = email;
+   modal.style.display='none';
+   mainApp.style.display='block';
+   updateReferralUI();
+});
+
 
     const ideaInput    = document.getElementById('idea');
     const platformSel  = document.getElementById('platform');
