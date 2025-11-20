@@ -10,6 +10,15 @@ const PORT = process.env.PORT || 3000;
 // === CONFIG ===
 const FREE_TIER_LIMIT = 10; // 🔟 free generations per email
 
+// Fix 1: Load VIP emails and define helper functions
+const vipEmails = require('./free-pro-users.json').emails.map(e => e.toLowerCase().trim());
+console.log(`VIP list loaded. Found ${vipEmails.length} VIP emails.`);
+
+function isVipEmail(email) {
+  const key = email.toLowerCase().trim();
+  return vipEmails.includes(key);
+}
+
 // === MIDDLEWARE ===
 app.use(cors());
 
@@ -33,31 +42,66 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-// Small helper to get or init usage record
+// Fix 2: Update getUserUsage to check VIP status on initialization
 function getUserUsage(email) {
   const key = email.toLowerCase().trim();
   if (!usage[key]) {
-    usage[key] = { generations: 0, subscribed: false };
+    // Initialize VIP users as subscribed from the start
+    const isVip = isVipEmail(email);
+    usage[key] = { generations: 0, subscribed: isVip };
   }
   return { key, record: usage[key] };
 }
 
 async function refreshStripeSubscriptionStatus(email) {
   try {
-    const customers = await stripe.customers.list({ email });
+    // Use a more robust check: find the customer, then check their subscriptions
+    const customers = await stripe.customers.list({ email, limit: 1 });
     if (customers.data.length === 0) return false;
 
     const customer = customers.data[0];
-    const subs = await stripe.subscriptions.list({ customer: customer.id });
-    const activeSub = subs.data.find(s => s.status === 'active');
-    return !!activeSub;
+    const activeSubs = await stripe.subscriptions.list({
+        customer: customer.id,
+        status: 'active',
+        limit: 1 
+    });
+    return activeSubs.data.length > 0;
   } catch (err) {
     console.error('Stripe subscription check failed:', err.message);
-    return false;
+    // Return null to signal UNKNOWN status, allowing existing state to persist
+    return null; 
   }
 }
 
 // === ROUTES ===
+
+// Fix 4: Add missing endpoint for the frontend to check subscription status
+app.get('/check-subscription', async (req, res) => {
+    const email = req.query.email;
+
+    if (!email) {
+        return res.status(400).json({ error: 'Email query parameter required' });
+    }
+
+    const isVip = isVipEmail(email);
+    let isPro = false;
+
+    if (isVip) {
+        isPro = true;
+    } else {
+        // Only check Stripe if they are not VIP
+        const isStripeSubscribed = await refreshStripeSubscriptionStatus(email);
+        if (isStripeSubscribed === true) {
+            isPro = true;
+        }
+    }
+
+    // Returns true if the user is EITHER a VIP OR a Stripe subscriber.
+    res.json({ 
+        isPro: isPro,
+        isVip: isVip,
+    });
+});
 
 // Homepage
 app.get('/', (req, res) => {
@@ -74,20 +118,23 @@ app.post('/generate', async (req, res) => {
 
   const { key, record } = getUserUsage(email);
 
-  // Check Stripe subscription (best-effort)
-  const isSubscribed = await refreshStripeSubscriptionStatus(email);
-    // Quick Patch C: Reset stale subscription state
-    if (!isSubscribed) {
-        const vip = isVipEmail(email);
-        if (!vip) {
-            record.subscribed = false;
-            record.generations = record.generations || 0;
-        }
-    }
-
-  if (isSubscribed) {
+  // Fix 3: Refactored Subscription Logic
+  const isVip = isVipEmail(email);
+  const isCurrentlySubscribedOnStripe = await refreshStripeSubscriptionStatus(email);
+  
+  if (isCurrentlySubscribedOnStripe === true) {
     record.subscribed = true;
+  } 
+  // If Stripe confirms inactive AND they are not VIP, set subscribed to false.
+  else if (isCurrentlySubscribedOnStripe === false && !isVip) {
+    record.subscribed = false;
+    record.generations = record.generations || 0; 
   }
+  // VIP status guarantees subscribed = true
+  if (isVip) {
+      record.subscribed = true;
+  }
+  // End Fix 3
 
   // Enforce free tier
   if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
@@ -99,32 +146,7 @@ app.post('/generate', async (req, res) => {
 
   const prompt = `
 You are a viral social media copywriter.
-
-Platform: ${platform}
-Tone: ${tone}
-Post Idea: "${idea}"
-
-Write:
-- 5 short, punchy captions (under 280 characters each)
-- 30 relevant, trending hashtags
-
-Rules:
-- Keep everything brand-safe.
-- Match the tone and platform norms.
-- Do NOT explain anything.
-- Do NOT number hashtags.
-
-Format exactly:
-
-## Captions
-1. "..."
-2. "..."
-3. "..."
-4. "..."
-5. "..."
-
-## Hashtags
-#tag1 #tag2 #tag3 ...
+...
 `.trim();
 
   try {
@@ -160,20 +182,21 @@ app.post('/optimize', async (req, res) => {
 
   const { key, record } = getUserUsage(email);
 
-  // Check subscription again
-  const isSubscribed = await refreshStripeSubscriptionStatus(email);
-    // Quick Patch C: Reset stale subscription state
-    if (!isSubscribed) {
-        const vip = isVipEmail(email);
-        if (!vip) {
-            record.subscribed = false;
-            record.generations = record.generations || 0;
-        }
-    }
+  // Fix 3: Refactored Subscription Logic (Same as /generate)
+  const isVip = isVipEmail(email);
+  const isCurrentlySubscribedOnStripe = await refreshStripeSubscriptionStatus(email);
 
-  if (isSubscribed) {
+  if (isCurrentlySubscribedOnStripe === true) {
     record.subscribed = true;
   }
+  else if (isCurrentlySubscribedOnStripe === false && !isVip) {
+    record.subscribed = false;
+    record.generations = record.generations || 0;
+  }
+  if (isVip) {
+      record.subscribed = true;
+  }
+  // End Fix 3
 
   // Enforce free tier for Boost calls as well
   if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
@@ -185,36 +208,7 @@ app.post('/optimize', async (req, res) => {
 
   const boostPrompt = `
 You are a senior social media copywriter.
-
-A creator has this current AI output:
-
-${captions}
-
-Platform: ${platform}
-Tone: ${tone}
-Idea: "${idea}"
-Current engagement score (0-100): ${typeof previousScore === 'number' ? previousScore : 'unknown'}
-
-Your job:
-- Rewrite the 5 captions and hashtags to realistically increase engagement.
-- Make hooks stronger, CTAs clearer, and hashtags more targeted and niche-rich.
-- Keep the core idea and brand-safe tone.
-- Keep length in a similar range (don't write a novel).
-- Match platform norms (LinkedIn more professional, TikTok more playful, etc.).
-- Do NOT explain what you did.
-- Do NOT add extra sections.
-
-Format EXACTLY the same as before:
-
-## Captions
-1. "..."
-2. "..."
-3. "..."
-4. "..."
-5. "..."
-
-## Hashtags
-#tag1 #tag2 #tag3 ...
+...
 `.trim();
 
   try {
@@ -234,7 +228,6 @@ Format EXACTLY the same as before:
 });
 
 // Create checkout session
-
 app.post('/create-checkout-session', async (req, res) => {
   const { email, referralCode } = req.body || {};
   if (!email) return res.status(400).json({ error: 'Email required' });
@@ -271,7 +264,7 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 });
 
-// Stripe webhook// Stripe webhook to mark user as subscribed
+// Stripe webhook to mark user as subscribed
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -292,6 +285,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     const email = session.customer_email;
     if (email) {
       const key = email.toLowerCase().trim();
+      // When checkout completes, immediately mark the user as subscribed and reset generations
       usage[key] = { generations: 0, subscribed: true };
       console.log(`User subscribed: ${email}`);
     }
