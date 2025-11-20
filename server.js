@@ -1,51 +1,72 @@
-// --- Only this function body changes in server.js ---
-app.post('/generate', async (req, res) => {
-  const { idea, platform, tone, email, currentGenerations } = req.body || {}; // <-- ADDED: currentGenerations
+// --- caption.html: inside tryBoost function ---
+async function tryBoost() {
+  if (hasBoostedCurrentOutput) return;
+  if (!lastResultText || !lastIdea || !lastPlatform || !lastTone) return;
 
-  if (!idea || !platform || !tone || !email) {
-    return res.status(400).json({ error: 'All fields required' });
-  }
-
-  const { key, record } = getUserUsage(email);
-
-  // Set initial generations count from client if it's the first time seeing this user
-  if (record.generations === 0) {
-      // Use the count from localStorage, but default to 0
-      record.generations = parseInt(currentGenerations) || 0; 
-  }
-  
-  // Subscription Logic (Unchanged from your last working version)
-  const isVip = isVipEmail(email);
-  const isCurrentlySubscribedOnStripe = await refreshStripeSubscriptionStatus(email);
-  
-  // ... (rest of the subscription logic is the same) ...
-  if (isCurrentlySubscribedOnStripe === true) {
-    record.subscribed = true;
-  } 
-  else if (isCurrentlySubscribedOnStripe === false && !isVip) {
-    record.subscribed = false;
-    record.generations = record.generations || 0; 
-  }
-  if (isVip) {
-      record.subscribed = true;
-  }
-  
-  // Enforce free tier
-  if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
-    return res.status(402).json({ error: 'Upgrade required' });
+  if (!isPro && freeUses >= MAX_FREE_USES) {
+    if (paywallEl) paywallEl.classList.remove("hidden");
+    return;
   }
 
-  record.generations += 1;
-  usage[key] = record;
-  // ... (rest of AI generation code is the same) ...
+  boostBtn.disabled = true;
+  boostBtn.textContent = "Boosting...";
 
   try {
-    // ... AI call ...
-    const result = completion.choices[0]?.message?.content || 'No result';
+    const res = await fetch(`${API_URL}/optimize`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        idea: lastIdea,
+        platform: lastPlatform,
+        tone: lastTone,
+        email: userEmail,
+        captions: lastResultText,
+        previousScore: lastScore,
+        currentGenerations: freeUses // ⬅️ CRITICAL: Send current usage count
+      })
+    });
+
+    const data = await res.json();
+
+    if (res.status === 402) {
+      showToast("Free generations exhausted. Please upgrade!", 'error');
+      if (paywallEl) paywallEl.classList.remove("hidden");
+      return;
+    }
     
-    // IMPORTANT: Send back the NEW count so the client can save it
-    res.json({ result, newGenerationsCount: record.generations }); // <-- ADDED: newGenerationsCount
+    // Server-side error (500)
+    if (!res.ok) {
+        throw new Error(data.error || 'Server error');
+    }
+
+    if (res.ok && data.result) {
+      showToast("Boost successful! New result generated.", 'success');
+      lastResultText = data.result;
+      if (outputEl) outputEl.textContent = data.result;
+      
+      const newScore = computeEngagementScore(data.result, lastIdea, lastPlatform, lastTone);
+      lastScore = newScore;
+      updateEngagementUI(newScore, true);
+      
+      // Update count from server response
+      if (!isPro && typeof data.newGenerationsCount === 'number') { 
+        freeUses = data.newGenerationsCount; 
+        localStorage.setItem('freeUses', String(freeUses)); 
+        updateFreeUsageBar();
+      }
+
+    } else {
+        showToast("Boost failed. Please try again.", 'error');
+    }
+
   } catch (err) {
-    // ... error handling ...
+    console.error("Boost error:", err);
+    showToast(`Error: ${err.message}`, 'error');
+  } finally {
+    hasBoostedCurrentOutput = true;
+    boostBtn.disabled = true;
+    boostBtn.classList.add("used");
+    boostBtn.textContent = "Boost Applied";
+    updateGenerateButtonState();
   }
-});
+}

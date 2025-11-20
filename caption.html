@@ -923,10 +923,6 @@ localStorage.setItem("referralCode", referralCode);
       return min + frac * (max - min);
     }
 
-    // --- Engagement scoring (Option C: nuanced & less predictable) ---
-        // --- Engagement scoring (Option A: calmer + platform-aware) ---
-    // --- Engagement scoring (Rebalanced across all platforms) ---
-    
     // --- Engagement scoring (Rebalanced across all platforms) ---
     function computeEngagementScore(text, idea, platform, tone) {
         if (!text || typeof text !== "string") return 30;
@@ -1194,7 +1190,7 @@ localStorage.setItem("referralCode", referralCode);
         const res = await fetch(`${API_URL}/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idea, platform, tone, email: userEmail, currentGenerations: freeUses }) // ⬅️ **MODIFIED: Send current usage**
+          body: JSON.stringify({ idea, platform, tone, email: userEmail, currentGenerations: freeUses }) // ⬅️ **Send current usage**
         });
 
         const data = await res.json();
@@ -1218,9 +1214,9 @@ localStorage.setItem("referralCode", referralCode);
           lastScore = score;
           updateEngagementUI(score, false);
 
-          if (!isPro && typeof data.newGenerationsCount === 'number') { // ⬅️ **MODIFIED: Check for server count**
-            freeUses = data.newGenerationsCount; // ⬅️ **MODIFIED: Use server's authoritative count**
-            localStorage.setItem('freeUses', String(freeUses)); // ⬅️ **MODIFIED: Save new count**
+          if (!isPro && typeof data.newGenerationsCount === 'number') { // ⬅️ **Use server's authoritative count**
+            freeUses = data.newGenerationsCount; 
+            localStorage.setItem('freeUses', String(freeUses)); 
             updateFreeUsageBar();
           }
         }
@@ -1286,7 +1282,7 @@ localStorage.setItem("referralCode", referralCode);
                     email: userEmail,
                     captions: lastResultText,
                     previousScore: lastScore,
-                    currentGenerations: freeUses // ⬅️ **MODIFIED: Send current usage**
+                    currentGenerations: freeUses // ⬅️ **CRITICAL FIX: Send current usage**
                 })
             });
     
@@ -1335,9 +1331,9 @@ localStorage.setItem("referralCode", referralCode);
                 lastScore = boostedScore;
                 updateEngagementUI(boostedScore, true);
 
-                if (!isPro && typeof data.newGenerationsCount === 'number') { // ⬅️ **MODIFIED: Check for server count**
-                    freeUses = data.newGenerationsCount; // ⬅️ **MODIFIED: Use server's authoritative count**
-                    localStorage.setItem('freeUses', String(freeUses)); // ⬅️ **MODIFIED: Save new count**
+                if (!isPro && typeof data.newGenerationsCount === 'number') { // ⬅️ **Use server's authoritative count**
+                    freeUses = data.newGenerationsCount; 
+                    localStorage.setItem('freeUses', String(freeUses)); 
                     updateFreeUsageBar();
                 }
 
