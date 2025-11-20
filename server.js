@@ -42,7 +42,7 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-// Small helper to get or init usage record (UPDATED TO CHECK VIP)
+// Small helper to get or init usage record (Updated to check VIP)
 function getUserUsage(email) {
   const key = email.toLowerCase().trim();
   if (!usage[key]) {
@@ -53,18 +53,26 @@ function getUserUsage(email) {
   return { key, record: usage[key] };
 }
 
+// === REVISED STRIPE CHECK (More robust logic) ===
 async function refreshStripeSubscriptionStatus(email) {
   try {
-    const customers = await stripe.customers.list({ email });
+    // 1. Find customer by email (Stripe can create multiple, we take the first)
+    const customers = await stripe.customers.list({ email, limit: 1 });
     if (customers.data.length === 0) return false;
 
     const customer = customers.data[0];
-    const subs = await stripe.subscriptions.list({ customer: customer.id });
-    const activeSub = subs.data.find(s => s.status === 'active');
-    return !!activeSub;
+
+    // 2. List active subscriptions specifically for that customer ID
+    const activeSubs = await stripe.subscriptions.list({
+        customer: customer.id,
+        status: 'active',
+        limit: 1 // We only need to know if at least one active subscription exists
+    });
+
+    return activeSubs.data.length > 0;
+
   } catch (err) {
-    // CRITICAL: Do NOT return false on error. Return undefined/null 
-    // to signal the status is UNKNOWN due to API failure.
+    // Returning null signals that the status is UNKNOWN due to API failure.
     console.error('Stripe subscription check failed:', err.message);
     return null; 
   }
@@ -95,10 +103,10 @@ app.post('/generate', async (req, res) => {
     record.subscribed = true;
   } 
   // If Stripe check succeeded and confirmed NOT active, AND the user is not a VIP,
-  // then we set subscribed to false.
+  // then we set subscribed to false and reset generations.
   else if (isCurrentlySubscribedOnStripe === false && !isVipEmail(email)) {
     record.subscribed = false;
-    record.generations = record.generations || 0; // Reset generations on confirmed churn
+    record.generations = record.generations || 0; 
   }
   // NOTE: If isCurrentlySubscribedOnStripe is null (Stripe error), 
   // we rely on the existing 'record.subscribed' state.
@@ -175,7 +183,7 @@ app.post('/optimize', async (req, res) => {
 
   const { key, record } = getUserUsage(email);
 
-  // === UPDATED SUBSCRIPTION LOGIC START ===
+  // === UPDATED SUBSCRIPTION LOGIC START (Same as /generate) ===
   const isCurrentlySubscribedOnStripe = await refreshStripeSubscriptionStatus(email);
 
   // If Stripe check succeeded and confirmed active, mark as subscribed
@@ -183,10 +191,10 @@ app.post('/optimize', async (req, res) => {
     record.subscribed = true;
   }
   // If Stripe check succeeded and confirmed NOT active, AND the user is not a VIP,
-  // then we set subscribed to false.
+  // then we set subscribed to false and reset generations.
   else if (isCurrentlySubscribedOnStripe === false && !isVipEmail(email)) {
     record.subscribed = false;
-    record.generations = record.generations || 0; // Reset generations on confirmed churn
+    record.generations = record.generations || 0;
   }
   // NOTE: If isCurrentlySubscribedOnStripe is null (Stripe error), 
   // we rely on the existing 'record.subscribed' state.
