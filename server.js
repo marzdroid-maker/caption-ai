@@ -10,6 +10,15 @@ const PORT = process.env.PORT || 3000;
 // === CONFIG ===
 const FREE_TIER_LIMIT = 10; // 🔟 free generations per email
 
+// Load VIP emails from the JSON file
+const vipEmails = require('./free-pro-users.json').emails.map(e => e.toLowerCase().trim());
+
+// Helper function for VIP check
+function isVipEmail(email) {
+  const key = email.toLowerCase().trim();
+  return vipEmails.includes(key);
+}
+
 // === MIDDLEWARE ===
 app.use(cors());
 
@@ -33,11 +42,13 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-// Small helper to get or init usage record
+// Small helper to get or init usage record (UPDATED TO CHECK VIP)
 function getUserUsage(email) {
   const key = email.toLowerCase().trim();
   if (!usage[key]) {
-    usage[key] = { generations: 0, subscribed: false };
+    // Initialize VIP users as subscribed from the start
+    const isVip = isVipEmail(email);
+    usage[key] = { generations: 0, subscribed: isVip };
   }
   return { key, record: usage[key] };
 }
@@ -52,8 +63,10 @@ async function refreshStripeSubscriptionStatus(email) {
     const activeSub = subs.data.find(s => s.status === 'active');
     return !!activeSub;
   } catch (err) {
+    // CRITICAL: Do NOT return false on error. Return undefined/null 
+    // to signal the status is UNKNOWN due to API failure.
     console.error('Stripe subscription check failed:', err.message);
-    return false;
+    return null; 
   }
 }
 
@@ -74,20 +87,22 @@ app.post('/generate', async (req, res) => {
 
   const { key, record } = getUserUsage(email);
 
-  // Check Stripe subscription (best-effort)
-  const isSubscribed = await refreshStripeSubscriptionStatus(email);
-    // Quick Patch C: Reset stale subscription state
-    if (!isSubscribed) {
-        const vip = isVipEmail(email);
-        if (!vip) {
-            record.subscribed = false;
-            record.generations = record.generations || 0;
-        }
-    }
-
-  if (isSubscribed) {
+  // === UPDATED SUBSCRIPTION LOGIC START ===
+  const isCurrentlySubscribedOnStripe = await refreshStripeSubscriptionStatus(email);
+  
+  // If Stripe check succeeded and confirmed active, mark as subscribed
+  if (isCurrentlySubscribedOnStripe === true) {
     record.subscribed = true;
+  } 
+  // If Stripe check succeeded and confirmed NOT active, AND the user is not a VIP,
+  // then we set subscribed to false.
+  else if (isCurrentlySubscribedOnStripe === false && !isVipEmail(email)) {
+    record.subscribed = false;
+    record.generations = record.generations || 0; // Reset generations on confirmed churn
   }
+  // NOTE: If isCurrentlySubscribedOnStripe is null (Stripe error), 
+  // we rely on the existing 'record.subscribed' state.
+  // === UPDATED SUBSCRIPTION LOGIC END ===
 
   // Enforce free tier
   if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
@@ -160,20 +175,22 @@ app.post('/optimize', async (req, res) => {
 
   const { key, record } = getUserUsage(email);
 
-  // Check subscription again
-  const isSubscribed = await refreshStripeSubscriptionStatus(email);
-    // Quick Patch C: Reset stale subscription state
-    if (!isSubscribed) {
-        const vip = isVipEmail(email);
-        if (!vip) {
-            record.subscribed = false;
-            record.generations = record.generations || 0;
-        }
-    }
+  // === UPDATED SUBSCRIPTION LOGIC START ===
+  const isCurrentlySubscribedOnStripe = await refreshStripeSubscriptionStatus(email);
 
-  if (isSubscribed) {
+  // If Stripe check succeeded and confirmed active, mark as subscribed
+  if (isCurrentlySubscribedOnStripe === true) {
     record.subscribed = true;
   }
+  // If Stripe check succeeded and confirmed NOT active, AND the user is not a VIP,
+  // then we set subscribed to false.
+  else if (isCurrentlySubscribedOnStripe === false && !isVipEmail(email)) {
+    record.subscribed = false;
+    record.generations = record.generations || 0; // Reset generations on confirmed churn
+  }
+  // NOTE: If isCurrentlySubscribedOnStripe is null (Stripe error), 
+  // we rely on the existing 'record.subscribed' state.
+  // === UPDATED SUBSCRIPTION LOGIC END ===
 
   // Enforce free tier for Boost calls as well
   if (!record.subscribed && record.generations >= FREE_TIER_LIMIT) {
@@ -234,7 +251,6 @@ Format EXACTLY the same as before:
 });
 
 // Create checkout session
-
 app.post('/create-checkout-session', async (req, res) => {
   const { email, referralCode } = req.body || {};
   if (!email) return res.status(400).json({ error: 'Email required' });
@@ -271,7 +287,7 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 });
 
-// Stripe webhook// Stripe webhook to mark user as subscribed
+// Stripe webhook to mark user as subscribed
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -292,7 +308,8 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     const email = session.customer_email;
     if (email) {
       const key = email.toLowerCase().trim();
-      usage[key] = { generations: 0, subscribed: true };
+      // When checkout completes, immediately mark the user as subscribed and reset generations
+      usage[key] = { generations: 0, subscribed: true }; 
       console.log(`User subscribed: ${email}`);
     }
   }
