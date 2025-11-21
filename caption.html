@@ -452,6 +452,16 @@
       <strong>💡 Today's Tip:</strong>
       <span id="dailyTipText">Loading a viral content tip...</span>
     </div>
+<h3 style="margin-top: 25px;">Affiliate Program</h3>
+<button id="becomeAffiliateBtn" class="action-button">Become an Affiliate</button>
+<button id="getReferralLinkBtn" class="action-button" style="margin-left:10px;">Get Referral Link</button>
+
+<div id="affiliateLinkContainer" style="margin-top:10px; display:none;">
+    <label>Your Referral Link:</label>
+    <input id="affiliateLink" type="text" readonly style="width:100%; padding:8px; margin-top:5px;">
+    <button id="copyReferralBtn" class="action-button" style="margin-top:8px;">Copy Link</button>
+</div>
+
 
     <div id="tabContainer">
       <div id="tabHeader">
@@ -667,8 +677,6 @@
   </div>
 
   <script>
-const API_URL = 'https://caption-ai-ze13.onrender.com';
-
 // --- Referral Code Capture ---
 const urlParams = new URLSearchParams(window.location.search);
 const referralCode = urlParams.get("ref") || "";
@@ -1624,6 +1632,50 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     await hydrateSubscriptionState(email);
   }
 });
+
+// === AFFILIATE PROGRAM LOGIC ===
+async function becomeAffiliate() {
+    const email = localStorage.getItem('userEmail');
+    if (!email) { alert("Email missing."); return; }
+    try {
+        const res = await fetch(`${API_URL}/create-connect-account`, {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (data.error) { alert(data.error); return; }
+        localStorage.setItem("connectAccountId", data.connectAccountId);
+        window.location.href = data.onboardingUrl;
+    } catch (e) { console.error(e); alert("Failed to setup affiliate."); }
+}
+
+async function getReferralLink() {
+    const affiliateId = localStorage.getItem("connectAccountId");
+    if (!affiliateId) { alert("No affiliate account. Become affiliate first."); return; }
+    try {
+        const res = await fetch(`${API_URL}/referral-link?referralCode=${affiliateId}`);
+        const data = await res.json();
+        if (data.error) { alert(data.error); return; }
+        document.getElementById("affiliateLink").value = data.referralUrl;
+        document.getElementById("affiliateLinkContainer").style.display = "block";
+    } catch (e) { console.error(e); alert("Error retrieving referral link."); }
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+    const b=document.getElementById("becomeAffiliateBtn");
+    const g=document.getElementById("getReferralLinkBtn");
+    const c=document.getElementById("copyReferralBtn");
+    if(b) b.addEventListener("click", becomeAffiliate);
+    if(g) g.addEventListener("click", getReferralLink);
+    if(c) c.addEventListener("click", ()=> {
+        const inp=document.getElementById("affiliateLink");
+        inp.select();
+        document.execCommand("copy");
+        alert("Copied!");
+    });
+});
+
 </script>
 
 </body>
