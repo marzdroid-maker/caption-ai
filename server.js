@@ -92,6 +92,53 @@ app.get('/check-subscription', async (req, res) => {
         isPro: isPro,
         isVip: isVip,
     });
+
+// Step 1 Affiliate route: create a Stripe Connect Express account for payouts
+app.post('/create-connect-account', async (req, res) => {
+  try {
+    const { email } = req.body || {};
+
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      return res.status(400).json({ error: 'A valid email is required.' });
+    }
+
+    // Create an Express Connect account for this user
+    const account = await stripe.accounts.create({
+      type: 'express',
+      email,
+      capabilities: {
+        transfers: { requested: true },
+      },
+      metadata: {
+        user_email: email,
+      },
+    });
+
+    const origin =
+      req.headers.origin ||
+      process.env.APP_BASE_URL ||
+      'https://caption-ai-ze13.onrender.com';
+
+    // Create an onboarding link so the user can finish setting up payouts
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url:
+        process.env.INFLUENCER_ONBOARD_REFRESH_URL || `${origin}?connect_refresh=1`,
+      return_url:
+        process.env.INFLUENCER_ONBOARD_RETURN_URL || `${origin}?connect_return=1`,
+      type: 'account_onboarding',
+    });
+
+    return res.json({
+      connectAccountId: account.id,
+      onboardingUrl: accountLink.url,
+    });
+  } catch (err) {
+    console.error('Create Connect Account Error:', err.message);
+    return res.status(500).json({ error: 'Failed to create Connect account' });
+  }
+});
+
 });
 
 app.get('/', (req, res) => {

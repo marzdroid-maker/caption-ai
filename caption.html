@@ -452,6 +452,76 @@
       <strong>💡 Today's Tip:</strong>
       <span id="dailyTipText">Loading a viral content tip...</span>
     </div>
+    <!-- Affiliate Program: Step 1 Only (Become an Affiliate) -->
+    <div id="affiliateSection" style="margin-top: 1.2rem; padding: 1rem; border: 1px solid #ddd; border-radius: 10px; background: #ffffff;">
+      <h3 style="margin: 0 0 0.4rem 0; font-size: 1rem;">🔥 Partner Program — Earn 30% for Life</h3>
+      <p style="margin: 0 0 0.6rem 0; font-size: 0.9rem; color: #444;">
+        Become an affiliate, get your own Stripe payout account, and earn 30% of every subscription you refer.
+      </p>
+      <button
+        id="becomeAffiliateBtn"
+        type="button"
+        style="
+          background: #4f6df5;
+          color: #ffffff;
+          padding: 8px 16px;
+          border-radius: 999px;
+          border: none;
+          font-size: 0.9rem;
+          cursor: pointer;
+          display: inline-block;
+        "
+      >
+        Become an Affiliate
+      </button>
+      <pre id="affiliateOutput" style="white-space: pre-wrap; margin-top: 0.6rem; font-size: 0.85rem; color: #222;"></pre>
+    </div>
+
+    <script>
+      (function() {
+        const btn = document.getElementById('becomeAffiliateBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', async () => {
+          const email = localStorage.getItem('userEmail');
+
+          if (!email || email === 'undefined' || !email.includes('@')) {
+            alert('Please enter your email at the top and click "Start Generating" first.');
+            return;
+          }
+
+          try {
+            const resp = await fetch('/create-connect-account', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email })
+            });
+
+            const data = await resp.json();
+            const outEl = document.getElementById('affiliateOutput');
+
+            if (!resp.ok) {
+              outEl.textContent = 'Error creating affiliate account: ' + (data.error || 'Unknown error');
+              return;
+            }
+
+            if (!data || !data.onboardingUrl) {
+              outEl.textContent = 'Affiliate account response was missing the onboarding link.';
+              return;
+            }
+
+            outEl.textContent =
+              'Your affiliate account was created.\n' +
+              'Complete your payout setup here:\n' +
+              data.onboardingUrl;
+          } catch (err) {
+            const outEl = document.getElementById('affiliateOutput');
+            outEl.textContent = 'Network or server error creating affiliate account: ' + err.message;
+          }
+        });
+      })();
+    </script>
+
 
     <div id="tabContainer">
       <div id="tabHeader">
