@@ -94,6 +94,72 @@ app.get('/check-subscription', async (req, res) => {
     });
 });
 
+
+// === AFFILIATE / STRIPE CONNECT ROUTES ===
+// Create a Stripe Connect Express account for an affiliate so they can receive payouts
+app.post('/create-connect-account', async (req, res) => {
+  try {
+    const { email } = req.body || {};
+
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      return res.status(400).json({ error: 'A valid email is required.' });
+    }
+
+    // Create an Express Connect account with transfers capability only
+    const account = await stripe.accounts.create({
+      type: 'express',
+      email,
+      capabilities: {
+        transfers: { requested: true },
+      },
+      metadata: {
+        user_email: email,
+      },
+    });
+
+    const origin =
+      req.headers.origin ||
+      process.env.APP_BASE_URL ||
+      'https://caption-ai-ze13.onrender.com';
+
+    // Create onboarding link so the affiliate can complete their payout setup
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url:
+        process.env.INFLUENCER_ONBOARD_REFRESH_URL || `${origin}?connect_refresh=1`,
+      return_url:
+        process.env.INFLUENCER_ONBOARD_RETURN_URL || `${origin}?connect_return=1`,
+      type: 'account_onboarding',
+    });
+
+    return res.json({
+      connectAccountId: account.id,
+      onboardingUrl: accountLink.url,
+    });
+  } catch (err) {
+    console.error('Create Connect Account Error:', err.message);
+    return res.status(500).json({ error: 'Failed to create Connect account' });
+  }
+});
+
+// Helper route to generate a referral link from a referral code (e.g. Connect account id)
+app.get('/referral-link', (req, res) => {
+  const { referralCode } = req.query || {};
+  if (!referralCode) {
+    return res.status(400).json({ error: 'referralCode query parameter is required' });
+  }
+
+  const origin =
+    req.headers.origin ||
+    process.env.APP_BASE_URL ||
+    'https://caption-ai-ze13.onrender.com';
+
+  const referralUrl = `${origin}?ref=${encodeURIComponent(referralCode)}`;
+  return res.json({ referralUrl });
+});
+
+// === END AFFILIATE ROUTES ===
+
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/caption.html');
 });
