@@ -1338,7 +1338,7 @@ localStorage.setItem("referralCode", referralCode);
     }
 
     // --- Boost logic (one-time per generation, never decreases score) ---
-        async async function tryBoost() {
+        async async async function tryBoost() {
         if (hasBoostedCurrentOutput) return;
         if (!lastResultText || !lastIdea || !lastPlatform || !lastTone) return;
     
