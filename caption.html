@@ -847,27 +847,58 @@ localStorage.setItem("referralCode", referralCode);
         console.error('refreshProUI error', e);
       }
     }
-// --- Emoji map (for templates & fallback) ---
+// --- Expanded Emoji Map ---
     const emojiMap = {
-      'Camera': '📸', 'Heart': '❤️', 'Sparkles': '✨', 'Coffee': '☕', 'Shopping Bag': '🛍️',
-      'Rocket': '🚀', 'Fire': '🔥', 'Trophy': '🏆', 'Briefcase': '💼', 'Handshake': '🤝',
-      'Laptop': '💻', 'Sunrise': '🌅', 'Moon': '🌙', 'Pizza': '🍕', 'Leaf': '🍃',
-      'Flexed Biceps': '💪', 'Airplane': '✈️', 'Book': '📚', 'Dog': '🐶', 'Cat': '🐱',
-      'Birthday Cake': '🎂', 'Party Popper': '🎉', 'Star': '⭐', 'Film': '🎬',
-      'Musical Notes': '🎶', 'Dancer': '💃', 'Play Button': '▶️', 'New': '🆕', 'Sale': '🏷️',
-      'Check Mark': '✅', 'Cross Mark': '❌', 'Hand Point Down': '👇', 'Coffee Mug': '☕', 'Hand Wave': '👋',
-      'Light Bulb': '💡', 'Thinking Face': '🤔', '100 Score': '💯', 'Money Bag': '💸',
-      'Chart Increasing': '📈', 'Target': '🎯', 'Alarm Clock': '⏰', 'Question Mark': '❓',
-      'Speech Bubble': '💬', 'Crown': '👑', 'Diamond': '💎', 'Robot': '🤖',
-      'Globe': '🌍', 'Mountain': '⛰️', 'Pin': '📌', 'Megaphone': '📣',
-      'Writing Hand': '✍️', 'Open Book': '📖', 'Smiling Face': '😊', 'Crying Face': '😫',
-      'Clapping Hands': '👏', 'Winking Face': '😉', 'Red Apple': '🍎', 'Grapes': '🍇',
-      'Donut': '🍩', 'Taco': '🌮', 'Beer Mug': '🍺', 'Martini Glass': '🍸',
-      'Car': '🚗', 'Bicycle': '🚲', 'Train': '🚆', 'Boat': '⛵',
-      'Fingers Crossed': '🤞', 'Poo': '💩', 'Ghost': '👻', 'Alien': '👽',
-      'Lock': '🔒', 'Key': '🔑', 'Toolbox': '🛠️', 'Graduation Cap': '🎓',
-      'Bookmark': '🔖', 'Gift': '🎁', 'Hand Point Up': '👆',
-      'Link': '🔗', 'Balance Scale': '⚖️', 'Magnifying Glass': '🧐', 'User': '👤'
+      // Faces & Emotions
+      'Smile': '😊', 'Laugh': '😂', 'Love': '😍', 'Cool': '😎', 'Thinking': '🤔',
+      'Mind Blown': '🤯', 'Melting': '🫠', 'Clown': '🤡', 'Star Eyes': '🤩', 'Wink': '😉',
+      'Cry': '😭', 'Sweat': '😅', 'Sick': '🤢', 'Zip': '🤐', 'Party': '🥳',
+      'Smirk': '😏', 'Rolling Eyes': '🙄', 'Sleepy': '😴', 'Mask': '😷', 'Hugging': '🤗',
+      'Sunglasses': '🕶️', 'Nerd': '🤓', 'Devil': '😈', 'Angel': '😇',
+
+      // Hands & Gestures
+      'Clap': '👏', 'Thumbs Up': '👍', 'Thumbs Down': '👎', 'Peace': '✌️', 'Pray': '🙏',
+      'Muscle': '💪', 'Wave': '👋', 'Point Down': '👇', 'Point Up': '👆', 'Point Right': '👉',
+      'Point Left': '👈', 'Fist': '👊', 'Handshake': '🤝', 'Writing': '✍️', 'Eyes': '👀',
+      'Raised Hands': '🙌', 'Fingers Crossed': '🤞', 'Call Me': '🤙', 'Ok': '👌',
+
+      // Hearts & Sparkles (Viral Essentials)
+      'Red Heart': '❤️', 'Orange Heart': '🧡', 'Yellow Heart': '💛', 'Green Heart': '💚',
+      'Blue Heart': '💙', 'Purple Heart': '💜', 'Black Heart': '🖤', 'White Heart': '🤍',
+      'Brown Heart': '🤎', 'Broken Heart': '💔', 'Sparkles': '✨', 'Star': '⭐',
+      'Glowing Star': '🌟', 'Fire': '🔥', 'Collision': '💥', 'Dizzy': '💫', 'Diamond': '💎',
+
+      // Work & Business (LinkedIn)
+      'Laptop': '💻', 'Briefcase': '💼', 'Chart Up': '📈', 'Chart Down': '📉', 'Bar Chart': '📊',
+      'Money Bag': '💰', 'Credit Card': '💳', 'Dollar': '💵', 'Memo': '📝', 'Pin': '📌',
+      'Paperclip': '📎', 'Calendar': '📅', 'Megaphone': '📣', 'Target': '🎯', 'Trophy': '🏆',
+      'Medal': '🥇', 'Rocket': '🚀', 'Bulb': '💡', 'Link': '🔗', 'Lock': '🔒',
+      'Key': '🔑', 'Toolbox': '🛠️', 'Balance Scale': '⚖️', 'Search': '🔍',
+
+      // Food & Drink
+      'Coffee': '☕', 'Beer': '🍺', 'Cheers': '🍻', 'Wine': '🍷', 'Pizza': '🍕',
+      'Burger': '🍔', 'Fries': '🍟', 'Taco': '🌮', 'Sushi': '🍣', 'Donut': '🍩',
+      'Cookie': '🍪', 'Cake': '🎂', 'Popcorn': '🍿', 'Apple': '🍎', 'Banana': '🍌',
+      'Avocado': '🥑', 'Salad': '🥗', 'Peach': '🍑', 'Eggplant': '🍆', 'Chili': '🌶️',
+
+      // Objects & Lifestyle
+      'Camera': '📸', 'Film': '🎬', 'Microphone': '🎤', 'Headphones': '🎧', 'Game': '🎮',
+      'Phone': '📱', 'Battery': '🔋', 'Plug': '🔌', 'Shopping Cart': '🛒', 'Shopping Bags': '🛍️',
+      'Gift': '🎁', 'Balloon': '🎈', 'Confetti': '🎊', 'Book': '📚', 'Grad Cap': '🎓',
+      'Car': '🚗', 'Plane': '✈️', 'Boat': '⛵', 'Train': '🚆', 'Beach': '🏖️',
+      'Mountain': '⛰️', 'World': '🌍', 'Moon': '🌙', 'Sun': '☀️', 'Rain': '🌧️',
+      'Umbrella': '☂️', 'Snow': '❄️', 'Flower': '🌸', 'Leaf': '🍃', 'Tree': '🌳',
+
+      // Animals
+      'Dog': '🐶', 'Cat': '🐱', 'Mouse': '🐭', 'Hamster': '🐹', 'Rabbit': '🐰',
+      'Fox': '🦊', 'Bear': '🐻', 'Panda': '🐼', 'Lion': '🦁', 'Tiger': '🐯',
+      'Unicorn': '🦄', 'Butterfly': '🦋', 'Spider': '🕷️', 'Ghost': '👻', 'Alien': '👽',
+      'Robot': '🤖', 'Poop': '💩',
+
+      // Symbols & Misc
+      '100': '💯', 'Check': '✅', 'Cross': '❌', 'Warning': '⚠️', 'No Entry': '🚫',
+      'Question': '❓', 'Exclamation': '❗', 'Zzz': '💤', 'Music': '🎵', 'Recycle': '♻️',
+      'SOS': '🆘', 'New': '🆕', 'Free': '🆓', 'Red Circle': '🔴', 'Blue Circle': '🔵'
     };
 
     // --- Daily tips ---
