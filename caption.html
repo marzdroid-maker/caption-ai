@@ -422,7 +422,6 @@
 </head>
 <body>
 
-  <!-- Email gate -->
   <div id="emailModal">
     <div class="modal-content">
       <h2>Welcome!</h2>
@@ -432,7 +431,6 @@
     </div>
   </div>
 
-  <!-- Main app -->
   <div class="container" id="mainApp" style="display: none;">
     <h1>AI Caption + Hashtag Generator <span id="proBadge" class="hidden">PRO</span></h1>
     <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
@@ -469,7 +467,6 @@
         <button id="analyzeTabBtn" class="tab-btn" data-target="analyzeContent">Analyze Competitor (Pro)</button>
       </div>
 
-      <!-- GENERATE TAB -->
       <div id="generateContent" class="tab-content">
         <form id="captionForm">
           <label for="idea">Post Idea</label>
@@ -511,7 +508,6 @@
         <div id="result" class="result hidden">
           <h3>Your AI Captions</h3>
 
-          <!-- Engagement score + Boost -->
           <div id="engagementBox" class="engagement-box">
             <div class="engagement-main">
               <span class="engagement-title">Engagement Score</span>
@@ -528,7 +524,6 @@
           <button type="button" id="copyBtn">Copy All</button>
         </div>
 
-        <!-- Pro Templates -->
         <div id="proTemplates">
           <h3>The Viral Swipe File: Proven 6-Figure Post Structures</h3>
           <p style="margin: 1rem 0 .75rem; font-size: .95rem; color: #065f46; line-height: 1.5;">
@@ -629,7 +624,6 @@
         </div>
       </div>
 
-      <!-- ANALYZE TAB -->
       <div id="analyzeContent" class="tab-content hidden">
         <div id="analysisDescription" style="
           background: #f0f9ff;
@@ -712,37 +706,19 @@ localStorage.setItem("referralCode", referralCode);
         const res = await fetch(`${API_URL}/check-subscription?email=${encodeURIComponent(userEmail)}`);
         if (!res.ok) return;
         const data = await res.json();
-        if (data && data.isPro) {
-            isPro = true;
-            localStorage.setItem('isPro', 'true');
-            if (data.vip) {
-              isVip = true;
-              localStorage.setItem('isVip','true');
-            } else {
-              isVip = false;
-              localStorage.removeItem('isVip');
-            }
-          } else if (data && data.isPro === false) {
-            isPro = false;
-            localStorage.setItem('isPro', 'false');
-            isVip = false;
-            localStorage.removeItem('isVip');
-          } else if (data && data.isPro) {
-            isPro = true;
-            localStorage.setItem('isPro', 'true');
-            if (data.vip) {
-              isVip = true;
-              localStorage.setItem('isVip','true');
-            } else {
-              isVip = false;
-              localStorage.removeItem('isVip');
-            }
-          } else if (data && data.isPro === false) {
-            isPro = false;
-            localStorage.setItem('isPro', 'false');
-            isVip = false;
-            localStorage.removeItem('isVip');
-          }
+        
+        // Update Pro/VIP status
+        isPro = !!data.isPro;
+        isVip = !!data.isVip;
+        localStorage.setItem('isPro', isPro ? 'true' : 'false');
+        localStorage.setItem('isVip', isVip ? 'true' : 'false');
+
+        // Update free uses from DB source of truth
+        if (typeof data.freeUses === 'number') {
+            freeUses = data.freeUses;
+            localStorage.setItem('freeUses', String(freeUses));
+        }
+
         refreshProUI();
         updateGenerateButtonState();
       } catch (e) {
@@ -923,7 +899,7 @@ localStorage.setItem("referralCode", referralCode);
       return dailyTips[tipIndex];
     }
 
-    // --- Utility: hash & pseudo-random (for scoring jitter) ---
+    // --- Utility: hash for Analyze tab ---
     function hashString(str) {
       let hash = 0;
       for (let i = 0; i < str.length; i++) {
@@ -933,85 +909,6 @@ localStorage.setItem("referralCode", referralCode);
       }
       return Math.abs(hash);
     }
-    function seededRandom(seed, min = 0, max = 1) {
-      const x = Math.sin(seed) * 10000;
-      const frac = x - Math.floor(x);
-      return min + frac * (max - min);
-    }
-
-    // --- Engagement scoring (Option C: nuanced & less predictable) ---
-        // --- Engagement scoring (Option A: calmer + platform-aware) ---
-    // --- Engagement scoring (Rebalanced across all platforms) ---
-    
-    // --- Engagement scoring (Rebalanced across all platforms) ---
-    function computeEngagementScore(text, idea, platform, tone) {
-        if (!text || typeof text !== "string") return 30;
-
-        const platformKey = (platform || "").toLowerCase();
-        const tLower = (tone || "").toLowerCase();
-        const ideaStr = (idea || "").trim();
-
-        const isGenericIdea =
-            ideaStr.length > 0 &&
-            ideaStr.length <= 40 &&
-            !/[?!]/.test(ideaStr) &&
-            !/[#@]/.test(ideaStr) &&
-            !/[🔥✨💥🚀⭐💯😱😍🤯]/.test(ideaStr);
-
-        const lines = text.split("\n");
-        const captionLines = lines.filter((l) => /^\s*\d+\./.test(l));
-        const allHashtags = text.match(/#[\p{L}\p{N}_]+/gu) || [];
-        const totalChars = text.length;
-        const totalWords = text.split(/\s+/).filter(Boolean).length;
-
-        // Start from a neutral mid-range
-        let score = 45;
-
-        // Generic idea penalties (any platform)
-        if (isGenericIdea) score -= 18;
-
-        // Word count effects
-        if (totalWords < 30) score -= 10;        // too light
-        if (totalWords < 15) score -= 8;         // really thin
-        if (totalWords > 200) score += 4;        // longer, more substance
-
-        // Structure (multiple numbered captions)
-        if (captionLines.length >= 5) score += 8;
-        else if (captionLines.length >= 3) score += 5;
-        else if (captionLines.length >= 1) score += 2;
-
-        // Hashtags band
-        if (allHashtags.length >= 12 && allHashtags.length <= 30) score += 8;
-        else if (allHashtags.length >= 6 && allHashtags.length < 12) score += 4;
-
-        // Platform-specific adjustments
-        if (platformKey === "twitter") {
-            score -= 6;                            // overall lower band
-            if (totalChars > 240) score -= 6;      // too long for a tweet
-        }
-        else if (platformKey === "instagram") {
-            if (allHashtags.length >= 15) score += 5;
-            if (totalChars < 150) score -= 5;
-        }
-        else if (platformKey === "tiktok") {
-            if (/[🔥✨💥🚀]/.test(text)) score += 4;
-            if (totalWords < 25) score -= 8;
-        }
-        else if (platformKey === "linkedin") {
-            score -= 10;                           // bring baseline down
-            if (totalWords < 40) score -= 10;      // punish short/light posts
-            if (isGenericIdea) score -= 12;
-            if (tLower.includes("professional") && totalWords >= 60)
-                score += 4;                        // reward real professional depth
-        }
-
-        // Clamp
-        if (score < 10) score = 10;
-        if (score > 90) score = 90;
-
-        return Math.round(score);
-    }
-
 
     function updateEngagementUI(score, boosted = false) {
       if (!engagementBox || !engagementValue) return;
@@ -1025,7 +922,7 @@ localStorage.setItem("referralCode", referralCode);
       }
     }
 
-        function updateGenerateButtonState() {
+    function updateGenerateButtonState() {
       if (!generateBtn) return;
       if (isPro) {
         generateBtn.disabled = false;
@@ -1229,12 +1126,13 @@ localStorage.setItem("referralCode", referralCode);
             copyBtn.textContent = 'Copy All';
           }
 
-          // Engagement score
-          const score = computeEngagementScore(data.result, idea, platform, tone);
+          // Engagement score (Securely fetched from backend)
+          const score = data.score || 0;
           lastScore = score;
           updateEngagementUI(score, false);
 
           if (!isPro) {
+            // Sync with what server said or just increment local for UI feel
             freeUses++;
             localStorage.setItem('freeUses', String(freeUses));
             updateFreeUsageBar();
@@ -1243,28 +1141,8 @@ localStorage.setItem("referralCode", referralCode);
       } catch (err) {
         console.error('Generate error:', err);
         if (forceFull) {
-          const fallback = `## Captions
-1. "Just launched my coffee shop! ${emojiMap['Coffee']}${emojiMap['Sparkles']}"
-2. "Fresh brews, cozy vibes ${emojiMap['Coffee']}${emojiMap['Heart']}"
-3. "Your new favorite morning spot!"
-4. "Handcrafted with love ${emojiMap['Leaf']}"
-5. "Come say hi! ${emojiMap['Hand Wave']}"
-
-## Hashtags
-#CoffeeShop #NewBusiness #SmallBiz #CoffeeLovers #LocalCafe #SupportLocal #MorningVibes #CoffeeTime #CafeLife #Entrepreneur #ShopSmall #CoffeeAddict #LatteArt #BrewedFresh #CozyCorner #CoffeeCommunity #SmallBusinessOwner #CoffeeCulture #DailyGrind #CafeVibes #CoffeeBreak #Handcrafted #WomenInBusiness #CoffeeLover #BaristaLife #CoffeeGram #InstaCoffee #CoffeeOfTheDay #CoffeeShopVibes #NewCafe`;
-          lastResultText = fallback;
-          if (outputEl) outputEl.textContent = fallback;
-          if (resultBox) resultBox.classList.remove('hidden');
-
-          const score = computeEngagementScore(fallback, idea, platform, tone);
-          lastScore = score;
-          updateEngagementUI(score, false);
-
-          if (!isPro) {
-            freeUses++;
-            localStorage.setItem('freeUses', String(freeUses));
-            updateFreeUsageBar();
-          }
+          // Fallback only for connection errors
+          alert("Connection failed. Please check your internet.");
         }
       } finally {
         if (loadingEl) loadingEl.classList.add('hidden');
@@ -1277,7 +1155,7 @@ localStorage.setItem("referralCode", referralCode);
       }
     }
 
-    // --- Boost logic (one-time per generation, never decreases score) ---
+    // --- Boost logic ---
         async function tryBoost() {
         if (hasBoostedCurrentOutput) return;
         if (!lastResultText || !lastIdea || !lastPlatform || !lastTone) return;
@@ -1317,34 +1195,8 @@ localStorage.setItem("referralCode", referralCode);
                 lastResultText = data.result;
                 outputEl.textContent = data.result;
     
-                let boostedScore = computeEngagementScore(
-                    data.result,
-                    lastIdea,
-                    lastPlatform,
-                    lastTone
-                );
-    
-                let original = lastScore || 0;
-    
-                // Option A: medium but meaningful bump
-                let minBoost = 10;
-                if (original < 40) minBoost = 15;
-                if (original < 30) minBoost = 18;
-    
-                let maxBoost = minBoost + 10; // e.g. +18 to +28
-    
-                const seed = hashString(data.result.slice(0, 150) + "|boostA");
-                const bump = Math.round(seededRandom(seed, minBoost, maxBoost));
-                boostedScore = original + bump;
-    
-                const caps = {
-                    twitter: 85,
-                    linkedin: 88,
-                    instagram: 92,
-                    tiktok: 95
-                };
-                const cap = caps[lastPlatform.toLowerCase()] || 90;
-                boostedScore = Math.min(boostedScore, cap);
+                // Use server-provided score
+                let boostedScore = data.score || (lastScore || 0) + 10;
     
                 lastScore = boostedScore;
                 updateEngagementUI(boostedScore, true);
