@@ -450,16 +450,6 @@
       <strong>💡 Today's Tip:</strong>
       <span id="dailyTipText">Loading a viral content tip...</span>
     </div>
-<h3 style="margin-top: 25px;">Affiliate Program</h3>
-<button id="becomeAffiliateBtn" class="action-button">Become an Affiliate</button>
-<button id="getReferralLinkBtn" class="action-button" style="margin-left:10px;">Get Referral Link</button>
-
-<div id="affiliateLinkContainer" style="margin-top:10px; display:none;">
-    <label>Your Referral Link:</label>
-    <input id="affiliateLink" type="text" readonly style="width:100%; padding:8px; margin-top:5px;">
-    <button id="copyReferralBtn" class="action-button" style="margin-top:8px;">Copy Link</button>
-</div>
-
 
     <div id="tabContainer">
       <div id="tabHeader">
@@ -659,6 +649,30 @@
           <div id="analysisScore" class="analysis-score">--</div>
           <div id="analysisDetails" class="analysis-detail"></div>
           <button id="analyzeAgainBtn">Analyze Another Post</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 4rem; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 2rem;">
+      <p style="font-size: 0.95rem; color: #6b7280; margin-bottom: 0.75rem;">
+        Love this tool? 💸 <strong>Join our Affiliate Program</strong> and earn 30%.
+      </p>
+      
+      <div style="display: flex; gap: 1.5rem; justify-content: center; align-items: center;">
+        <button id="becomeAffiliateBtn" style="background: none; color: #2563eb; border: none; padding: 0; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-decoration: none; width: auto;">
+          Become an Affiliate
+        </button>
+        <span style="color: #d1d5db;">|</span>
+        <button id="getReferralLinkBtn" style="background: none; color: #2563eb; border: none; padding: 0; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-decoration: none; width: auto;">
+          Get My Link
+        </button>
+      </div>
+
+      <div id="affiliateLinkContainer" style="margin-top: 1rem; display: none; background: #f9fafb; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+        <label style="font-size: 0.85rem; color: #374151; margin-bottom: 0.5rem;">Your Referral Link:</label>
+        <div style="display: flex; gap: 0.5rem;">
+            <input id="affiliateLink" type="text" readonly style="width: 100%; padding: 0.5rem; font-size: 0.9rem; border: 1px solid #d1d5db; border-radius: 0.375rem; margin: 0;">
+            <button id="copyReferralBtn" style="width: auto; padding: 0.5rem 1rem; font-size: 0.9rem; background: #1f2937;">Copy</button>
         </div>
       </div>
     </div>
@@ -901,7 +915,7 @@ localStorage.setItem("referralCode", referralCode);
       'SOS': '🆘', 'New': '🆕', 'Free': '🆓', 'Red Circle': '🔴', 'Blue Circle': '🔵'
     };
 
-// --- Daily tips ---
+    // --- Daily tips ---
     const dailyTips = [
       " viral hack: 'Negative Hooks' (e.g., 'Stop doing this...') often perform 3x better than positive ones.",
       "The 'Save' is the new 'Like'. Write captions that educate so people save them for later.",
@@ -1024,31 +1038,30 @@ localStorage.setItem("referralCode", referralCode);
     function processTemplateText(text) {
       const replacements = {
         'Camera Film': emojiMap['Camera'] + ' ' + emojiMap['Film'],
-        'Coffee Mug Light Bulb': emojiMap['Coffee Mug'] + ' ' + emojiMap['Light Bulb'],
-        'Question Mark Thinking Face': emojiMap['Question Mark'] + ' ' + emojiMap['Thinking Face'],
+        'Coffee Mug Light Bulb': emojiMap['Coffee'] + ' ' + emojiMap['Bulb'],
+        'Question Mark Thinking Face': emojiMap['Question'] + ' ' + emojiMap['Thinking'],
         'Bookmark Sparkles': emojiMap['Bookmark'] + ' ' + emojiMap['Sparkles'],
         'Gift Rocket': emojiMap['Gift'] + ' ' + emojiMap['Rocket'],
-        'Hand Point Up Film': emojiMap['Hand Point Up'] + ' ' + emojiMap['Film'],
-        'Star Speech Bubble': emojiMap['Star'] + ' ' + emojiMap['Speech Bubble'],
-        'Money Bag Chart Increasing': emojiMap['Money Bag'] + ' ' + emojiMap['Chart Increasing'],
-        'Crying Face Check Mark': emojiMap['Crying Face'] + ' ' + emojiMap['Check Mark'],
-        'Thinking Face Light Bulb': emojiMap['Thinking Face'] + ' ' + emojiMap['Light Bulb'],
+        'Hand Point Up Film': emojiMap['Point Up'] + ' ' + emojiMap['Film'],
+        'Star Speech Bubble': emojiMap['Star'] + ' ' + emojiMap['Speech Bubble'], // Assuming Speech Bubble exists or remove
+        'Money Bag Chart Increasing': emojiMap['Money Bag'] + ' ' + emojiMap['Chart Up'],
+        'Crying Face Check Mark': emojiMap['Cry'] + ' ' + emojiMap['Check'],
+        'Thinking Face Light Bulb': emojiMap['Thinking'] + ' ' + emojiMap['Bulb'],
         'Toolbox Target': emojiMap['Toolbox'] + ' ' + emojiMap['Target'],
-        'Speech Bubble Cross Mark': emojiMap['Speech Bubble'] + ' ' + emojiMap['Cross Mark'],
+        'Speech Bubble Cross Mark': '💬' + ' ' + emojiMap['Cross'],
         'Link Bookmark': emojiMap['Link'] + ' ' + emojiMap['Bookmark'],
-        'Smiling Face 100 Score': emojiMap['Smiling Face'] + ' ' + emojiMap['100 Score'],
-        'User Rocket': emojiMap['User'] + ' ' + emojiMap['Rocket'],
-        'Alarm Clock Flexed Biceps': emojiMap['Alarm Clock'] + ' ' + emojiMap['Flexed Biceps'],
-        'Balance Scale Magnifying Glass': emojiMap['Balance Scale'] + ' ' + emojiMap['Magnifying Glass'],
-        'Heart': emojiMap['Heart'],
+        'Smiling Face 100 Score': emojiMap['Smile'] + ' ' + emojiMap['100'],
+        'User Rocket': emojiMap['Rocket'], // Simplified
+        'Alarm Clock Flexed Biceps': '⏰' + ' ' + emojiMap['Muscle'],
+        'Balance Scale Magnifying Glass': emojiMap['Balance Scale'] + ' ' + emojiMap['Search'],
+        'Heart': emojiMap['Red Heart'],
         'Sparkles': emojiMap['Sparkles'],
-        'Hand Point Down': emojiMap['Hand Point Down'],
-        'Shopping Bag': emojiMap['Shopping Bag'],
+        'Hand Point Down': emojiMap['Point Down'],
+        'Shopping Bag': emojiMap['Shopping Bags'],
         'Fire': emojiMap['Fire'],
-        'Light Bulb': emojiMap['Light Bulb'],
+        'Light Bulb': emojiMap['Bulb'],
         'Film': emojiMap['Film'],
-        'Camera': emojiMap['Camera'],
-        'Gift snake': emojiMap['Gift']
+        'Camera': emojiMap['Camera']
       };
       for (const key in replacements) {
         text = text.replace(new RegExp(key, 'g'), replacements[key]);
@@ -1308,7 +1321,7 @@ localStorage.setItem("referralCode", referralCode);
 
     // --- Emoji picker ---
     if (emojiGrid && ideaInput) {
-      const commonEmojis = Object.keys(emojiMap).filter(k => !['Coffee Mug', 'Hand Wave'].includes(k));
+      const commonEmojis = Object.keys(emojiMap);
       emojiGrid.innerHTML = '';
       commonEmojis.forEach(name => {
         const btn = document.createElement('button');
