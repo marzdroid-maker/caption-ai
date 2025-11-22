@@ -685,17 +685,18 @@
   </div>
 
   <script>
+// --- GLOBAL CONFIGURATION (Must be at the top) ---
+const API_URL = 'https://caption-ai-ze13.onrender.com';
+const MAX_FREE_USES = 10;
+
 // --- Referral Code Capture ---
 const urlParams = new URLSearchParams(window.location.search);
 const referralCode = urlParams.get("ref") || "";
 localStorage.setItem("referralCode", referralCode);
 
-// ---
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const API_URL = 'https://caption-ai-ze13.onrender.com';
-    const MAX_FREE_USES = 10;
-
+// --- MAIN APP LOGIC ---
+document.addEventListener('DOMContentLoaded', () => {
+    
     // --- Global state ---
     let userEmail = localStorage.getItem('userEmail');
     let isPro = false;
@@ -712,7 +713,6 @@ localStorage.setItem("referralCode", referralCode);
     let lastPlatform = '';
     let lastTone = '';
 
-    
     // --- Auto-detect Pro status from backend if email known ---
     async function hydrateProFromServer() {
       try {
@@ -739,7 +739,8 @@ localStorage.setItem("referralCode", referralCode);
         console.error('hydrateProFromServer error', e);
       }
     }
-// --- Elements ---
+    
+    // --- Elements ---
     const modal        = document.getElementById('emailModal');
     const mainApp      = document.getElementById('mainApp');
     const emailInput   = document.getElementById('emailInput');
@@ -789,7 +790,6 @@ localStorage.setItem("referralCode", referralCode);
 
     const tipElement = document.getElementById('dailyTipText');
 
-    
     // --- Toast helper ---
     const toastEl = document.getElementById('toast');
     function showToast(message, type = 'info') {
@@ -861,7 +861,8 @@ localStorage.setItem("referralCode", referralCode);
         console.error('refreshProUI error', e);
       }
     }
-// --- Expanded Emoji Map ---
+
+    // --- Expanded Emoji Map ---
     const emojiMap = {
       // Faces & Emotions
       'Smile': '😊', 'Laugh': '😂', 'Love': '😍', 'Cool': '😎', 'Thinking': '🤔',
@@ -917,7 +918,7 @@ localStorage.setItem("referralCode", referralCode);
 
     // --- Daily tips ---
     const dailyTips = [
-      " viral hack: 'Negative Hooks' (e.g., 'Stop doing this...') often perform 3x better than positive ones.",
+      "Viral hack: 'Negative Hooks' (e.g., 'Stop doing this...') often perform 3x better than positive ones.",
       "The 'Save' is the new 'Like'. Write captions that educate so people save them for later.",
       "TikTok & Reels SEO: The algorithm reads your caption keywords. Use terms people actually search for.",
       "The 'Read More' trigger: Your first sentence must be so incomplete or shocking that they HAVE to click more.",
@@ -1200,7 +1201,7 @@ localStorage.setItem("referralCode", referralCode);
     }
 
     // --- Boost logic ---
-        async function tryBoost() {
+    async function tryBoost() {
         if (hasBoostedCurrentOutput) return;
         if (!lastResultText || !lastIdea || !lastPlatform || !lastTone) return;
     
