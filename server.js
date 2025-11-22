@@ -44,7 +44,7 @@ function computeEngagementScore(text, idea, platform, tone) {
     if (platformKey.includes('linkedin') && tone.toLowerCase().includes('professional')) score += 5;
     if (text.includes('👇') || text.includes('🔗') || text.includes('?')) score += 5; 
 
-    // Random jitter to make it feel "alive" (optional)
+    // Random jitter to make it feel "alive"
     score += Math.floor(Math.random() * 5);
 
     return Math.min(Math.max(score, 10), 95); // Clamp 10-95
@@ -64,7 +64,7 @@ app.use(express.static('.')); // Serve static files (css, js, images)
 
 // === ROUTES ===
 
-// 1. HOME PAGE (The fix for "Cannot GET /")
+// 1. HOME PAGE
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/caption.html');
 });
@@ -109,7 +109,19 @@ app.post('/generate', async (req, res) => {
       return res.status(402).json({ error: 'Limit reached. Please upgrade.' });
     }
 
-    // Generate AI Content
+    // --- SMART PROMPT LOGIC START ---
+    let emojiInstruction = "Use emojis naturally."; // Default
+
+    // Logic: If LinkedIn OR Professional -> Minimal Emojis
+    if (platform.toLowerCase().includes('linkedin') || tone.toLowerCase().includes('professional')) {
+        emojiInstruction = "Use minimal, professional emojis (max 1 per caption). Focus on clean structure.";
+    } 
+    // Logic: If Instagram/TikTok OR Fun/Bold -> Heavy Emojis
+    else if (platform.toLowerCase().includes('instagram') || platform.toLowerCase().includes('tiktok') || tone.toLowerCase().includes('fun')) {
+        emojiInstruction = "Use vibrant emojis often to break up text and add personality. Make it pop!";
+    }
+    // --- SMART PROMPT LOGIC END ---
+
     const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const prompt = `
 Platform: ${platform}
@@ -117,14 +129,18 @@ Tone: ${tone}
 Post Idea: "${idea}"
 
 Write:
-- 5 short, punchy captions (under 280 characters each)
-- 20 relevant, trending hashtags
+- 5 short, punchy captions (under 280 characters each).
+- **Instruction:** ${emojiInstruction}
+- 20 relevant, trending hashtags.
 
 Format exactly:
 ## Captions
 1. "..."
 2. "..."
-...
+3. "..."
+4. "..."
+5. "..."
+
 ## Hashtags
 #tag1 #tag2 ...
     `.trim();
@@ -182,6 +198,7 @@ Current Captions:
 ${captions}
 
 Make them punchier, use better hooks, and add 5 more niche hashtags.
+Ensure emojis match the tone (${tone}).
     `.trim();
 
     const completion = await groq.chat.completions.create({
