@@ -300,10 +300,14 @@ app.post('/create-connect-account', async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email required.' });
 
+    // FIX: We must request BOTH transfers and card_payments to satisfy Stripe's default policy.
     const account = await stripe.accounts.create({
       type: 'express',
       email,
-      capabilities: { transfers: { requested: true } },
+      capabilities: { 
+        transfers: { requested: true },
+        card_payments: { requested: true }, // <--- ADDED THIS LINE
+      },
       metadata: { user_email: email },
     });
 
@@ -317,8 +321,8 @@ app.post('/create-connect-account', async (req, res) => {
 
     res.json({ connectAccountId: account.id, onboardingUrl: accountLink.url });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to create Connect account' });
+    console.error("Connect Creation Error:", err.message); // Improved logging
+    res.status(500).json({ error: 'Failed to create Connect account: ' + err.message });
   }
 });
 
