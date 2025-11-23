@@ -649,6 +649,16 @@
             </p>
         </div>
 
+        <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 1rem;">
+           <strong>Tip:</strong> For the best results, paste 3 posts from the <em>same platform</em> (e.g., all LinkedIn or all Instagram). Mixing styles confuses the AI!
+        </p>
+
+        <div id="voiceActiveState" class="hidden" style="text-align: center; padding: 2rem; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <h3 style="color: #065f46; margin-bottom: 0.5rem; font-size: 1.2rem;">✅ Brand Voice Active</h3>
+            <p style="color: #047857; margin-bottom: 1.5rem;">Your custom style is saved and ready to use in the Generate tab.</p>
+            <button id="deleteVoiceBtn" style="background: #ef4444; width: auto; padding: 0.75rem 1.5rem; font-size: 0.9rem;">Delete & Start Over</button>
+        </div>
+
         <div id="voiceFormContainer">
             <label>Post Example 1:</label>
             <textarea id="voiceSample1" rows="3" placeholder="Paste a post..."></textarea>
@@ -660,9 +670,6 @@
             <textarea id="voiceSample3" rows="3" placeholder="Paste one more..."></textarea>
 
             <button id="analyzeVoiceBtn" style="margin-top: 1.5rem;">Analyze & Save Voice</button>
-            <p id="voiceStatus" style="margin-top: 1rem; font-weight: 600; color: var(--success-dark); display: none;">
-                ✅ Voice Profile Saved! You can now select it in the Generate tab.
-            </p>
         </div>
 
         <div id="voicePaywall" class="paywall hidden">
@@ -850,10 +857,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const tipElement = document.getElementById('dailyTipText');
 
     const analyzeVoiceBtn = document.getElementById('analyzeVoiceBtn');
+    const deleteVoiceBtn  = document.getElementById('deleteVoiceBtn'); // NEW
     const voiceSample1    = document.getElementById('voiceSample1');
     const voiceSample2    = document.getElementById('voiceSample2');
     const voiceSample3    = document.getElementById('voiceSample3');
-    const voiceStatus     = document.getElementById('voiceStatus');
+    const voiceActiveState = document.getElementById('voiceActiveState'); // NEW
     const voiceOptionContainer = document.getElementById('voiceOptionContainer');
 
     const toastEl = document.getElementById('toast');
@@ -914,12 +922,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (analysisPaywall) analysisPaywall.classList.add('hidden');
             if (analyzeForm) analyzeForm.classList.remove('hidden'); // FIX: Show form!
             if (voicePaywall) voicePaywall.classList.add('hidden');
-            if (voiceFormContainer) voiceFormContainer.style.display = 'block';
+            
+            // Logic for Voice UI State
+            if (hasVoice) {
+                if (voiceActiveState) voiceActiveState.classList.remove('hidden');
+                if (voiceFormContainer) voiceFormContainer.style.display = 'none';
+            } else {
+                if (voiceActiveState) voiceActiveState.classList.add('hidden');
+                if (voiceFormContainer) voiceFormContainer.style.display = 'block';
+            }
+
         } else {
             if (analysisPaywall) analysisPaywall.classList.remove('hidden');
             if (analyzeForm) analyzeForm.classList.add('hidden'); // FIX: Hide form!
             if (voicePaywall) voicePaywall.classList.remove('hidden');
             if (voiceFormContainer) voiceFormContainer.style.display = 'none';
+            if (voiceActiveState) voiceActiveState.classList.add('hidden');
         }
 
         if (voiceOptionContainer) {
@@ -1316,7 +1334,6 @@ document.addEventListener('DOMContentLoaded', () => {
         analyzeVoiceBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             
-            // Collect text from 3 boxes
             const s1 = document.getElementById('voiceSample1').value.trim();
             const s2 = document.getElementById('voiceSample2').value.trim();
             const s3 = document.getElementById('voiceSample3').value.trim();
@@ -1326,7 +1343,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Combine them into one string for backend
             const samples = [s1, s2, s3].filter(Boolean).join("\n\n");
 
             analyzeVoiceBtn.textContent = "Analyzing...";
@@ -1341,7 +1357,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
 
                 if (res.ok) {
-                    voiceStatus.style.display = 'block';
                     hasVoice = true;
                     refreshProUI();
                 } else {
@@ -1352,6 +1367,41 @@ document.addEventListener('DOMContentLoaded', () => {
             } finally {
                 analyzeVoiceBtn.textContent = "Analyze & Save Voice";
                 analyzeVoiceBtn.disabled = false;
+            }
+        });
+    }
+
+    // DELETE VOICE BUTTON LOGIC
+    if (deleteVoiceBtn) {
+        deleteVoiceBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (!confirm("Are you sure? This will delete your custom Brand Voice.")) return;
+
+            deleteVoiceBtn.textContent = "Deleting...";
+            deleteVoiceBtn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_URL}/delete-voice`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: userEmail })
+                });
+                
+                if (res.ok) {
+                    hasVoice = false;
+                    refreshProUI();
+                    // Clear inputs
+                    document.getElementById('voiceSample1').value = "";
+                    document.getElementById('voiceSample2').value = "";
+                    document.getElementById('voiceSample3').value = "";
+                } else {
+                    alert("Failed to delete voice.");
+                }
+            } catch (err) {
+                alert("Connection failed.");
+            } finally {
+                deleteVoiceBtn.textContent = "Delete & Start Over";
+                deleteVoiceBtn.disabled = false;
             }
         });
     }
