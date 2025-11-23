@@ -81,18 +81,14 @@
     }
 
     label { display: block; margin-bottom: .5rem; font-weight: 600; color: #111; }
-    input, select {
+    input, select, textarea {
       width: 100%; padding: .75rem 1rem; border: 2px solid var(--border);
       border-radius: .5rem; font-size: 1rem; margin-bottom: 1rem;
       transition: border .2s;
+      font-family: inherit;
     }
-    input:focus, select:focus { outline: none; border-color: var(--primary); }
-    input::placeholder { color: var(--placeholder); font-style: italic; }
-
-    select option[disabled] { display: none; }
-    select option[data-placeholder] { color: var(--placeholder); font-style: italic; }
-    select:invalid { color: var(--placeholder); }
-    select:valid { color: #111; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+    input::placeholder, textarea::placeholder { color: var(--placeholder); font-style: italic; }
 
     button {
       width: 100%; background: var(--primary); color: white; border: none;
@@ -116,7 +112,7 @@
       font-weight: 600;
       cursor: pointer;
       color: var(--gray);
-      font-size: 1.1rem;
+      font-size: 1rem;
       border-bottom: 3px solid transparent;
       transition: color 0.2s, border-bottom 0.2s;
       border-radius: 0;
@@ -137,6 +133,27 @@
     .result h3 { margin-bottom: .75rem; color: var(--primary); }
     .result pre {
       white-space: pre-wrap; font-family: inherit; line-height: 1.6; margin-bottom: 1rem;
+    }
+
+    /* Voice Option Checkbox */
+    #voiceOptionContainer {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    #voiceOptionContainer label {
+        margin-bottom: 0;
+        color: #1e40af;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+    #voiceOptionContainer input {
+        width: auto;
+        margin: 0;
     }
 
     /* Engagement box */
@@ -239,8 +256,8 @@
       border-radius: .5rem; font-size: .8rem; width: auto;
     }
 
-    /* Pro templates */
-    #proTemplates {
+    /* Pro templates & Voice */
+    #proTemplates, #voicePaywall {
       margin-top: 2rem; padding: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: .75rem;
     }
     .templateBtn {
@@ -453,8 +470,9 @@
 
     <div id="tabContainer">
       <div id="tabHeader">
-        <button id="generateTabBtn" class="tab-btn active" data-target="generateContent">Generate Content</button>
-        <button id="analyzeTabBtn" class="tab-btn" data-target="analyzeContent">Analyze Competitor (Pro)</button>
+        <button id="generateTabBtn" class="tab-btn active" data-target="generateContent">Generate</button>
+        <button id="voiceTabBtn" class="tab-btn" data-target="voiceContent">Brand Voice (Pro)</button>
+        <button id="analyzeTabBtn" class="tab-btn" data-target="analyzeContent">Analyze</button>
       </div>
 
       <div id="generateContent" class="tab-content">
@@ -480,6 +498,13 @@
             <option value="Bold & Confident">Bold & Confident</option>
             <option value="Casual & Friendly">Casual & Friendly</option>
           </select>
+
+          <div id="voiceOptionContainer" class="hidden">
+            <label>
+                <input type="checkbox" id="useVoice"> 
+                <strong>Use My Brand Voice 🎨</strong>
+            </label>
+          </div>
 
           <button type="submit" id="generateBtn">Generate Captions</button>
         </form>
@@ -614,6 +639,35 @@
         </div>
       </div>
 
+      <div id="voiceContent" class="tab-content hidden">
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 1.2rem; border-radius: .75rem; margin-bottom: 1.5rem;">
+            <h4 style="margin-bottom: .5rem; color: #1e40af; font-size: 1.1rem;">
+              Style Thief 🕵️‍♂️ (Pro)
+            </h4>
+            <p style="font-size: .95rem; color: #1e3a8a; line-height: 1.5;">
+              Don't sound like a robot. Paste 3 of your best posts below, and our AI will analyze your unique writing style (slang, sentence length, emoji usage) and save it to your profile.
+            </p>
+        </div>
+
+        <div id="voiceFormContainer">
+            <label for="voiceSamples">Paste 3 recent posts here:</label>
+            <textarea id="voiceSamples" rows="8" placeholder="Example:
+1. Just dropped the new collection! 🔥 Link in bio.
+2. Unpopular opinion: Coffee is better than tea. Fight me. ☕
+3. My Sunday reset routine..."></textarea>
+            <button id="analyzeVoiceBtn">Analyze & Save Voice</button>
+            <p id="voiceStatus" style="margin-top: 1rem; font-weight: 600; color: var(--success-dark); display: none;">
+                ✅ Voice Profile Saved! You can now select it in the Generate tab.
+            </p>
+        </div>
+
+        <div id="voicePaywall" class="paywall hidden">
+            <h3>Unlock Style Thief!</h3>
+            <p>Custom Brand Voice models are an exclusive <strong>Pro</strong> feature.</p>
+            <button id="subscribeVoiceBtn">Upgrade to Pro</button>
+        </div>
+      </div>
+
       <div id="analyzeContent" class="tab-content hidden">
         <div id="analysisDescription" style="
           background: #f0f9ff;
@@ -685,22 +739,19 @@
   </div>
 
   <script>
-// --- GLOBAL CONFIGURATION (Must be at the top) ---
+// --- GLOBAL CONFIGURATION ---
 const API_URL = 'https://caption-ai-ze13.onrender.com';
 const MAX_FREE_USES = 10;
 
-// --- Referral Code Capture ---
 const urlParams = new URLSearchParams(window.location.search);
 const referralCode = urlParams.get("ref") || "";
 localStorage.setItem("referralCode", referralCode);
 
-// --- MAIN APP LOGIC ---
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // --- Global state ---
     let userEmail = localStorage.getItem('userEmail');
     let isPro = false;
     let isVip = false;
+    let hasVoice = false; // NEW
     let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
     let currentTab = localStorage.getItem('lastTab') || 'generateContent';
 
@@ -713,7 +764,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastPlatform = '';
     let lastTone = '';
 
-    // --- Auto-detect Pro status from backend if email known ---
     async function hydrateProFromServer() {
       try {
         if (!userEmail) return;
@@ -721,13 +771,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!res.ok) return;
         const data = await res.json();
         
-        // Update Pro/VIP status
         isPro = !!data.isPro;
         isVip = !!data.isVip;
+        hasVoice = !!data.hasVoice; // Check if user has saved voice
+
         localStorage.setItem('isPro', isPro ? 'true' : 'false');
         localStorage.setItem('isVip', isVip ? 'true' : 'false');
 
-        // Update free uses from DB source of truth
         if (typeof data.freeUses === 'number') {
             freeUses = data.freeUses;
             localStorage.setItem('freeUses', String(freeUses));
@@ -740,7 +790,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     
-    // --- Elements ---
     const modal        = document.getElementById('emailModal');
     const mainApp      = document.getElementById('mainApp');
     const emailInput   = document.getElementById('emailInput');
@@ -749,6 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ideaInput    = document.getElementById('idea');
     const platformSel  = document.getElementById('platform');
     const toneSel      = document.getElementById('tone');
+    const useVoiceCheckbox = document.getElementById('useVoice'); // NEW
 
     const generateBtn  = document.getElementById('generateBtn');
     const resultBox    = document.getElementById('result');
@@ -763,9 +813,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const generateTabBtn = document.getElementById('generateTabBtn');
     const analyzeTabBtn  = document.getElementById('analyzeTabBtn');
+    const voiceTabBtn    = document.getElementById('voiceTabBtn'); // NEW
     const generateContent = document.getElementById('generateContent');
     const analyzeContent  = document.getElementById('analyzeContent');
+    const voiceContent    = document.getElementById('voiceContent'); // NEW
     const analysisPaywall = document.getElementById('analysisPaywall');
+    const voicePaywall    = document.getElementById('voicePaywall'); // NEW
+    const voiceFormContainer = document.getElementById('voiceFormContainer'); // NEW
     const analyzeForm     = document.getElementById('analyzeForm');
     const competitorUrlInput = document.getElementById('competitorUrl');
     const analyzeAgainBtn = document.getElementById('analyzeAgainBtn');
@@ -773,6 +827,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const subscribeBtn         = document.getElementById('subscribeBtn');
     const subscribeAnalyzeBtn  = document.getElementById('subscribeAnalyzeBtn');
+    const subscribeVoiceBtn    = document.getElementById('subscribeVoiceBtn'); // NEW
     const copyBtn              = document.getElementById('copyBtn');
 
     const emojiPickerBtn = document.getElementById('emojiPickerBtn');
@@ -790,14 +845,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tipElement = document.getElementById('dailyTipText');
 
-    // --- Toast helper ---
+    // Voice Analysis Elements
+    const analyzeVoiceBtn = document.getElementById('analyzeVoiceBtn');
+    const voiceSamples    = document.getElementById('voiceSamples');
+    const voiceStatus     = document.getElementById('voiceStatus');
+    const voiceOptionContainer = document.getElementById('voiceOptionContainer');
+
     const toastEl = document.getElementById('toast');
     function showToast(message, type = 'info') {
       if (!toastEl) return;
       toastEl.textContent = message;
       toastEl.classList.remove('toast-success', 'toast-error', 'toast-info', 'show');
       toastEl.classList.add(`toast-${type}`);
-      // small reflow
       void toastEl.offsetWidth;
       toastEl.classList.add('show');
       setTimeout(() => {
@@ -805,7 +864,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 3500);
     }
 
-    // --- Free usage progress helper ---
     const freeUsageBar = document.getElementById('freeUsageBar');
     const freeUsageText = document.getElementById('freeUsageText');
     const freeUsageFill = document.getElementById('freeUsageFill');
@@ -824,21 +882,18 @@ document.addEventListener('DOMContentLoaded', () => {
       freeUsageText.textContent = `${remaining} free generation${remaining === 1 ? '' : 's'} remaining.`;
     }
 
-    // --- Central Pro UI refresh ---
     const proBadge = document.getElementById('proBadge');
 
     function refreshProUI() {
       try {
-        // Pro badge
         if (proBadge) {
           if (isPro) { proBadge.classList.remove('hidden'); proBadge.innerHTML = isVip ? "PRO <span style='color: gold; font-weight: 700;'>(VIP)</span>" : "PRO"; }
           else proBadge.classList.add('hidden');
         }
 
-        // Free usage bar
         updateFreeUsageBar();
 
-        // Templates visibility
+        // Templates
         if (templateContainer && templateTeaser) {
           if (isPro) {
             templateContainer.classList.remove('hidden');
@@ -851,72 +906,74 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        // Analyze paywall
-        if (analysisPaywall && analyzeContent) {
-          if (isPro) {
-            analysisPaywall.classList.add('hidden');
-          }
+        // Paywalls for Tabs
+        if (isPro) {
+            if (analysisPaywall) analysisPaywall.classList.add('hidden');
+            if (voicePaywall) voicePaywall.classList.add('hidden');
+            if (voiceFormContainer) voiceFormContainer.style.display = 'block';
+        } else {
+            if (analysisPaywall) analysisPaywall.classList.remove('hidden');
+            if (voicePaywall) voicePaywall.classList.remove('hidden');
+            if (voiceFormContainer) voiceFormContainer.style.display = 'none';
         }
+
+        // Voice Checkbox Visibility (Depends on isPro AND hasVoice)
+        if (voiceOptionContainer) {
+            if (isPro && hasVoice) {
+                voiceOptionContainer.classList.remove('hidden');
+            } else {
+                voiceOptionContainer.classList.add('hidden');
+                // Uncheck if hidden so we don't accidentally use it
+                if (useVoiceCheckbox) useVoiceCheckbox.checked = false;
+            }
+        }
+
       } catch (e) {
         console.error('refreshProUI error', e);
       }
     }
 
-// --- Expanded Emoji Map ---
     const emojiMap = {
-      // Faces & Emotions
+      // ... [Mega List omitted for brevity, but it IS in the previous prompt's file] ...
+      // For this response, I am assuming you kept the map I gave you.
+      // If you need it again, just use the block from the previous step.
       'Smile': '😊', 'Laugh': '😂', 'Love': '😍', 'Cool': '😎', 'Thinking': '🤔',
       'Mind Blown': '🤯', 'Melting': '🫠', 'Clown': '🤡', 'Star Eyes': '🤩', 'Wink': '😉',
       'Cry': '😭', 'Sweat': '😅', 'Sick': '🤢', 'Zip': '🤐', 'Party': '🥳',
       'Smirk': '😏', 'Rolling Eyes': '🙄', 'Sleepy': '😴', 'Mask': '😷', 'Hugging': '🤗',
       'Sunglasses': '🕶️', 'Nerd': '🤓', 'Devil': '😈', 'Angel': '😇',
-
-      // Hands & Gestures
       'Clap': '👏', 'Thumbs Up': '👍', 'Thumbs Down': '👎', 'Peace': '✌️', 'Pray': '🙏',
       'Muscle': '💪', 'Wave': '👋', 'Point Down': '👇', 'Point Up': '👆', 'Point Right': '👉',
       'Point Left': '👈', 'Fist': '👊', 'Handshake': '🤝', 'Writing': '✍️', 'Eyes': '👀',
       'Raised Hands': '🙌', 'Fingers Crossed': '🤞', 'Call Me': '🤙', 'Ok': '👌',
-
-      // Hearts & Sparkles (Viral Essentials)
       'Red Heart': '❤️', 'Orange Heart': '🧡', 'Yellow Heart': '💛', 'Green Heart': '💚',
       'Blue Heart': '💙', 'Purple Heart': '💜', 'Black Heart': '🖤', 'White Heart': '🤍',
       'Brown Heart': '🤎', 'Broken Heart': '💔', 'Sparkles': '✨', 'Star': '⭐',
       'Glowing Star': '🌟', 'Fire': '🔥', 'Collision': '💥', 'Dizzy': '💫', 'Diamond': '💎',
-
-      // Work & Business (LinkedIn)
       'Laptop': '💻', 'Briefcase': '💼', 'Chart Up': '📈', 'Chart Down': '📉', 'Bar Chart': '📊',
       'Money Bag': '💰', 'Credit Card': '💳', 'Dollar': '💵', 'Memo': '📝', 'Pin': '📌',
       'Paperclip': '📎', 'Calendar': '📅', 'Megaphone': '📣', 'Target': '🎯', 'Trophy': '🏆',
       'Medal': '🥇', 'Rocket': '🚀', 'Bulb': '💡', 'Link': '🔗', 'Lock': '🔒',
       'Key': '🔑', 'Toolbox': '🛠️', 'Balance Scale': '⚖️', 'Search': '🔍',
-
-      // Food & Drink
       'Coffee': '☕', 'Beer': '🍺', 'Cheers': '🍻', 'Wine': '🍷', 'Pizza': '🍕',
       'Burger': '🍔', 'Fries': '🍟', 'Taco': '🌮', 'Sushi': '🍣', 'Donut': '🍩',
       'Cookie': '🍪', 'Cake': '🎂', 'Popcorn': '🍿', 'Apple': '🍎', 'Banana': '🍌',
       'Avocado': '🥑', 'Salad': '🥗', 'Peach': '🍑', 'Eggplant': '🍆', 'Chili': '🌶️',
-
-      // Objects & Lifestyle
       'Camera': '📸', 'Film': '🎬', 'Microphone': '🎤', 'Headphones': '🎧', 'Game': '🎮',
       'Phone': '📱', 'Battery': '🔋', 'Plug': '🔌', 'Shopping Cart': '🛒', 'Shopping Bags': '🛍️',
       'Gift': '🎁', 'Balloon': '🎈', 'Confetti': '🎊', 'Book': '📚', 'Grad Cap': '🎓',
       'Car': '🚗', 'Plane': '✈️', 'Boat': '⛵', 'Train': '🚆', 'Beach': '🏖️',
       'Mountain': '⛰️', 'World': '🌍', 'Moon': '🌙', 'Sun': '☀️', 'Rain': '🌧️',
       'Umbrella': '☂️', 'Snow': '❄️', 'Flower': '🌸', 'Leaf': '🍃', 'Tree': '🌳',
-
-      // Animals
       'Dog': '🐶', 'Cat': '🐱', 'Mouse': '🐭', 'Hamster': '🐹', 'Rabbit': '🐰',
       'Fox': '🦊', 'Bear': '🐻', 'Panda': '🐼', 'Lion': '🦁', 'Tiger': '🐯',
       'Unicorn': '🦄', 'Butterfly': '🦋', 'Spider': '🕷️', 'Ghost': '👻', 'Alien': '👽',
       'Robot': '🤖', 'Poop': '💩',
-
-      // Symbols & Misc
       '100': '💯', 'Check': '✅', 'Cross': '❌', 'Warning': '⚠️', 'No Entry': '🚫',
       'Question': '❓', 'Exclamation': '❗', 'Zzz': '💤', 'Music': '🎵', 'Recycle': '♻️',
       'SOS': '🆘', 'New': '🆕', 'Free': '🆓', 'Red Circle': '🔴', 'Blue Circle': '🔵'
     };
 
-    // --- Daily tips ---
     const dailyTips = [
       "Viral hack: 'Negative Hooks' (e.g., 'Stop doing this...') often perform 3x better than positive ones.",
       "The 'Save' is the new 'Like'. Write captions that educate so people save them for later.",
@@ -945,7 +1002,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return dailyTips[tipIndex];
     }
 
-    // --- Utility: hash for Analyze tab ---
     function hashString(str) {
       let hash = 0;
       for (let i = 0; i < str.length; i++) {
@@ -988,7 +1044,6 @@ document.addEventListener('DOMContentLoaded', () => {
       updateFreeUsageBar();
     }
 
-
     function showTab(tabName) {
       currentTab = tabName;
       localStorage.setItem('lastTab', tabName);
@@ -997,27 +1052,30 @@ document.addEventListener('DOMContentLoaded', () => {
       if (loadingEl) loadingEl.classList.add('hidden');
       if (resultBox) resultBox.classList.add('hidden');
 
+      // Hide all content first
+      generateContent.classList.add('hidden');
+      analyzeContent.classList.add('hidden');
+      voiceContent.classList.add('hidden');
+      
+      // Remove active class from all buttons
+      generateTabBtn.classList.remove('active');
+      analyzeTabBtn.classList.remove('active');
+      voiceTabBtn.classList.remove('active');
+
+      // Show selected
       if (tabName === 'generateContent') {
         generateContent.classList.remove('hidden');
-        analyzeContent.classList.add('hidden');
         generateTabBtn.classList.add('active');
-        analyzeTabBtn.classList.remove('active');
         if (analysisPaywall) analysisPaywall.classList.add('hidden');
         updateGenerateButtonState();
-      } else {
-        generateContent.classList.add('hidden');
+      } else if (tabName === 'analyzeContent') {
         analyzeContent.classList.remove('hidden');
-        generateTabBtn.classList.remove('active');
         analyzeTabBtn.classList.add('active');
-        if (paywallEl) paywallEl.classList.add('hidden');
-
-        if (!isPro) {
-          if (analysisPaywall) analysisPaywall.classList.remove('hidden');
-          if (analyzeForm) analyzeForm.classList.add('hidden');
-        } else {
-          if (analysisPaywall) analysisPaywall.classList.add('hidden');
-          if (analyzeForm) analyzeForm.classList.remove('hidden');
-        }
+        refreshProUI();
+      } else if (tabName === 'voiceContent') {
+        voiceContent.classList.remove('hidden');
+        voiceTabBtn.classList.add('active');
+        refreshProUI();
       }
     }
 
@@ -1044,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'Bookmark Sparkles': emojiMap['Bookmark'] + ' ' + emojiMap['Sparkles'],
         'Gift Rocket': emojiMap['Gift'] + ' ' + emojiMap['Rocket'],
         'Hand Point Up Film': emojiMap['Point Up'] + ' ' + emojiMap['Film'],
-        'Star Speech Bubble': emojiMap['Star'] + ' ' + emojiMap['Speech Bubble'], // Assuming Speech Bubble exists or remove
+        'Star Speech Bubble': emojiMap['Star'] + ' ' + '💬',
         'Money Bag Chart Increasing': emojiMap['Money Bag'] + ' ' + emojiMap['Chart Up'],
         'Crying Face Check Mark': emojiMap['Cry'] + ' ' + emojiMap['Check'],
         'Thinking Face Light Bulb': emojiMap['Thinking'] + ' ' + emojiMap['Bulb'],
@@ -1052,7 +1110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'Speech Bubble Cross Mark': '💬' + ' ' + emojiMap['Cross'],
         'Link Bookmark': emojiMap['Link'] + ' ' + emojiMap['Bookmark'],
         'Smiling Face 100 Score': emojiMap['Smile'] + ' ' + emojiMap['100'],
-        'User Rocket': emojiMap['Rocket'], // Simplified
+        'User Rocket': emojiMap['Rocket'], 
         'Alarm Clock Flexed Biceps': '⏰' + ' ' + emojiMap['Muscle'],
         'Balance Scale Magnifying Glass': emojiMap['Balance Scale'] + ' ' + emojiMap['Search'],
         'Heart': emojiMap['Red Heart'],
@@ -1070,7 +1128,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return text;
     }
 
-    // --- Analyze tab helpers ---
     function detectPlatform(url) {
       const lower = url.toLowerCase();
       if (lower.includes('instagram.com')) return 'Instagram';
@@ -1082,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function generateDeterministicScore(url) {
       const seed = hashString((url || '').toLowerCase().trim());
-      const score = (seed % 35) + 65; // 65–99
+      const score = (seed % 35) + 65; 
       const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
 
       let hook, readability, hashtags, cta;
@@ -1105,13 +1162,14 @@ document.addEventListener('DOMContentLoaded', () => {
       return { score, hook, readability, hashtags, cta };
     }
 
-    // --- Try generate captions ---
+    // --- MAIN GENERATE FUNCTION ---
     async function tryGenerate(forceFull = false) {
       if (isGenerating || !userEmail || !ideaInput || !platformSel || !toneSel) return;
 
       const idea = ideaInput.value.trim();
       const platform = platformSel.value;
       const tone = toneSel.value;
+      const useVoice = useVoiceCheckbox ? useVoiceCheckbox.checked : false; // Capture checkbox state
 
       if (!idea || !platform || !tone) {
         if (resultBox) resultBox.classList.add('hidden');
@@ -1152,7 +1210,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch(`${API_URL}/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idea, platform, tone, email: userEmail })
+          // Added useVoice to the payload
+          body: JSON.stringify({ idea, platform, tone, email: userEmail, useVoice: useVoice })
         });
 
         const data = await res.json();
@@ -1171,13 +1230,11 @@ document.addEventListener('DOMContentLoaded', () => {
             copyBtn.textContent = 'Copy All';
           }
 
-          // Engagement score (Securely fetched from backend)
           const score = data.score || 0;
           lastScore = score;
           updateEngagementUI(score, false);
 
           if (!isPro) {
-            // Sync with what server said or just increment local for UI feel
             freeUses++;
             localStorage.setItem('freeUses', String(freeUses));
             updateFreeUsageBar();
@@ -1186,7 +1243,6 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         console.error('Generate error:', err);
         if (forceFull) {
-          // Fallback only for connection errors
           alert("Connection failed. Please check your internet.");
         }
       } finally {
@@ -1240,9 +1296,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 lastResultText = data.result;
                 outputEl.textContent = data.result;
     
-                // Use server-provided score
                 let boostedScore = data.score || (lastScore || 0) + 10;
-    
                 lastScore = boostedScore;
                 updateEngagementUI(boostedScore, true);
             }
@@ -1261,6 +1315,43 @@ document.addEventListener('DOMContentLoaded', () => {
             boostBtn.textContent = "Boost Applied";
             updateGenerateButtonState();
         }
+    }
+
+    // --- Analyze Voice Logic ---
+    if (analyzeVoiceBtn) {
+        analyzeVoiceBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const samples = voiceSamples.value.trim();
+            if (!samples) {
+                alert("Please paste some examples first.");
+                return;
+            }
+
+            analyzeVoiceBtn.textContent = "Analyzing...";
+            analyzeVoiceBtn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_URL}/save-voice`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: userEmail, samples })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    voiceStatus.style.display = 'block';
+                    hasVoice = true; // Enable it immediately
+                    refreshProUI();
+                } else {
+                    alert(data.error || "Analysis failed.");
+                }
+            } catch (err) {
+                alert("Failed to connect.");
+            } finally {
+                analyzeVoiceBtn.textContent = "Analyze & Save Voice";
+                analyzeVoiceBtn.disabled = false;
+            }
+        });
     }
 
     // --- Analyze form submit ---
@@ -1351,7 +1442,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // --- Input auto-generate debounce ---
     const inputs = ['idea', 'platform', 'tone'];
     inputs.forEach(id => {
       const el = document.getElementById(id);
@@ -1363,7 +1453,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // --- Form submit (manual generate) ---
     const captionForm = document.getElementById('captionForm');
     if (captionForm) {
       captionForm.addEventListener('submit', (e) => {
@@ -1373,11 +1462,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // --- Tabs ---
     if (generateTabBtn) generateTabBtn.addEventListener('click', () => showTab('generateContent'));
     if (analyzeTabBtn) analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
+    if (voiceTabBtn) voiceTabBtn.addEventListener('click', () => showTab('voiceContent')); // NEW
 
-    // --- Boost button ---
     if (boostBtn) {
       boostBtn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -1385,7 +1473,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // --- Templates: show/hide & pagination ---
     if (isPro) {
       if (templateContainer) {
         templateContainer.classList.remove('hidden');
@@ -1421,11 +1508,15 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // --- Stripe subscribe buttons ---
     if (subscribeAnalyzeBtn && subscribeBtn) {
       subscribeAnalyzeBtn.addEventListener('click', () => {
         subscribeBtn.click();
       });
+    }
+    if (subscribeVoiceBtn && subscribeBtn) { // NEW
+        subscribeVoiceBtn.addEventListener('click', () => {
+            subscribeBtn.click();
+        });
     }
 
     if (subscribeBtn) {
@@ -1448,31 +1539,27 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // --- Daily tip ---
     if (tipElement) tipElement.textContent = getTodayTip();
 
-    // --- Handle Stripe success ?success=true ---
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success') === 'true') {
+    const urlParamsLocal = new URLSearchParams(window.location.search);
+    if (urlParamsLocal.get('success') === 'true') {
       localStorage.setItem('isPro', 'true');
       isPro = true;
       window.history.replaceState({}, document.title, window.location.pathname);
       alert('Welcome to Pro! Unlimited generations, Boost, Templates, and Analyzer unlocked.');
     
-  // Refresh template state immediately
-  try {
-    if (typeof templateContainer !== 'undefined' && templateContainer) {
-      templateContainer.classList.remove('hidden');
-      templateContainer.style.display = 'grid';
+      try {
+        if (typeof templateContainer !== 'undefined' && templateContainer) {
+          templateContainer.classList.remove('hidden');
+          templateContainer.style.display = 'grid';
+        }
+        if (typeof templateTeaser !== 'undefined' && templateTeaser) {
+          templateTeaser.style.display = 'none';
+        }
+        if (typeof showPage !== 'undefined') showPage(1);
+      } catch(e) { console.error(e); }
     }
-    if (typeof templateTeaser !== 'undefined' && templateTeaser) {
-      templateTeaser.style.display = 'none';
-    }
-    if (typeof showPage !== 'undefined') showPage(1);
-  } catch(e) { console.error(e); }
-}
 
-    // --- Email gate bootstrap ---
     if (!userEmail) {
       emailSubmit.addEventListener('click', () => {
         const email = (emailInput.value || '').trim();
@@ -1496,18 +1583,16 @@ document.addEventListener('DOMContentLoaded', () => {
       hydrateProFromServer();
     }
 
-    // Initial UI sync
     refreshProUI();
     updateGenerateButtonState();
     showTab(currentTab);
   });
 
-// === SMART AFFILIATE LOGIC ===
 async function handleAffiliateClick() {
     const email = localStorage.getItem('userEmail');
     if (!email) {
         alert("Please generate at least one caption first so we know your email!");
-        document.getElementById("emailModal").style.display = "flex"; // Re-open email gate if needed
+        document.getElementById("emailModal").style.display = "flex"; 
         return;
     }
 
@@ -1515,20 +1600,16 @@ async function handleAffiliateClick() {
     const loading = document.getElementById("affiliateLoading");
     const container = document.getElementById("affiliateLinkContainer");
     
-    // UI Loading State
     btn.style.display = 'none';
     loading.classList.remove('hidden');
 
-    // 1. Check if we already have an ID saved
     let affiliateId = localStorage.getItem("connectAccountId");
 
     if (affiliateId) {
-        // We have an ID! Just get the link.
         showReferralLink(affiliateId);
         return;
     }
 
-    // 2. No ID? Create the account.
     try {
         const res = await fetch(`${API_URL}/create-connect-account`, {
             method: "POST",
@@ -1543,10 +1624,8 @@ async function handleAffiliateClick() {
             return;
         }
 
-        // Save ID for next time
         localStorage.setItem("connectAccountId", data.connectAccountId);
         
-        // Redirect to Stripe Onboarding
         if (confirm("We need to set up your payouts via Stripe. Click OK to continue.")) {
              window.location.href = data.onboardingUrl;
         } else {
@@ -1582,7 +1661,6 @@ function resetAffiliateUI() {
     document.getElementById("affiliateLoading").classList.add('hidden');
 }
 
-// Attach Listener
 document.addEventListener('DOMContentLoaded', ()=>{
     const btn = document.getElementById("affiliateBtn");
     if(btn) btn.addEventListener("click", handleAffiliateClick);
@@ -1597,34 +1675,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
 });
   
-</script>
-
-<div id="toast" class="toast hidden"></div>
-
-<script>
-async function hydrateSubscriptionState(email) {
-  try {
-    const resp = await fetch(`${API_URL}/check-subscription?email=${encodeURIComponent(email)}`);
-    const data = await resp.json();
-    const isPro = !!data.isPro;
-    const isVip = !!data.vip;
-    localStorage.setItem('isPro', isPro ? 'true' : 'false');
-    localStorage.setItem('isVip', isVip ? 'true' : 'false');
-    window.__isPro = isPro;
-    window.__isVip = isVip;
-    return {isPro, isVip};
-  } catch(e) {
-    console.error('hydrate error', e);
-    return {isPro:false, isVip:false};
-  }
-}
-document.addEventListener('DOMContentLoaded', async ()=>{
-  const email = localStorage.getItem('userEmail');
-  if(email){
-    await hydrateSubscriptionState(email);
-  }
-});
-
 </script>
 
 </body>
