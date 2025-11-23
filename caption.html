@@ -751,7 +751,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let userEmail = localStorage.getItem('userEmail');
     let isPro = false;
     let isVip = false;
-    let hasVoice = false; // NEW
+    let hasVoice = false; 
     let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
     let currentTab = localStorage.getItem('lastTab') || 'generateContent';
 
@@ -773,7 +773,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         isPro = !!data.isPro;
         isVip = !!data.isVip;
-        hasVoice = !!data.hasVoice; // Check if user has saved voice
+        hasVoice = !!data.hasVoice;
 
         localStorage.setItem('isPro', isPro ? 'true' : 'false');
         localStorage.setItem('isVip', isVip ? 'true' : 'false');
@@ -798,7 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ideaInput    = document.getElementById('idea');
     const platformSel  = document.getElementById('platform');
     const toneSel      = document.getElementById('tone');
-    const useVoiceCheckbox = document.getElementById('useVoice'); // NEW
+    const useVoiceCheckbox = document.getElementById('useVoice');
 
     const generateBtn  = document.getElementById('generateBtn');
     const resultBox    = document.getElementById('result');
@@ -813,13 +813,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const generateTabBtn = document.getElementById('generateTabBtn');
     const analyzeTabBtn  = document.getElementById('analyzeTabBtn');
-    const voiceTabBtn    = document.getElementById('voiceTabBtn'); // NEW
+    const voiceTabBtn    = document.getElementById('voiceTabBtn'); 
     const generateContent = document.getElementById('generateContent');
     const analyzeContent  = document.getElementById('analyzeContent');
-    const voiceContent    = document.getElementById('voiceContent'); // NEW
+    const voiceContent    = document.getElementById('voiceContent'); 
     const analysisPaywall = document.getElementById('analysisPaywall');
-    const voicePaywall    = document.getElementById('voicePaywall'); // NEW
-    const voiceFormContainer = document.getElementById('voiceFormContainer'); // NEW
+    const voicePaywall    = document.getElementById('voicePaywall'); 
+    const voiceFormContainer = document.getElementById('voiceFormContainer'); 
     const analyzeForm     = document.getElementById('analyzeForm');
     const competitorUrlInput = document.getElementById('competitorUrl');
     const analyzeAgainBtn = document.getElementById('analyzeAgainBtn');
@@ -827,7 +827,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const subscribeBtn         = document.getElementById('subscribeBtn');
     const subscribeAnalyzeBtn  = document.getElementById('subscribeAnalyzeBtn');
-    const subscribeVoiceBtn    = document.getElementById('subscribeVoiceBtn'); // NEW
+    const subscribeVoiceBtn    = document.getElementById('subscribeVoiceBtn'); 
     const copyBtn              = document.getElementById('copyBtn');
 
     const emojiPickerBtn = document.getElementById('emojiPickerBtn');
@@ -845,7 +845,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tipElement = document.getElementById('dailyTipText');
 
-    // Voice Analysis Elements
     const analyzeVoiceBtn = document.getElementById('analyzeVoiceBtn');
     const voiceSamples    = document.getElementById('voiceSamples');
     const voiceStatus     = document.getElementById('voiceStatus');
@@ -893,7 +892,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateFreeUsageBar();
 
-        // Templates
         if (templateContainer && templateTeaser) {
           if (isPro) {
             templateContainer.classList.remove('hidden');
@@ -906,24 +904,23 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        // Paywalls for Tabs
         if (isPro) {
             if (analysisPaywall) analysisPaywall.classList.add('hidden');
+            if (analyzeForm) analyzeForm.classList.remove('hidden'); // FIX: Show form!
             if (voicePaywall) voicePaywall.classList.add('hidden');
             if (voiceFormContainer) voiceFormContainer.style.display = 'block';
         } else {
             if (analysisPaywall) analysisPaywall.classList.remove('hidden');
+            if (analyzeForm) analyzeForm.classList.add('hidden'); // FIX: Hide form!
             if (voicePaywall) voicePaywall.classList.remove('hidden');
             if (voiceFormContainer) voiceFormContainer.style.display = 'none';
         }
 
-        // Voice Checkbox Visibility (Depends on isPro AND hasVoice)
         if (voiceOptionContainer) {
             if (isPro && hasVoice) {
                 voiceOptionContainer.classList.remove('hidden');
             } else {
                 voiceOptionContainer.classList.add('hidden');
-                // Uncheck if hidden so we don't accidentally use it
                 if (useVoiceCheckbox) useVoiceCheckbox.checked = false;
             }
         }
@@ -933,10 +930,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Expanded Emoji Map
     const emojiMap = {
-      // ... [Mega List omitted for brevity, but it IS in the previous prompt's file] ...
-      // For this response, I am assuming you kept the map I gave you.
-      // If you need it again, just use the block from the previous step.
       'Smile': '😊', 'Laugh': '😂', 'Love': '😍', 'Cool': '😎', 'Thinking': '🤔',
       'Mind Blown': '🤯', 'Melting': '🫠', 'Clown': '🤡', 'Star Eyes': '🤩', 'Wink': '😉',
       'Cry': '😭', 'Sweat': '😅', 'Sick': '🤢', 'Zip': '🤐', 'Party': '🥳',
@@ -1052,17 +1047,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (loadingEl) loadingEl.classList.add('hidden');
       if (resultBox) resultBox.classList.add('hidden');
 
-      // Hide all content first
       generateContent.classList.add('hidden');
       analyzeContent.classList.add('hidden');
       voiceContent.classList.add('hidden');
       
-      // Remove active class from all buttons
       generateTabBtn.classList.remove('active');
       analyzeTabBtn.classList.remove('active');
       voiceTabBtn.classList.remove('active');
 
-      // Show selected
       if (tabName === 'generateContent') {
         generateContent.classList.remove('hidden');
         generateTabBtn.classList.add('active');
@@ -1162,14 +1154,13 @@ document.addEventListener('DOMContentLoaded', () => {
       return { score, hook, readability, hashtags, cta };
     }
 
-    // --- MAIN GENERATE FUNCTION ---
     async function tryGenerate(forceFull = false) {
       if (isGenerating || !userEmail || !ideaInput || !platformSel || !toneSel) return;
 
       const idea = ideaInput.value.trim();
       const platform = platformSel.value;
       const tone = toneSel.value;
-      const useVoice = useVoiceCheckbox ? useVoiceCheckbox.checked : false; // Capture checkbox state
+      const useVoice = useVoiceCheckbox ? useVoiceCheckbox.checked : false;
 
       if (!idea || !platform || !tone) {
         if (resultBox) resultBox.classList.add('hidden');
@@ -1210,7 +1201,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch(`${API_URL}/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          // Added useVoice to the payload
           body: JSON.stringify({ idea, platform, tone, email: userEmail, useVoice: useVoice })
         });
 
@@ -1256,7 +1246,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // --- Boost logic ---
     async function tryBoost() {
         if (hasBoostedCurrentOutput) return;
         if (!lastResultText || !lastIdea || !lastPlatform || !lastTone) return;
@@ -1317,7 +1306,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Analyze Voice Logic ---
     if (analyzeVoiceBtn) {
         analyzeVoiceBtn.addEventListener('click', async (e) => {
             e.preventDefault();
@@ -1340,7 +1328,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (res.ok) {
                     voiceStatus.style.display = 'block';
-                    hasVoice = true; // Enable it immediately
+                    hasVoice = true;
                     refreshProUI();
                 } else {
                     alert(data.error || "Analysis failed.");
@@ -1354,7 +1342,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Analyze form submit ---
     if (analyzeForm && competitorUrlInput) {
       analyzeForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -1397,7 +1384,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // --- Copy button ---
     if (copyBtn && outputEl) {
       copyBtn.addEventListener('click', () => {
         navigator.clipboard.writeText(outputEl.textContent || '').then(() => {
@@ -1411,7 +1397,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // --- Emoji picker ---
     if (emojiGrid && ideaInput) {
       const commonEmojis = Object.keys(emojiMap);
       emojiGrid.innerHTML = '';
@@ -1464,7 +1449,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (generateTabBtn) generateTabBtn.addEventListener('click', () => showTab('generateContent'));
     if (analyzeTabBtn) analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
-    if (voiceTabBtn) voiceTabBtn.addEventListener('click', () => showTab('voiceContent')); // NEW
+    if (voiceTabBtn) voiceTabBtn.addEventListener('click', () => showTab('voiceContent'));
 
     if (boostBtn) {
       boostBtn.addEventListener('click', (e) => {
@@ -1513,7 +1498,7 @@ document.addEventListener('DOMContentLoaded', () => {
         subscribeBtn.click();
       });
     }
-    if (subscribeVoiceBtn && subscribeBtn) { // NEW
+    if (subscribeVoiceBtn && subscribeBtn) {
         subscribeVoiceBtn.addEventListener('click', () => {
             subscribeBtn.click();
         });
