@@ -76,7 +76,7 @@ app.get('/check-subscription', async (req, res) => {
             isPro: isPro, 
             isVip: isVip,
             freeUses: user.freeGenerations,
-            hasVoice: !!user.brandVoice // Tell frontend if they have a voice saved
+            hasVoice: !!user.brandVoice
         });
     } catch (e) {
         console.error(e);
@@ -84,7 +84,7 @@ app.get('/check-subscription', async (req, res) => {
     }
 });
 
-// NEW: Style Thief Analysis Route
+// Save Voice
 app.post('/save-voice', async (req, res) => {
     const { email, samples } = req.body;
     if (!email || !samples) return res.status(400).json({ error: 'Missing data' });
@@ -96,13 +96,12 @@ app.post('/save-voice', async (req, res) => {
         const isVip = isVipEmail(email);
         const isPro = user.isPro || isVip;
 
-        // Style Thief is a PRO feature
         if (!isPro) return res.status(402).json({ error: 'Upgrade to Pro to use Style Thief.' });
 
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
         const analysisPrompt = `
-        Analyze these 3 social media posts and extract a "Voice Profile" instructions list.
-        Identify: Sentence length, emoji usage frequency, slang, tone (sarcastic? formal? hype?), and structure.
+        Analyze these social media posts and extract a "Voice Profile" instructions list.
+        Identify: Sentence length, emoji usage frequency, slang, tone, and structure.
         
         POST SAMPLES:
         "${samples}"
@@ -117,7 +116,6 @@ app.post('/save-voice', async (req, res) => {
 
         const voiceProfile = completion.choices[0]?.message?.content || "";
         
-        // Save to DB
         user.brandVoice = voiceProfile;
         await user.save();
 
@@ -129,8 +127,22 @@ app.post('/save-voice', async (req, res) => {
     }
 });
 
+// NEW: Delete Voice Route
+app.post('/delete-voice', async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required' });
+
+    try {
+        await User.findOneAndUpdate({ email }, { brandVoice: "" });
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Failed to delete voice' });
+    }
+});
+
 app.post('/generate', async (req, res) => {
-  const { idea, platform, tone, email, useVoice } = req.body; // Added useVoice flag
+  const { idea, platform, tone, email, useVoice } = req.body;
   if (!idea || !email) return res.status(400).json({ error: 'Missing fields' });
 
   try {
@@ -144,12 +156,10 @@ app.post('/generate', async (req, res) => {
       return res.status(402).json({ error: 'Limit reached. Please upgrade.' });
     }
 
-    // Custom Voice Logic
     let styleInstruction = "";
     if (useVoice && user.brandVoice) {
         styleInstruction = `⚠️ IMPORTANT: Ignore the standard tone. ${user.brandVoice}`;
     } else {
-        // Fallback to standard logic
         if (platform.toLowerCase().includes('linkedin') || tone.toLowerCase().includes('professional')) {
             styleInstruction = "Use minimal, professional emojis. Focus on clean structure.";
         } else if (platform.toLowerCase().includes('instagram') || tone.toLowerCase().includes('fun')) {
@@ -199,10 +209,6 @@ Format exactly:
   }
 });
 
-// Keep the rest of your existing routes (optimize, webhook, checkout, affiliate) EXACTLY as they were.
-// ... [Rest of file omitted for brevity, but DO NOT DELETE IT] ...
-// (I will provide the FULL file in the next block to avoid confusion)
-
 app.post('/optimize', async (req, res) => {
   const { idea, platform, tone, email, captions, previousScore } = req.body;
   if (!captions || !email) return res.status(400).json({ error: 'Missing fields' });
@@ -228,6 +234,7 @@ Current Captions:
 ${captions}
 
 Make them punchier, use better hooks, and add 5 more niche hashtags.
+Ensure emojis match the tone (${tone}).
     `.trim();
 
     const completion = await groq.chat.completions.create({
