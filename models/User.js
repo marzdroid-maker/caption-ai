@@ -19,6 +19,11 @@ const userSchema = new mongoose.Schema({
   stripeCustomerId: { 
     type: String 
   },
+  // NEW: Store the user's custom voice profile
+  brandVoice: {
+    type: String,
+    default: "" 
+  },
   createdAt: { 
     type: Date, 
     default: Date.now 
