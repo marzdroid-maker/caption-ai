@@ -472,7 +472,7 @@
       <div id="tabHeader">
         <button id="generateTabBtn" class="tab-btn active" data-target="generateContent">Generate</button>
         <button id="voiceTabBtn" class="tab-btn" data-target="voiceContent">Brand Voice (Pro)</button>
-        <button id="analyzeTabBtn" class="tab-btn" data-target="analyzeContent">Analyze</button>
+        <button id="analyzeTabBtn" class="tab-btn" data-target="analyzeContent">Analyze (Pro)</button>
       </div>
 
       <div id="generateContent" class="tab-content">
@@ -650,12 +650,16 @@
         </div>
 
         <div id="voiceFormContainer">
-            <label for="voiceSamples">Paste 3 recent posts here:</label>
-            <textarea id="voiceSamples" rows="8" placeholder="Example:
-1. Just dropped the new collection! 🔥 Link in bio.
-2. Unpopular opinion: Coffee is better than tea. Fight me. ☕
-3. My Sunday reset routine..."></textarea>
-            <button id="analyzeVoiceBtn">Analyze & Save Voice</button>
+            <label>Post Example 1:</label>
+            <textarea id="voiceSample1" rows="3" placeholder="Paste a post..."></textarea>
+            
+            <label style="margin-top: 1rem;">Post Example 2:</label>
+            <textarea id="voiceSample2" rows="3" placeholder="Paste another post..."></textarea>
+            
+            <label style="margin-top: 1rem;">Post Example 3:</label>
+            <textarea id="voiceSample3" rows="3" placeholder="Paste one more..."></textarea>
+
+            <button id="analyzeVoiceBtn" style="margin-top: 1.5rem;">Analyze & Save Voice</button>
             <p id="voiceStatus" style="margin-top: 1rem; font-weight: 600; color: var(--success-dark); display: none;">
                 ✅ Voice Profile Saved! You can now select it in the Generate tab.
             </p>
@@ -846,7 +850,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const tipElement = document.getElementById('dailyTipText');
 
     const analyzeVoiceBtn = document.getElementById('analyzeVoiceBtn');
-    const voiceSamples    = document.getElementById('voiceSamples');
+    const voiceSample1    = document.getElementById('voiceSample1');
+    const voiceSample2    = document.getElementById('voiceSample2');
+    const voiceSample3    = document.getElementById('voiceSample3');
     const voiceStatus     = document.getElementById('voiceStatus');
     const voiceOptionContainer = document.getElementById('voiceOptionContainer');
 
@@ -1309,11 +1315,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (analyzeVoiceBtn) {
         analyzeVoiceBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            const samples = voiceSamples.value.trim();
-            if (!samples) {
-                alert("Please paste some examples first.");
+            
+            // Collect text from 3 boxes
+            const s1 = document.getElementById('voiceSample1').value.trim();
+            const s2 = document.getElementById('voiceSample2').value.trim();
+            const s3 = document.getElementById('voiceSample3').value.trim();
+            
+            if (!s1 && !s2 && !s3) {
+                alert("Please paste at least one post example.");
                 return;
             }
+
+            // Combine them into one string for backend
+            const samples = [s1, s2, s3].filter(Boolean).join("\n\n");
 
             analyzeVoiceBtn.textContent = "Analyzing...";
             analyzeVoiceBtn.disabled = true;
