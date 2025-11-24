@@ -814,7 +814,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isVip = false;
     let hasVoice = false; 
     let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
-    let currentTab = 'generateContent'; 
+    let currentTab = 'generateContent'; // Forced default
 
     let debounceTimer;
     let isGenerating = false;
@@ -978,9 +978,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isPro) {
             if (analysisPaywall) analysisPaywall.classList.add('hidden');
-            if (analyzeForm) analyzeForm.classList.remove('hidden');
+            if (analyzeForm) analyzeForm.classList.remove('hidden'); // FIX: Show form!
             if (voicePaywall) voicePaywall.classList.add('hidden');
             
+            // Logic for Voice UI State
             if (hasVoice) {
                 if (voiceActiveState) voiceActiveState.classList.remove('hidden');
                 if (voiceFormContainer) voiceFormContainer.style.display = 'none';
@@ -991,7 +992,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } else {
             if (analysisPaywall) analysisPaywall.classList.remove('hidden');
-            if (analyzeForm) analyzeForm.classList.add('hidden');
+            if (analyzeForm) analyzeForm.classList.add('hidden'); // FIX: Hide form!
             if (voicePaywall) voicePaywall.classList.remove('hidden');
             if (voiceFormContainer) voiceFormContainer.style.display = 'none';
             if (voiceActiveState) voiceActiveState.classList.add('hidden');
@@ -1011,6 +1012,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // SUPER MEGA EMOJI MAP
     const emojiMap = {
       'Smile': '😊', 'Laugh': '😂', 'Love': '😍', 'Cool': '😎', 'Thinking': '🤔',
       'Mind Blown': '🤯', 'Melting': '🫠', 'Clown': '🤡', 'Star Eyes': '🤩', 'Wink': '😉',
@@ -1046,7 +1048,13 @@ document.addEventListener('DOMContentLoaded', () => {
       'Robot': '🤖', 'Poop': '💩',
       '100': '💯', 'Check': '✅', 'Cross': '❌', 'Warning': '⚠️', 'No Entry': '🚫',
       'Question': '❓', 'Exclamation': '❗', 'Zzz': '💤', 'Music': '🎵', 'Recycle': '♻️',
-      'SOS': '🆘', 'New': '🆕', 'Free': '🆓', 'Red Circle': '🔴', 'Blue Circle': '🔵'
+      'SOS': '🆘', 'New': '🆕', 'Free': '🆓', 'Red Circle': '🔴', 'Blue Circle': '🔵',
+      // NEW CATEGORIES
+      'Cactus': '🌵', 'Tulip': '🌷', 'Daisy': '🌼', 'Sunflower': '🌻', 'Waves': '🌊', 'Tornado': '🌪️', 'Rainbow': '🌈', 'Thunder': '⛈️', 'Snow Cloud': '🌨️', 'Bolt': '⚡',
+      'Soccer': '⚽', 'Basketball': '🏀', 'Football': '🏈', 'Baseball': '⚾', 'Tennis': '🎾', 'Volleyball': '🏐', '8 Ball': '🎱', 'Ping Pong': '🏓', 'Badminton': '🏸', 'Goal': '🥅', 'Boxing': '🥊', 'Martial Arts': '🥋',
+      'Plane Takeoff': '🛫', 'Plane Land': '🛬', 'Helicopter': '🚁', 'Canoe': '🛶', 'Speedboat': '🚤', 'Ship': '🛳️', 'Tokyo': '🗼', 'Statue Liberty': '🗽', 'Moai': '🗿', 'Castle': '🏰', 'Japanese Castle': '🏯',
+      'Floppy': '💾', 'CD': '💿', 'DVD': '📀', 'VHS': '📼', 'Pager': '📟', 'Fax': '📠', 'Satellite': '📡', 'Signal': '📶', 'Battery': '🔋',
+      'Ribbon': '🎀', 'Ballet': '🩰', 'Swan': '🦢', 'Candle': '🕯️', 'Teddy': '🧸', 'Basket': '🧺', 'Cupcake': '🧁', 'Mirror': '🪞', 'Bubbles': '🫧'
     };
 
     const dailyTips = [
@@ -1403,7 +1411,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function tryBoost() {
         if (hasBoostedCurrentOutput) return;
-        if (!lastResultText || !lastPlatform || !lastTone) return;
+        if (!lastResultText || !lastIdea || !lastPlatform || !lastTone) return;
     
         if (!isPro && freeUses >= MAX_FREE_USES) {
             if (paywallEl) paywallEl.classList.remove("hidden");
@@ -1626,8 +1634,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const el = document.getElementById(id);
       if (el) {
         el.addEventListener('input', () => {
-          clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(() => tryGenerate(false), 900);
+          // Auto-generate removed by user request
         });
       }
     });
