@@ -46,11 +46,13 @@ function computeEngagementScore(text, idea, platform, tone) {
 
 // === MIDDLEWARE ===
 app.use(cors());
+
+// INCREASED LIMIT TO 50MB FOR IMAGE UPLOADS
 app.use((req, res, next) => {
   if (req.originalUrl === '/webhook') {
     next();
   } else {
-    express.json()(req, res, next);
+    express.json({ limit: '50mb' })(req, res, next); // <--- CHANGED
   }
 });
 app.use(express.static('.'));
@@ -127,7 +129,6 @@ app.post('/save-voice', async (req, res) => {
     }
 });
 
-// NEW: Delete Voice Route
 app.post('/delete-voice', async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email required' });
@@ -141,9 +142,12 @@ app.post('/delete-voice', async (req, res) => {
     }
 });
 
+// === VISION ENABLED GENERATE ROUTE ===
 app.post('/generate', async (req, res) => {
-  const { idea, platform, tone, email, useVoice } = req.body;
-  if (!idea || !email) return res.status(400).json({ error: 'Missing fields' });
+  const { idea, platform, tone, email, useVoice, image } = req.body; // Added 'image'
+  
+  // If image is present, 'idea' is optional. If no image, 'idea' is required.
+  if ((!idea && !image) || !email) return res.status(400).json({ error: 'Missing fields' });
 
   try {
     let user = await User.findOne({ email });
@@ -156,6 +160,7 @@ app.post('/generate', async (req, res) => {
       return res.status(402).json({ error: 'Limit reached. Please upgrade.' });
     }
 
+    // Style Logic
     let styleInstruction = "";
     if (useVoice && user.brandVoice) {
         styleInstruction = `⚠️ IMPORTANT: Ignore the standard tone. ${user.brandVoice}`;
@@ -168,33 +173,65 @@ app.post('/generate', async (req, res) => {
     }
 
     const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-    const prompt = `
-Platform: ${platform}
-Tone: ${tone}
-Post Idea: "${idea}"
+    
+    let messages = [];
+    let model = 'llama-3.3-70b-versatile'; // Default text model
 
-Write:
-- 5 short, punchy captions (under 280 characters each).
-- **Style Instruction:** ${styleInstruction}
-- 20 relevant, trending hashtags.
+    // VISION LOGIC
+    if (image) {
+        model = 'llama-3.2-11b-vision-preview'; // Vision model
+        const userPrompt = `
+        Platform: ${platform}
+        Tone: ${tone}
+        Context/Idea: ${idea || "Describe the image"}
+        
+        Write 5 viral social media captions based on this image.
+        ${styleInstruction}
+        Include 20 trending hashtags.
+        Format exactly: ## Captions (numbered list) ## Hashtags.
+        `;
 
-Format exactly:
-## Captions
-1. "..."
-...
-## Hashtags
-#tag1 ...
-    `.trim();
+        messages = [
+            {
+                role: 'user',
+                content: [
+                    { type: 'text', text: userPrompt },
+                    { type: 'image_url', image_url: { url: image } } // Base64 Image
+                ]
+            }
+        ];
+    } else {
+        // STANDARD TEXT LOGIC
+        const prompt = `
+        Platform: ${platform}
+        Tone: ${tone}
+        Post Idea: "${idea}"
+
+        Write:
+        - 5 short, punchy captions (under 280 characters each).
+        - **Style Instruction:** ${styleInstruction}
+        - 20 relevant, trending hashtags.
+
+        Format exactly:
+        ## Captions
+        1. "..."
+        ...
+        ## Hashtags
+        #tag1 ...
+        `.trim();
+        
+        messages = [{ role: 'user', content: prompt }];
+    }
     
     const completion = await groq.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: 'llama-3.3-70b-versatile',
+      messages: messages,
+      model: model,
       temperature: 0.7,
-      max_tokens: 600,
+      max_tokens: 1024,
     });
     
     const result = completion.choices[0]?.message?.content || "No result";
-    const score = computeEngagementScore(result, idea, platform, tone);
+    const score = computeEngagementScore(result, idea || "image", platform, tone);
 
     if (!isPro) {
       user.freeGenerations += 1;
