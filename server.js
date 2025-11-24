@@ -47,14 +47,10 @@ function computeEngagementScore(text, idea, platform, tone) {
 // === MIDDLEWARE ===
 app.use(cors());
 
-// INCREASED LIMIT TO 50MB FOR IMAGE UPLOADS
-app.use((req, res, next) => {
-  if (req.originalUrl === '/webhook') {
-    next();
-  } else {
-    express.json({ limit: '50mb' })(req, res, next); // <--- CHANGED
-  }
-});
+// GLOBAL BODY PARSER WITH INCREASED LIMIT (Crucial for Images)
+app.use(express.json({ limit: '50mb' })); 
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
 app.use(express.static('.'));
 
 // === ROUTES ===
@@ -86,7 +82,6 @@ app.get('/check-subscription', async (req, res) => {
     }
 });
 
-// Save Voice
 app.post('/save-voice', async (req, res) => {
     const { email, samples } = req.body;
     if (!email || !samples) return res.status(400).json({ error: 'Missing data' });
@@ -144,9 +139,8 @@ app.post('/delete-voice', async (req, res) => {
 
 // === VISION ENABLED GENERATE ROUTE ===
 app.post('/generate', async (req, res) => {
-  const { idea, platform, tone, email, useVoice, image } = req.body; // Added 'image'
+  const { idea, platform, tone, email, useVoice, image } = req.body;
   
-  // If image is present, 'idea' is optional. If no image, 'idea' is required.
   if ((!idea && !image) || !email) return res.status(400).json({ error: 'Missing fields' });
 
   try {
@@ -163,7 +157,7 @@ app.post('/generate', async (req, res) => {
     // Style Logic
     let styleInstruction = "";
     if (useVoice && user.brandVoice) {
-        styleInstruction = `⚠️ IMPORTANT: Ignore the standard tone. ${user.brandVoice}`;
+        styleInstruction = `⚠️ IMPORTANT: Ignore standard tone. ${user.brandVoice}`;
     } else {
         if (platform.toLowerCase().includes('linkedin') || tone.toLowerCase().includes('professional')) {
             styleInstruction = "Use minimal, professional emojis. Focus on clean structure.";
@@ -173,19 +167,21 @@ app.post('/generate', async (req, res) => {
     }
 
     const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-    
     let messages = [];
-    let model = 'llama-3.3-70b-versatile'; // Default text model
+    
+    // DEFAULT TEXT MODEL
+    let model = 'llama-3.3-70b-versatile'; 
 
-    // VISION LOGIC
     if (image) {
-        model = 'llama-3.2-11b-vision-preview'; // Vision model
+        // UPDATED: Use the new supported Vision model (Llama 4 Scout)
+        model = 'meta-llama/llama-4-scout-17b-16e-instruct'; 
+        
         const userPrompt = `
         Platform: ${platform}
         Tone: ${tone}
-        Context/Idea: ${idea || "Describe the image"}
+        Context: ${idea || "Describe this image"}
         
-        Write 5 viral social media captions based on this image.
+        TASK: Write 5 viral social media captions based on this image.
         ${styleInstruction}
         Include 20 trending hashtags.
         Format exactly: ## Captions (numbered list) ## Hashtags.
@@ -196,12 +192,12 @@ app.post('/generate', async (req, res) => {
                 role: 'user',
                 content: [
                     { type: 'text', text: userPrompt },
-                    { type: 'image_url', image_url: { url: image } } // Base64 Image
+                    { type: 'image_url', image_url: { url: image } } 
                 ]
             }
         ];
+        console.log("📸 Processing Vision Request with Llama 4...");
     } else {
-        // STANDARD TEXT LOGIC
         const prompt = `
         Platform: ${platform}
         Tone: ${tone}
@@ -241,8 +237,13 @@ app.post('/generate', async (req, res) => {
     res.json({ result, score });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Generation failed' });
+    console.error("❌ Generation Error:", err.message); // Better logging
+    // Handle Groq API errors gracefully
+    if (err.message.includes("model_decommissioned")) {
+        res.status(500).json({ error: "System Upgrade: The AI model is being updated. Please try again in 5 minutes." });
+    } else {
+        res.status(500).json({ error: 'Generation failed: ' + err.message });
+    }
   }
 });
 
@@ -355,7 +356,10 @@ app.post('/create-connect-account', async (req, res) => {
       type: 'account_onboarding',
     });
     res.json({ connectAccountId: account.id, onboardingUrl: accountLink.url });
-  } catch (err) { res.status(500).json({ error: 'Failed to create Connect account: ' + err.message }); }
+  } catch (err) { 
+      console.error("Connect Error:", err);
+      res.status(500).json({ error: 'Failed to create Connect account: ' + err.message }); 
+  }
 });
 
 app.get('/referral-link', (req, res) => {
