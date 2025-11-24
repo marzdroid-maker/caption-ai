@@ -9,6 +9,7 @@ const User = require('./models/User');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const FREE_TIER_LIMIT = 10;
+const AFFILIATE_COMMISSION_PERCENT = 0.30; // 30% Commission
 
 // === 1. DATABASE CONNECTION ===
 mongoose.connect(process.env.MONGODB_URI)
@@ -46,9 +47,11 @@ function computeEngagementScore(text, idea, platform, tone) {
 
 // === MIDDLEWARE ===
 app.use(cors());
+
 // GLOBAL BODY PARSER WITH INCREASED LIMIT (Crucial for Images)
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
 app.use(express.static('.'));
 
 // === ROUTES ===
@@ -135,6 +138,7 @@ app.post('/delete-voice', async (req, res) => {
     }
 });
 
+// === VISION ENABLED GENERATE ROUTE ===
 app.post('/generate', async (req, res) => {
   const { idea, platform, tone, email, useVoice, image } = req.body;
   
@@ -151,6 +155,7 @@ app.post('/generate', async (req, res) => {
       return res.status(402).json({ error: 'Limit reached. Please upgrade.' });
     }
 
+    // Style Logic
     let styleInstruction = "";
     if (useVoice && user.brandVoice) {
         styleInstruction = `⚠️ IMPORTANT: Ignore standard tone. ${user.brandVoice}`;
@@ -165,11 +170,12 @@ app.post('/generate', async (req, res) => {
     const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
     let messages = [];
     
-    // Use Llama 3.2 90b Vision (Stable replacement for 11b)
+    // DEFAULT TEXT MODEL
     let model = 'llama-3.3-70b-versatile'; 
 
     if (image) {
-        model = 'llama-3.2-90b-vision-preview'; 
+        // UPDATED: Use the new supported Vision model (Llama 4 Scout)
+        model = 'meta-llama/llama-4-scout-17b-16e-instruct'; 
         
         const userPrompt = `
         Platform: ${platform}
@@ -191,7 +197,7 @@ app.post('/generate', async (req, res) => {
                 ]
             }
         ];
-        console.log("📸 Processing Vision Request...");
+        console.log("📸 Processing Vision Request with Llama 4...");
     } else {
         const prompt = `
         Platform: ${platform}
@@ -232,7 +238,8 @@ app.post('/generate', async (req, res) => {
     res.json({ result, score });
 
   } catch (err) {
-    console.error("❌ Generation Error:", err.message); 
+    console.error("❌ Generation Error:", err.message);
+    // Handle Groq API errors gracefully
     if (err.message && err.message.includes("model_decommissioned")) {
         res.status(500).json({ error: "System Upgrade: The AI model is being updated. Please try again in 5 minutes." });
     } else {
@@ -292,6 +299,7 @@ Ensure emojis match the tone (${tone}).
   }
 });
 
+// === WEBHOOK: HANDLE PAYMENTS & AFFILIATE PAYOUTS ===
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -300,12 +308,51 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
   } catch (err) {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
+  
   try {
+      // 1. HANDLE SUCCESSFUL PAYMENT (Subscription or Invoice)
       if (event.type === 'checkout.session.completed' || event.type === 'invoice.payment_succeeded') {
          const session = event.data.object;
+         
+         // A. Upgrade User
          const email = session.customer_email || (session.metadata && session.metadata.user_email);
          if (email) await User.findOneAndUpdate({ email }, { isPro: true, stripeCustomerId: session.customer });
-      } else if (event.type === 'customer.subscription.deleted' || event.type === 'invoice.payment_failed') {
+
+         // B. HANDLE AFFILIATE COMMISSION
+         // We look for the referral_code inside the subscription or session metadata
+         let referralCode = session.metadata && session.metadata.referral_code;
+         
+         // If this is a recurring invoice, we might need to fetch the subscription to find the original referral code
+         if (!referralCode && session.subscription) {
+             try {
+                 const sub = await stripe.subscriptions.retrieve(session.subscription);
+                 referralCode = sub.metadata && sub.metadata.referral_code;
+             } catch(e) { console.log("Could not fetch subscription for referral check."); }
+         }
+
+         if (referralCode) {
+             const amountPaid = session.amount_paid || session.total; // Amount in cents
+             if (amountPaid > 0) {
+                 const commissionAmount = Math.floor(amountPaid * AFFILIATE_COMMISSION_PERCENT);
+                 
+                 try {
+                     // TRANSFER FUNDS TO AFFILIATE
+                     await stripe.transfers.create({
+                         amount: commissionAmount,
+                         currency: 'usd',
+                         destination: referralCode, // The referral code IS the Stripe Connect Account ID
+                         description: `Commission for ${email}`,
+                     });
+                     console.log(`💰 Paid commission: $${commissionAmount/100} to ${referralCode}`);
+                 } catch (err) {
+                     console.error(`❌ Commission Transfer Failed: ${err.message}`);
+                 }
+             }
+         }
+      } 
+      
+      // 2. HANDLE CANCELLATION / FAILED PAYMENT
+      else if (event.type === 'customer.subscription.deleted' || event.type === 'invoice.payment_failed') {
          const session = event.data.object;
          const email = session.customer_email || (session.metadata && session.metadata.user_email);
          if (email && !isVipEmail(email)) await User.findOneAndUpdate({ email }, { isPro: false });
@@ -350,7 +397,10 @@ app.post('/create-connect-account', async (req, res) => {
       type: 'account_onboarding',
     });
     res.json({ connectAccountId: account.id, onboardingUrl: accountLink.url });
-  } catch (err) { res.status(500).json({ error: 'Failed to create Connect account: ' + err.message }); }
+  } catch (err) { 
+      console.error("Connect Error:", err);
+      res.status(500).json({ error: 'Failed to create Connect account: ' + err.message }); 
+  }
 });
 
 app.get('/referral-link', (req, res) => {
