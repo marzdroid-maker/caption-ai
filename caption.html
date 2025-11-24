@@ -132,6 +132,7 @@
         border-radius: 0.5rem;
         margin-top: 0.5rem;
         display: none;
+        object-fit: contain;
     }
     .remove-image {
         color: #ef4444;
@@ -179,6 +180,7 @@
       white-space: pre-wrap; font-family: inherit; line-height: 1.6; margin-bottom: 1rem;
     }
 
+    /* Voice Option Checkbox */
     #voiceOptionContainer {
         background: #eff6ff;
         border: 1px solid #bfdbfe;
@@ -350,6 +352,7 @@
       background: var(--primary-dark);
     }
 
+    /* Paywall */
     .paywall {
       margin-top: 2rem; padding: 2rem; background: #fefce8; border-radius: .75rem;
       text-align: center; border: 2px solid #fde68a;
@@ -811,7 +814,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isVip = false;
     let hasVoice = false; 
     let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
-    let currentTab = 'generateContent'; // Forced default
+    let currentTab = 'generateContent'; 
 
     let debounceTimer;
     let isGenerating = false;
@@ -822,7 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastPlatform = '';
     let lastTone = '';
     
-    let uploadedImageBase64 = null; // Store image string here
+    let uploadedImageBase64 = null; 
 
     async function hydrateProFromServer() {
       try {
@@ -914,7 +917,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const voiceActiveState = document.getElementById('voiceActiveState'); 
     const voiceOptionContainer = document.getElementById('voiceOptionContainer');
 
-    // IMAGE UPLOAD ELEMENTS
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
     const imagePreview = document.getElementById('imagePreview');
@@ -1231,17 +1233,15 @@ document.addEventListener('DOMContentLoaded', () => {
       return { score, hook, readability, hashtags, cta };
     }
 
-    // --- IMAGE UPLOAD HANDLER ---
+    // --- RESIZING LOGIC INTEGRATED ---
     if (uploadArea && fileInput) {
         uploadArea.addEventListener('click', (e) => {
-            // Prevent recursive clicks if clicking remove button
             if (e.target !== removeImageBtn) fileInput.click();
         });
 
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
-                // Ensure file size is reasonable (frontend check)
                 if (file.size > 10 * 1024 * 1024) {
                     alert("File too large. Please upload images under 10MB.");
                     return;
@@ -1249,12 +1249,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    uploadedImageBase64 = event.target.result;
-                    imagePreview.src = uploadedImageBase64;
-                    imagePreview.style.display = 'block';
-                    removeImageBtn.style.display = 'block';
-                    uploadArea.style.background = '#f0fdf4'; // Success color
-                    uploadArea.style.borderColor = '#22c55e';
+                    const img = new Image();
+                    img.onload = function() {
+                        // Resize Logic
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const MAX_WIDTH = 1024;
+                        const MAX_HEIGHT = 1024;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Output compressed base64
+                        uploadedImageBase64 = canvas.toDataURL('image/jpeg', 0.8); // 80% quality JPEG
+                        
+                        imagePreview.src = uploadedImageBase64;
+                        imagePreview.style.display = 'block';
+                        removeImageBtn.style.display = 'block';
+                        uploadArea.style.background = '#f0fdf4';
+                        uploadArea.style.borderColor = '#22c55e';
+                    };
+                    img.src = event.target.result;
                 };
                 reader.readAsDataURL(file);
             }
@@ -1280,7 +1310,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const tone = toneSel.value;
       const useVoice = useVoiceCheckbox ? useVoiceCheckbox.checked : false;
 
-      // If no idea AND no image, stop.
       if ((!idea && !uploadedImageBase64) || !platform || !tone) {
         if (resultBox) resultBox.classList.add('hidden');
         if (paywallEl) paywallEl.classList.add('hidden');
@@ -1297,7 +1326,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hasBoostedCurrentOutput = false;
       lastResultText = '';
       lastScore = null;
-      lastIdea = idea || "Image Description"; // Fallback for Boost logic
+      lastIdea = idea || "Image Description";
       lastPlatform = platform;
       lastTone = tone;
 
@@ -1326,7 +1355,7 @@ document.addEventListener('DOMContentLoaded', () => {
               tone: tone, 
               email: userEmail, 
               useVoice: useVoice,
-              image: uploadedImageBase64 // Send image data
+              image: uploadedImageBase64 // Send resized image data
           })
         });
 
@@ -1372,7 +1401,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // --- Boost logic ---
     async function tryBoost() {
         if (hasBoostedCurrentOutput) return;
         if (!lastResultText || !lastPlatform || !lastTone) return;
