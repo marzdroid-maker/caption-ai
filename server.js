@@ -8,354 +8,161 @@ const User = require('./models/User');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const FREE_TIER_LIMIT = 10;
-const AFFILIATE_COMMISSION_PERCENT = 0.30; // 30% Commission
 
-// === 1. DATABASE CONNECTION ===
+// DATABASE
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB Connected'))
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
-// === 2. CONFIG & UTILS ===
+// CONFIG
+const FREE_TIER_LIMIT = 10;
+const AFFILIATE_COMMISSION_PERCENT = 0.30; // 30% Commission
+
 let vipEmails = [];
-try {
-  vipEmails = require('./free-pro-users.json').emails.map(e => e.toLowerCase().trim());
-} catch (e) {
-  console.log("No VIP list found or empty.");
-}
+try { vipEmails = require('./free-pro-users.json').emails.map(e => e.toLowerCase().trim()); } catch (e) {}
 
 function isVipEmail(email) {
   if (!email) return false;
   return vipEmails.includes(email.toLowerCase().trim());
 }
 
-function computeEngagementScore(text, idea, platform, tone) {
+function computeEngagementScore(text) {
     if (!text) return 30;
-    const platformKey = (platform || "").toLowerCase();
+    let score = 45; 
     const totalWords = text.split(/\s+/).filter(Boolean).length;
     const allHashtags = text.match(/#[\p{L}\p{N}_]+/gu) || [];
-    
-    let score = 45; 
     if (totalWords > 10 && totalWords < 150) score += 10;
-    if (allHashtags.length >= 5 && allHashtags.length <= 30) score += 10;
-    if (platformKey.includes('instagram') && allHashtags.length > 10) score += 5;
-    if (platformKey.includes('linkedin') && tone.toLowerCase().includes('professional')) score += 5;
-    if (text.includes('👇') || text.includes('🔗') || text.includes('?')) score += 5; 
+    if (allHashtags.length >= 5) score += 10;
     score += Math.floor(Math.random() * 5);
     return Math.min(Math.max(score, 10), 95); 
 }
 
-// === MIDDLEWARE ===
+// MIDDLEWARE
 app.use(cors());
-
-// GLOBAL BODY PARSER WITH INCREASED LIMIT (Crucial for Images)
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
 app.use(express.static('.'));
 
-// === ROUTES ===
-
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/caption.html');
-});
+// ROUTES
+app.get('/', (req, res) => res.sendFile(__dirname + '/caption.html'));
 
 app.get('/check-subscription', async (req, res) => {
     const email = req.query.email;
     if (!email) return res.status(400).json({ error: 'Email required' });
-
     try {
         let user = await User.findOne({ email });
         if (!user) user = await User.create({ email });
-
-        const isVip = isVipEmail(email);
-        const isPro = isVip || user.isPro;
-
-        res.json({ 
-            isPro: isPro, 
-            isVip: isVip,
-            freeUses: user.freeGenerations,
-            hasVoice: !!user.brandVoice
-        });
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: 'Server error' });
-    }
+        res.json({ isPro: isVipEmail(email) || user.isPro, isVip: isVipEmail(email), freeUses: user.freeGenerations, hasVoice: !!user.brandVoice });
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.post('/save-voice', async (req, res) => {
     const { email, samples } = req.body;
     if (!email || !samples) return res.status(400).json({ error: 'Missing data' });
-
     try {
         let user = await User.findOne({ email });
         if (!user) return res.status(404).json({ error: 'User not found' });
-
-        const isVip = isVipEmail(email);
-        const isPro = user.isPro || isVip;
-
-        if (!isPro) return res.status(402).json({ error: 'Upgrade to Pro to use Style Thief.' });
+        if (!(isVipEmail(email) || user.isPro)) return res.status(402).json({ error: 'Upgrade to Pro.' });
 
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-        const analysisPrompt = `
-        Analyze these social media posts and extract a "Voice Profile" instructions list.
-        Identify: Sentence length, emoji usage frequency, slang, tone, and structure.
-        
-        POST SAMPLES:
-        "${samples}"
-
-        Output ONLY the instructions to give to an AI to replicate this style. Start with "Write in a style that is..."
-        `;
-
         const completion = await groq.chat.completions.create({
-            messages: [{ role: 'user', content: analysisPrompt }],
+            messages: [{ role: 'user', content: `Analyze style of these posts:\n${samples}\nOutput instructions to replicate style.` }],
             model: 'llama-3.3-70b-versatile',
         });
-
-        const voiceProfile = completion.choices[0]?.message?.content || "";
-        
-        user.brandVoice = voiceProfile;
+        user.brandVoice = completion.choices[0]?.message?.content || "";
         await user.save();
-
-        res.json({ success: true, voiceProfile });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Voice analysis failed' });
-    }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: 'Analysis failed' }); }
 });
 
 app.post('/delete-voice', async (req, res) => {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ error: 'Email required' });
-
-    try {
-        await User.findOneAndUpdate({ email }, { brandVoice: "" });
-        res.json({ success: true });
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: 'Failed to delete voice' });
-    }
+    try { await User.findOneAndUpdate({ email }, { brandVoice: "" }); res.json({ success: true }); } 
+    catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-// === VISION ENABLED GENERATE ROUTE ===
 app.post('/generate', async (req, res) => {
   const { idea, platform, tone, email, useVoice, image } = req.body;
-  
   if ((!idea && !image) || !email) return res.status(400).json({ error: 'Missing fields' });
 
   try {
     let user = await User.findOne({ email });
     if (!user) user = await User.create({ email });
+    const isPro = isVipEmail(email) || user.isPro;
 
-    const isVip = isVipEmail(email);
-    const isPro = user.isPro || isVip;
+    if (!isPro && user.freeGenerations >= FREE_TIER_LIMIT) return res.status(402).json({ error: 'Limit reached' });
 
-    if (!isPro && user.freeGenerations >= FREE_TIER_LIMIT) {
-      return res.status(402).json({ error: 'Limit reached. Please upgrade.' });
-    }
-
-    // Style Logic
     let styleInstruction = "";
-    if (useVoice && user.brandVoice) {
-        styleInstruction = `⚠️ IMPORTANT: Ignore standard tone. ${user.brandVoice}`;
-    } else {
-        if (platform.toLowerCase().includes('linkedin') || tone.toLowerCase().includes('professional')) {
-            styleInstruction = "Use minimal, professional emojis. Focus on clean structure.";
-        } else if (platform.toLowerCase().includes('instagram') || tone.toLowerCase().includes('fun')) {
-            styleInstruction = "Use vibrant emojis often. Make it pop!";
-        }
-    }
+    if (useVoice && user.brandVoice) styleInstruction = `STYLE: ${user.brandVoice}`;
 
     const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-    let messages = [];
-    
-    // DEFAULT TEXT MODEL
     let model = 'llama-3.3-70b-versatile'; 
+    let messages = [];
 
     if (image) {
-        // UPDATED: Use the new supported Vision model (Llama 4 Scout)
+        // USING LIVE VISION MODEL (Llama 4)
         model = 'meta-llama/llama-4-scout-17b-16e-instruct'; 
-        
-        const userPrompt = `
-        Platform: ${platform}
-        Tone: ${tone}
-        Context: ${idea || "Describe this image"}
-        
-        TASK: Write 5 viral social media captions based on this image.
-        ${styleInstruction}
-        Include 20 trending hashtags.
-        Format exactly: ## Captions (numbered list) ## Hashtags.
-        `;
-
-        messages = [
-            {
-                role: 'user',
-                content: [
-                    { type: 'text', text: userPrompt },
-                    { type: 'image_url', image_url: { url: image } } 
-                ]
-            }
-        ];
-        console.log("📸 Processing Vision Request with Llama 4...");
+        messages = [{ role: 'user', content: [
+            { type: 'text', text: `Platform: ${platform}, Tone: ${tone}. Write 5 viral captions. ${styleInstruction}` },
+            { type: 'image_url', image_url: { url: image } } 
+        ]}];
     } else {
-        const prompt = `
-        Platform: ${platform}
-        Tone: ${tone}
-        Post Idea: "${idea}"
-
-        Write:
-        - 5 short, punchy captions (under 280 characters each).
-        - **Style Instruction:** ${styleInstruction}
-        - 20 relevant, trending hashtags.
-
-        Format exactly:
-        ## Captions
-        1. "..."
-        ...
-        ## Hashtags
-        #tag1 ...
-        `.trim();
-        
-        messages = [{ role: 'user', content: prompt }];
+        messages = [{ role: 'user', content: `Platform: ${platform}, Tone: ${tone}. Idea: ${idea}. Write 5 viral captions. ${styleInstruction}` }];
     }
     
-    const completion = await groq.chat.completions.create({
-      messages: messages,
-      model: model,
-      temperature: 0.7,
-      max_tokens: 1024,
-    });
-    
+    const completion = await groq.chat.completions.create({ messages, model });
     const result = completion.choices[0]?.message?.content || "No result";
-    const score = computeEngagementScore(result, idea || "image", platform, tone);
+    const score = computeEngagementScore(result);
 
-    if (!isPro) {
-      user.freeGenerations += 1;
-      await user.save();
-    }
-
+    if (!isPro) { user.freeGenerations++; await user.save(); }
     res.json({ result, score });
 
   } catch (err) {
-    console.error("❌ Generation Error:", err.message);
-    // Handle Groq API errors gracefully
+    console.error("Gen Error:", err.message);
+    // Handle decommissioned model error gracefully
     if (err.message && err.message.includes("model_decommissioned")) {
-        res.status(500).json({ error: "System Upgrade: The AI model is being updated. Please try again in 5 minutes." });
+         res.status(500).json({ error: "System Upgrade: Model updating. Please try again in 5m." });
     } else {
-        res.status(500).json({ error: 'Generation failed: ' + err.message });
+         res.status(500).json({ error: err.message });
     }
   }
 });
 
 app.post('/optimize', async (req, res) => {
-  const { idea, platform, tone, email, captions, previousScore } = req.body;
-  if (!captions || !email) return res.status(400).json({ error: 'Missing fields' });
-
+  const { idea, platform, tone, email, captions } = req.body;
   try {
     let user = await User.findOne({ email });
     if (!user) user = await User.create({ email });
-
-    const isVip = isVipEmail(email);
-    const isPro = user.isPro || isVip;
-
-    if (!isPro && user.freeGenerations >= FREE_TIER_LIMIT) {
-      return res.status(402).json({ error: 'Limit reached. Please upgrade.' });
-    }
+    const isPro = isVipEmail(email) || user.isPro;
+    if (!isPro && user.freeGenerations >= FREE_TIER_LIMIT) return res.status(402).json({ error: 'Limit reached' });
 
     const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-    const prompt = `
-Rewrite these captions to be 10x more viral.
-Original Idea: ${idea}
-Platform: ${platform}
-Tone: ${tone}
-Current Captions:
-${captions}
-
-Make them punchier, use better hooks, and add 5 more niche hashtags.
-Ensure emojis match the tone (${tone}).
-    `.trim();
-
     const completion = await groq.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
+      messages: [{ role: 'user', content: `Rewrite to be more viral:\n${captions}` }],
       model: 'llama-3.3-70b-versatile',
-      temperature: 0.9,
     });
-
-    const result = completion.choices[0]?.message?.content || captions;
-    let newScore = (previousScore || 50) + Math.floor(Math.random() * 15) + 10;
-    if (newScore > 98) newScore = 98;
-
-    if (!isPro) {
-      user.freeGenerations += 1;
-      await user.save();
-    }
-
-    res.json({ result, score: newScore });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Optimization failed' });
-  }
+    
+    if (!isPro) { user.freeGenerations++; await user.save(); }
+    res.json({ result: completion.choices[0]?.message?.content, score: 85 });
+  } catch (err) { res.status(500).json({ error: 'Failed' }); }
 });
 
-// === WEBHOOK: HANDLE PAYMENTS & AFFILIATE PAYOUTS ===
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  let event;
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch (err) {
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-  
-  try {
-      // 1. HANDLE SUCCESSFUL PAYMENT (Subscription or Invoice)
-      if (event.type === 'checkout.session.completed' || event.type === 'invoice.payment_succeeded') {
+      const event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], process.env.STRIPE_WEBHOOK_SECRET);
+      if (event.type === 'checkout.session.completed') {
          const session = event.data.object;
-         
-         // A. Upgrade User
-         const email = session.customer_email || (session.metadata && session.metadata.user_email);
+         const email = session.customer_email || session.metadata?.user_email;
          if (email) await User.findOneAndUpdate({ email }, { isPro: true, stripeCustomerId: session.customer });
-
-         // B. HANDLE AFFILIATE COMMISSION
-         // We look for the referral_code inside the subscription or session metadata
-         let referralCode = session.metadata && session.metadata.referral_code;
          
-         // If this is a recurring invoice, we might need to fetch the subscription to find the original referral code
-         if (!referralCode && session.subscription) {
-             try {
-                 const sub = await stripe.subscriptions.retrieve(session.subscription);
-                 referralCode = sub.metadata && sub.metadata.referral_code;
-             } catch(e) { console.log("Could not fetch subscription for referral check."); }
+         const referralCode = session.metadata?.referral_code;
+         if (referralCode && session.amount_total > 0) {
+             await stripe.transfers.create({
+                 amount: Math.floor(session.amount_total * AFFILIATE_COMMISSION_PERCENT),
+                 currency: 'usd',
+                 destination: referralCode,
+             }).catch(e => console.error('Transfer failed', e));
          }
-
-         if (referralCode) {
-             const amountPaid = session.amount_paid || session.total; // Amount in cents
-             if (amountPaid > 0) {
-                 const commissionAmount = Math.floor(amountPaid * AFFILIATE_COMMISSION_PERCENT);
-                 
-                 try {
-                     // TRANSFER FUNDS TO AFFILIATE
-                     await stripe.transfers.create({
-                         amount: commissionAmount,
-                         currency: 'usd',
-                         destination: referralCode, // The referral code IS the Stripe Connect Account ID
-                         description: `Commission for ${email}`,
-                     });
-                     console.log(`💰 Paid commission: $${commissionAmount/100} to ${referralCode}`);
-                 } catch (err) {
-                     console.error(`❌ Commission Transfer Failed: ${err.message}`);
-                 }
-             }
-         }
-      } 
-      
-      // 2. HANDLE CANCELLATION / FAILED PAYMENT
-      else if (event.type === 'customer.subscription.deleted' || event.type === 'invoice.payment_failed') {
-         const session = event.data.object;
-         const email = session.customer_email || (session.metadata && session.metadata.user_email);
-         if (email && !isVipEmail(email)) await User.findOneAndUpdate({ email }, { isPro: false });
       }
   } catch (err) { console.error(err); }
   res.json({ received: true });
@@ -363,15 +170,14 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 
 app.post('/create-checkout-session', async (req, res) => {
   const { email, referralCode } = req.body;
-  if (!email) return res.status(400).json({ error: 'Email required' });
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
       mode: 'subscription',
       customer_email: email,
-      success_url: `${req.headers.origin}/?success=true`,
-      cancel_url: `${req.headers.origin}/?canceled=true`,
+      success_url: `${req.headers.origin}?success=true`,
+      cancel_url: `${req.headers.origin}?canceled=true`,
       metadata: { user_email: email, referral_code: referralCode || '' },
       subscription_data: { metadata: { user_email: email, referral_code: referralCode || '' } }
     });
@@ -381,35 +187,16 @@ app.post('/create-checkout-session', async (req, res) => {
 
 app.post('/create-connect-account', async (req, res) => {
   try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ error: 'Email required.' });
-    const account = await stripe.accounts.create({
-      type: 'express',
-      email,
-      capabilities: { transfers: { requested: true }, card_payments: { requested: true } },
-      metadata: { user_email: email },
-    });
-    const origin = req.headers.origin || 'https://caption-ai-ze13.onrender.com';
-    const accountLink = await stripe.accountLinks.create({
-      account: account.id,
-      refresh_url: `${origin}?connect_refresh=1`,
-      return_url: `${origin}?connect_return=1`,
-      type: 'account_onboarding',
-    });
-    res.json({ connectAccountId: account.id, onboardingUrl: accountLink.url });
-  } catch (err) { 
-      console.error("Connect Error:", err);
-      res.status(500).json({ error: 'Failed to create Connect account: ' + err.message }); 
-  }
+    const account = await stripe.accounts.create({ type: 'express', email: req.body.email, capabilities: { transfers: { requested: true }, card_payments: { requested: true } } });
+    const link = await stripe.accountLinks.create({ account: account.id, refresh_url: 'https://example.com', return_url: 'https://example.com', type: 'account_onboarding' });
+    res.json({ connectAccountId: account.id, onboardingUrl: link.url });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.get('/referral-link', (req, res) => {
-  const { referralCode } = req.query;
-  if (!referralCode) return res.status(400).json({ error: 'referralCode required' });
-  const origin = req.headers.origin || 'https://caption-ai-ze13.onrender.com';
-  res.json({ referralUrl: `${origin}?ref=${encodeURIComponent(referralCode)}` });
+  res.json({ referralUrl: `${req.headers.origin || 'https://caption-ai-ze13.onrender.com'}?ref=${encodeURIComponent(req.query.referralCode)}` });
 });
 
 app.get('/health', (req, res) => { res.json({ status: 'ok', time: new Date().toISOString() }); });
 
-app.listen(PORT, () => { console.log(`Server running on port ${PORT}`); });
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
