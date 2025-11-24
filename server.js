@@ -1,1867 +1,365 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AI Caption + Hashtag Generator</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
-  
-  <meta name="description" content="Stop guessing. Get 5 viral captions + 30 hashtags in 3 seconds using AI. Includes Engagement Scoring and Brand Voice cloning.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://caption-ai-ze13.onrender.com/">
-  <meta property="og:title" content="AI Caption Generator | Viral Hooks & Hashtags">
-  <meta property="og:description" content="Generate viral captions in your unique brand voice. Try it free.">
-  <meta property="og:image" content="https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=1200&auto=format&fit=crop">
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://caption-ai-ze13.onrender.com/">
-  <meta property="twitter:title" content="AI Caption Generator | Viral Hooks & Hashtags">
-  <meta property="twitter:description" content="Generate viral captions in your unique brand voice. Try it free.">
-  <meta property="twitter:image" content="https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=1200&auto=format&fit=crop">
-
-  <style>
-    :root {
-      --primary: #3b82f6;
-      --primary-dark: #2563eb;
-      --gray: #6b7280;
-      --light: #f3f4f6;
-      --border: #e5e7eb;
-      --placeholder: #9ca3af;
-      --success: #10b981;
-      --success-dark: #059669;
-      --error: #ef4444;
-      --warning: #f59e0b;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-      color: #111;
-      min-height: 100vh;
-      padding: 2rem 1rem;
-    }
-    .container { max-width: 600px; margin: 0 auto; }
-    h1 { font-size: 2.25rem; font-weight: 700; text-align: center; margin-bottom: .5rem; }
-    p.subtitle { text-align: center; color: var(--gray); margin-bottom: 1.5rem; font-size: 1.1rem; }
-
-    .proof {
-      background: #ecfdf5;
-      border: 1px solid #a7f3d0;
-      padding: 1rem;
-      border-radius: .75rem;
-      text-align: center;
-      margin-bottom: 1.5rem;
-      font-size: .95rem;
-      color: #065f46;
-    }
-    .proof strong { font-weight: 600; }
-
-    #dailyTipBox {
-      background: #fff;
-      border: 1px solid #d1d5db;
-      padding: 1rem;
-      border-radius: .75rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-      font-size: .95rem;
-      line-height: 1.4;
-    }
-    #dailyTipBox strong {
-      color: var(--warning);
-      margin-right: .5rem;
-    }
-
-    /* Email modal */
-    #emailModal {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7); display: flex; align-items: center;
-      justify-content: center; z-index: 9999;
-    }
-    .modal-content {
-      background: white; padding: 2rem; border-radius: 1rem;
-      width: 90%; max-width: 400px; text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-    .modal-content h2 { margin-bottom: 1rem; font-size: 1.5rem; }
-    .modal-content p { margin-bottom: 1.5rem; color: #555; }
-    .modal-content input {
-      width: 100%; padding: .75rem; border: 2px solid #e5e7eb;
-      border-radius: .5rem; font-size: 1rem; margin-bottom: 1rem;
-    }
-    .modal-content button {
-      background: var(--primary); color: white; border: none;
-      padding: .75rem 1.5rem; border-radius: .5rem; font-weight: 600;
-      cursor: pointer; width: 100%;
-    }
-
-    label { display: block; margin-bottom: .5rem; font-weight: 600; color: #111; }
-    input, select, textarea {
-      width: 100%; padding: .75rem 1rem; border: 2px solid var(--border);
-      border-radius: .5rem; font-size: 1rem; margin-bottom: 1rem;
-      transition: border .2s;
-      font-family: inherit;
-    }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
-    input::placeholder, textarea::placeholder { color: var(--placeholder); font-style: italic; }
-
-    button {
-      width: 100%; background: var(--primary); color: white; border: none;
-      padding: 1rem; font-size: 1.1rem; font-weight: 600; border-radius: .5rem;
-      cursor: pointer; transition: background .2s;
-    }
-    button:hover { background: var(--primary-dark); }
-    button:disabled { background: #93c5fd; cursor: not-allowed; }
-
-    /* Image Upload Styles */
-    .upload-area {
-        border: 2px dashed var(--border);
-        border-radius: 0.5rem;
-        padding: 1rem;
-        text-align: center;
-        cursor: pointer;
-        margin-bottom: 1rem;
-        background: #fff;
-        transition: border 0.2s;
-    }
-    .upload-area:hover {
-        border-color: var(--primary);
-        background: #f0f9ff;
-    }
-    .upload-preview {
-        max-width: 100%;
-        max-height: 200px;
-        border-radius: 0.5rem;
-        margin-top: 0.5rem;
-        display: none;
-        object-fit: contain;
-    }
-    .remove-image {
-        color: #ef4444;
-        font-size: 0.85rem;
-        text-decoration: underline;
-        cursor: pointer;
-        display: none;
-        margin-top: 0.5rem;
-    }
-
-    /* Tabs */
-    #tabHeader {
-      display: flex;
-      margin-bottom: 1.5rem;
-      border-bottom: 2px solid var(--border);
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 0.75rem 0;
-      background: none;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      color: var(--gray);
-      font-size: 1rem;
-      border-bottom: 3px solid transparent;
-      transition: color 0.2s, border-bottom 0.2s;
-      border-radius: 0;
-      width: auto;
-    }
-    .tab-btn.active {
-      color: var(--primary);
-      border-bottom: 3px solid var(--primary);
-    }
-
-    .tab-content { padding: 0; }
-
-    /* Result card */
-    .result {
-      margin-top: 2rem; padding: 1.5rem; background: white; border-radius: .75rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,.05); position: relative;
-    }
-    .result h3 { margin-bottom: .75rem; color: var(--primary); }
-    .result pre {
-      white-space: pre-wrap; font-family: inherit; line-height: 1.6; margin-bottom: 1rem;
-    }
-
-    /* Voice Option Checkbox */
-    #voiceOptionContainer {
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
-        padding: 0.75rem;
-        border-radius: 0.5rem;
-        margin-bottom: 1rem;
-    }
-    #voiceOptionContainer label {
-        margin-bottom: 0;
-        color: #1e40af;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-    }
-    #voiceOptionContainer input {
-        width: auto;
-        margin: 0;
-    }
-
-    /* Engagement box */
-    .engagement-box {
-      display: none;
-      margin-bottom: 1rem;
-      padding: 0.85rem 0.9rem;
-      border-radius: 0.75rem;
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-    }
-    .engagement-main {
-      display: flex;
-      align-items: baseline;
-      gap: 0.35rem;
-      margin-bottom: 0.25rem;
-    }
-    .engagement-title {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #1d4ed8;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .engagement-value {
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
-    .engagement-max {
-      font-size: 0.9rem;
-      color: #4b5563;
-    }
-    .engagement-subtext {
-      font-size: 0.8rem;
-      color: #4b5563;
-      margin-bottom: 0.5rem;
-    }
-    .boost-btn {
-      width: 100%;
-      background: #16a34a;
-      font-size: 0.95rem;
-      padding: 0.6rem 0.9rem;
-      border-radius: 0.6rem;
-      font-weight: 600;
-    }
-    .boost-btn.used {
-      background: #9ca3af;
-      cursor: default;
-    }
-
-    #copyBtn {
-      position: absolute; top: 1rem; right: 1rem; background: var(--success);
-      color: white; padding: .5rem 1rem; border: none; border-radius: .5rem;
-      font-size: .9rem; cursor: pointer; transition: background .2s;
-    }
-    #copyBtn:hover { background: var(--success-dark); }
-    #copyBtn.copied { background: #059669; }
-
-    /* Emoji picker */
-    #emojiPickerBtn {
-      background: var(--warning); margin: 1rem 0; width: auto; padding: .5rem 1rem; font-size: .9rem;
-    }
-    .emoji-picker-container {
-      position: relative;
-      text-align: left;
-      display: flex;
-      justify-content: center;
-    }
-    #emojiPicker {
-      display: none;
-      position: absolute;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: .75rem;
-      padding: 1rem;
-      max-width: 300px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-      z-index: 100;
-      text-align: center;
-      max-height: 350px;
-      flex-direction: column;
-      right: 0;
-      top: 100%;
-      transform: translateY(5px);
-    }
-    #emojiGrid {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: .5rem;
-      font-size: 1.5rem;
-      margin: .75rem 0;
-      overflow-y: auto;
-      padding-right: 5px;
-    }
-    #emojiGrid button {
-      background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0;
-    }
-    #closePicker {
-      margin-top: .5rem; background: #6b7280; color: white; padding: .5rem 1rem;
-      border-radius: .5rem; font-size: .8rem; width: auto;
-    }
-
-    /* Pro templates & Voice */
-    #proTemplates, #voicePaywall {
-      margin-top: 2rem; padding: 1.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: .75rem;
-    }
-    .templateBtn {
-      text-align: left;
-      padding: .75rem;
-      background: white;
-      border: 1px solid #d1d5db;
-      border-radius: .5rem;
-      font-size: .9rem;
-      margin-bottom: .5rem;
-      cursor: pointer;
-      color: #111 !important;
-      line-height: 1.4;
-      display: block;
-    }
-    .templateBtn:hover {
-      background: #f9fafb;
-      color: #111 !important;
-    }
-
-    #templateContainer {
-      display: grid;
-      gap: .5rem;
-      font-size: .9rem;
-      margin-top: 1rem;
-    }
-    #templatePage2 { display: none; }
-
-    #templatePaging {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-    #templatePaging button {
-      width: auto;
-      padding: .5rem 1.2rem;
-      background: #9ca3af;
-      font-weight: 500;
-      font-size: .9rem;
-    }
-    #templatePaging button.active {
-      background: var(--primary);
-      font-weight: 700;
-    }
-    #templatePaging button:hover {
-      background: var(--primary-dark);
-    }
-
-    /* Paywall */
-    .paywall {
-      margin-top: 2rem; padding: 2rem; background: #fefce8; border-radius: .75rem;
-      text-align: center; border: 2px solid #fde68a;
-    }
-    .paywall h3 { margin-bottom: .5rem; font-size: 1.5rem; }
-    .paywall p { color: #92400e; margin-bottom: 1rem; }
-    .paywall button {
-      background: #16a34a; padding: .75rem 1.5rem; font-size: 1rem;
-      width: auto; display: inline-block;
-    }
-    .paywall button:hover { background: #15803d; }
-
-    .analysis-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: .75rem;
-      padding: 1.5rem;
-      margin-top: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,.05);
-    }
-    .analysis-score {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: var(--primary);
-      text-align: center;
-      margin-bottom: .5rem;
-    }
-    .analysis-detail {
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px dashed var(--border);
-    }
-    .analysis-detail p {
-      margin-bottom: .5rem;
-      line-height: 1.4;
-    }
-
-    .hidden { display: none; }
-    .loading { text-align: center; margin: 1rem 0; color: var(--gray); font-style: italic; }
-
-    footer {
-      margin-top: 3rem; text-align: center; color: #6b7280; font-size: 0.875rem;
-    }
-    footer a { color: inherit; margin: 0 1rem; text-decoration: underline; }
-
-    @media (max-width: 480px) {
-      h1 { font-size: 1.75rem; }
-      .container { padding: 0 1rem; }
-      #copyBtn { position: static; margin-top: 1rem; width: 100%; }
-      #emojiGrid { grid-template-columns: repeat(5, 1fr); }
-      #emojiPicker {
-        right: auto;
-        left: 50%;
-        transform: translateX(-50%) translateY(5px);
-      }
-    }
-  
-    #toast {
-      position: fixed;
-      bottom: 1.5rem;
-      right: 1.5rem;
-      background: #111827;
-      color: white;
-      padding: 0.75rem 1rem;
-      border-radius: 0.75rem;
-      font-size: 0.9rem;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.18);
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(10px);
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      z-index: 99999;
-    }
-    #toast.show {
-      opacity: 1;
-      pointer-events: auto;
-      transform: translateY(0);
-    }
-    #toast.toast-success { background: #047857; }
-    #toast.toast-error { background: #b91c1c; }
-    #toast.toast-info { background: #111827; }
-
-    #proBadge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
-      color: white;
-      border-radius: 999px;
-      padding: 0.2rem 0.6rem;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-left: 0.5rem;
-      vertical-align: middle;
-    }
-    #proBadge.hidden {
-      display: none;
-    }
-
-    #freeUsageBar {
-      margin: 0.75rem 0 1.25rem;
-      font-size: 0.85rem;
-      color: #4b5563;
-    }
-    #freeUsageBar.hidden {
-      display: none;
-    }
-    .free-usage-track {
-      width: 100%;
-      background: #e5e7eb;
-      border-radius: 999px;
-      height: 0.6rem;
-      margin-top: 0.35rem;
-      overflow: hidden;
-    }
-    .free-usage-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #3b82f6, #10b981);
-      transition: width 0.25s ease;
-    }
-
-  </style>
-</head>
-<body>
-
-  <div id="emailModal">
-    <div class="modal-content">
-      <h2>Welcome!</h2>
-      <p>Enter your email to get <strong>10 free generations</strong>.</p>
-      <input type="email" id="emailInput" placeholder="you@example.com" required />
-      <button id="emailSubmit">Start Generating</button>
-    </div>
-  </div>
-
-  <div class="container" id="mainApp" style="display: none;">
-    <h1>AI Caption + Hashtag Generator <span id="proBadge" class="hidden">PRO</span></h1>
-    <p class="subtitle">Get 5 viral captions + 30 hashtags in 3 seconds.</p>
-    <div id="freeUsageBar" class="hidden">
-      <div><span id="freeUsageText">10 free generations remaining.</span></div>
-      <div class="free-usage-track">
-        <div class="free-usage-fill" id="freeUsageFill"></div>
-      </div>
-    </div>
-
-
-    <div class="proof">
-      <strong>Stop guessing and start optimizing. The only AI Caption Generator with a built-in Engagement & Boost Score.</strong>
-    </div>
-
-    <div id="dailyTipBox">
-      <strong>💡 Today's Tip:</strong>
-      <span id="dailyTipText">Loading a viral content tip...</span>
-    </div>
-
-    <div id="tabContainer">
-      <div id="tabHeader">
-        <button id="generateTabBtn" class="tab-btn active" data-target="generateContent">Generate</button>
-        <button id="voiceTabBtn" class="tab-btn" data-target="voiceContent">Brand Voice (Pro)</button>
-        <button id="analyzeTabBtn" class="tab-btn" data-target="analyzeContent">Analyze (Pro)</button>
-      </div>
-
-      <div id="generateContent" class="tab-content">
-        <form id="captionForm">
-          
-          <div class="upload-area" id="uploadArea">
-            <p style="color: #6b7280; margin-bottom: 0.5rem;">📸 <strong>Upload Image</strong> (Optional)</p>
-            <p style="font-size: 0.8rem; color: #9ca3af;">Click to select a photo</p>
-            <input type="file" id="fileInput" accept="image/*" style="display: none;">
-            <img id="imagePreview" class="upload-preview">
-            <div id="removeImage" class="remove-image">Remove Image</div>
-          </div>
-
-          <label for="idea">Post Idea / Description</label>
-          <input type="text" id="idea" placeholder="e.g. Just launched my coffee shop (Optional if image uploaded)" />
-
-          <label for="platform">Platform</label>
-          <select id="platform" required>
-            <option value="" disabled selected data-placeholder>Choose platform</option>
-            <option value="Instagram">Instagram</option>
-            <option value="Twitter">Twitter</option>
-            <option value="LinkedIn">LinkedIn</option>
-            <option value="TikTok">TikTok</option>
-          </select>
-
-          <label for="tone">Tone</label>
-          <select id="tone" required>
-            <option value="" disabled selected data-placeholder>Choose tone</option>
-            <option value="Professional">Professional</option>
-            <option value="Fun & Playful">Fun & Playful</option>
-            <option value="Inspirational">Inspirational</option>
-            <option value="Bold & Confident">Bold & Confident</option>
-            <option value="Casual & Friendly">Casual & Friendly</option>
-          </select>
-
-          <div id="voiceOptionContainer" class="hidden">
-            <label>
-                <input type="checkbox" id="useVoice"> 
-                <strong>Use My Brand Voice 🎨</strong>
-            </label>
-          </div>
-
-          <button type="submit" id="generateBtn">Generate Captions</button>
-        </form>
-
-        <div class="emoji-picker-container">
-          <button type="button" id="emojiPickerBtn">Add Emojis</button>
-          <div id="emojiPicker">
-            <p style="margin-bottom: .75rem; font-weight: 600;">Pick Emojis</p>
-            <div id="emojiGrid"></div>
-            <button id="closePicker">Close</button>
-          </div>
-        </div>
-
-        <div id="loading" class="loading hidden">Generating magic...</div>
-
-        <div id="result" class="result hidden">
-          <h3>Your AI Captions</h3>
-
-          <div id="engagementBox" class="engagement-box">
-            <div class="engagement-main">
-              <span class="engagement-title">Engagement Score</span>
-              <span id="engagementScoreValue" class="engagement-value">--</span>
-              <span class="engagement-max">/100</span>
-            </div>
-            <p id="engagementSubtext" class="engagement-subtext">
-              Higher scores usually mean more saves, comments, and shares.
-            </p>
-            <button id="boostBtn" type="button" class="boost-btn">Boost My Score</button>
-          </div>
-
-          <pre id="output"></pre>
-          <button type="button" id="copyBtn">Copy All</button>
-        </div>
-
-        <div id="proTemplates">
-          <h3>The Viral Swipe File: Proven 6-Figure Post Structures</h3>
-          <p style="margin: 1rem 0 .75rem; font-size: .95rem; color: #065f46; line-height: 1.5;">
-            <strong>Steal the exact captions used by 6-figure creators.</strong>
-            These aren’t random — they’re <em>proven</em> to get 3x more likes, comments, and saves.
-            Just click, edit, generate. <strong>Instant viral edge.</strong>
-          </p>
-
-          <div id="templateContainer" class="hidden">
-            <div id="templatePage1">
-              <button class="templateBtn" data-text="Just hit [X] followers! Grateful for every one of you Heart Sparkles">
-                Just hit [X] followers! Grateful for every one of you ❤️ ✨
-              </button>
-              <button class="templateBtn" data-text="Behind the scenes of [your idea] Camera Film">
-                Behind the scenes of [your idea] 📸 🎬
-              </button>
-              <button class="templateBtn" data-text="Tag a friend who needs this! Hand Point Down">
-                Tag a friend who needs this! 👇
-              </button>
-              <button class="templateBtn" data-text="New drop alert! Link in bio Shopping Bag Fire">
-                New drop alert! Link in bio 🛍️ 🔥
-              </button>
-              <button class="templateBtn" data-text="Your daily dose of [topic] Coffee Mug Light Bulb">
-                Your daily dose of [topic] ☕ 💡
-              </button>
-              <button class="templateBtn" data-text="Reply with YES or NO: [question]? Question Mark Thinking Face">
-                Reply with YES or NO: [question]? ❓ 🤔
-              </button>
-              <button class="templateBtn" data-text="Save this for later — you’ll thank me! Bookmark Sparkles">
-                Save this for later — you’ll thank me! 🔖 ✨
-              </button>
-              <button class="templateBtn" data-text="Free [resource] in bio! Don’t miss it Gift Rocket">
-                Free [resource] in bio! Don’t miss it 🎁 🚀
-              </button>
-              <button class="templateBtn" data-text="Swipe up to see the full story! Hand Point Up Film">
-                Swipe up to see the full story! 👆 🎬
-              </button>
-              <button class="templateBtn" data-text="'Changed my [niche] game!' – @username Star Speech Bubble">
-                "Changed my [niche] game!" – @username ⭐ 💬
-              </button>
-            </div>
-
-            <div id="templatePage2">
-              <button class="templateBtn" data-text="You think [Product] is too expensive? Here's the ROI breakdown. Money Bag Chart Increasing">
-                You think [Product] is too expensive? Here's the ROI breakdown. 💸 📈
-              </button>
-              <button class="templateBtn" data-text="Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. Crying Face Check Mark">
-                Stop wasting time on [Frustrating Task]. Our 3-step solution: [Solution]. 😫 ✅
-              </button>
-              <button class="templateBtn" data-text="6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. Thinking Face Light Bulb">
-                6 months ago I was [Stuck]... now I'm [Success]. The difference: [1 Thing]. 🤯 💡
-              </button>
-              <button class="templateBtn" data-text="How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. Toolbox Target">
-                How I made [High Result] in [Short Time]: Step 1: [Action]. Save for steps 2 & 3. 🛠️ 🎯
-              </button>
-              <button class="templateBtn" data-text="Unpopular opinion: [Common Belief] is completely wrong. Here's why. Speech Bubble Cross Mark">
-                Unpopular opinion: [Common Belief] is completely wrong. Here's why. 🗣️ ❌
-              </button>
-              <button class="templateBtn" data-text="Get the exact checklist I use to [Goal]! Click the link that says Link Bookmark">
-                Get the exact checklist I use to [Goal]! Click the link that says "Free Guide." 🔗 🔖
-              </button>
-              <button class="templateBtn" data-text="Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? Smiling Face 100 Score">
-                Myth: You need [X] to succeed. Reality: You only need [Y]. Which shocked you? 😮 💯
-              </button>
-              <button class="templateBtn" data-text="Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. User Rocket">
-                Client Spotlight: [Client Name] went from [A] to [B] in 30 days. Their secret was [Tool]. 👤 🚀
-              </button>
-              <button class="templateBtn" data-text="My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. Alarm Clock Flexed Biceps">
-                My most impactful habit for [Goal]? Doing [Task] at [Time]. Steal it. ⏰ 💪
-              </button>
-              <button class="templateBtn" data-text="[Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. Balance Scale Magnifying Glass">
-                [Option A] vs. [Option B]: Which is better for [Specific Use Case]? Swipe to see the pros/cons. ⚖️ 🧐
-              </button>
-            </div>
-
-            <div id="templatePaging">
-              <button id="page1Btn" class="active">Page 1</button>
-              <button id="page2Btn">Page 2</button>
-            </div>
-          </div>
-
-          <div id="templateTeaser">
-            <p style="font-size: .9rem; color: #92400e; font-style: italic; margin-top: 1rem;">
-              <strong>Unlock 20 Viral Swipe File Structures</strong> — only available in <strong>Pro</strong>.
-            </p>
-            <button id="unlockTemplatesBtn" style="
-              background: #f59e0b; color: white; border: none; padding: .6rem 1.2rem;
-              border-radius: .5rem; font-size: .9rem; font-weight: 600; cursor: pointer;
-              margin-top: .5rem;
-            ">Upgrade to Pro</button>
-          </div>
-        </div>
-
-        <div id="paywall" class="paywall hidden">
-          <h3>Upgrade to Pro!</h3>
-          <p>You've used your 10 free generations. <strong>Unlimited + 20 Viral Swipe File Structures</strong> for <strong>$7/month</strong>.</p>
-          <button id="subscribeBtn">Subscribe Now</button>
-        </div>
-      </div>
-
-      <div id="voiceContent" class="tab-content hidden">
-        <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 1.2rem; border-radius: .75rem; margin-bottom: 1.5rem;">
-            <h4 style="margin-bottom: .5rem; color: #1e40af; font-size: 1.1rem;">
-              Style Thief 🕵️‍♂️ (Pro)
-            </h4>
-            <p style="font-size: .95rem; color: #1e3a8a; line-height: 1.5;">
-              Don't sound like a robot. Paste 3 of your best posts below, and our AI will analyze your unique writing style (slang, sentence length, emoji usage) and save it to your profile.
-            </p>
-        </div>
-
-        <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 1rem;">
-           <strong>Tip:</strong> For the best results, paste 3 posts from the <em>same platform</em> (e.g., all LinkedIn or all Instagram). Mixing styles confuses the AI!
-        </p>
-
-        <div id="voiceActiveState" class="hidden" style="text-align: center; padding: 2rem; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 0.5rem; margin-bottom: 1rem;">
-            <h3 style="color: #065f46; margin-bottom: 0.5rem; font-size: 1.2rem;">✅ Brand Voice Active</h3>
-            <p style="color: #047857; margin-bottom: 1.5rem;">Your custom style is saved and ready to use in the Generate tab.</p>
-            <button id="deleteVoiceBtn" style="background: #ef4444; width: auto; padding: 0.75rem 1.5rem; font-size: 0.9rem;">Delete & Start Over</button>
-        </div>
-
-        <div id="voiceFormContainer">
-            <label>Post Example 1:</label>
-            <textarea id="voiceSample1" rows="3" placeholder="Paste a post..."></textarea>
-            
-            <label style="margin-top: 1rem;">Post Example 2:</label>
-            <textarea id="voiceSample2" rows="3" placeholder="Paste another post..."></textarea>
-            
-            <label style="margin-top: 1rem;">Post Example 3:</label>
-            <textarea id="voiceSample3" rows="3" placeholder="Paste one more..."></textarea>
-
-            <button id="analyzeVoiceBtn" style="margin-top: 1.5rem;">Analyze & Save Voice</button>
-        </div>
-
-        <div id="voicePaywall" class="paywall hidden">
-            <h3>Unlock Style Thief!</h3>
-            <p>Custom Brand Voice models are an exclusive <strong>Pro</strong> feature.</p>
-            <button id="subscribeVoiceBtn">Upgrade to Pro</button>
-        </div>
-      </div>
-
-      <div id="analyzeContent" class="tab-content hidden">
-        <div id="analysisDescription" style="
-          background: #f0f9ff;
-          border: 1px solid #bae6fd;
-          padding: 1.2rem;
-          border-radius: .75rem;
-          margin-bottom: 1.5rem;
-          font-size: .95rem;
-          line-height: 1.5;
-          color: #0369a1;
-        ">
-          <h4 style="margin-bottom: .5rem; color: #075985; font-size: 1.1rem;">
-            Reverse-Engineer Viral Success 🔬
-          </h4>
-          Paste any competitor's post URL (Instagram, Twitter, etc.) and our AI will deconstruct their strategy.
-          Get an instant <strong>Content Score</strong> and a breakdown of their hook, CTA, and hashtag usage.
-        </div>
-
-        <div id="analysisPaywall" class="paywall hidden" style="margin-top: 1rem;">
-          <h3>Unlock Analysis!</h3>
-          <p>Content Scoring is an exclusive <strong>Pro</strong> feature. Unlimited Access for <strong>$7/month</strong>.</p>
-          <button id="subscribeAnalyzeBtn">Upgrade to Pro</button>
-        </div>
-
-        <form id="analyzeForm" class="hidden">
-          <label for="competitorUrl">Competitor Post URL</label>
-          <input type="url" id="competitorUrl" placeholder="e.g. https://instagram.com/p/B..." required />
-          <button type="submit" id="analyzeBtn">Analyze Post Structure</button>
-        </form>
-
-        <div id="analysisResult" class="analysis-card hidden">
-          <p style="text-align: center; font-size: 1.2rem; font-weight: 600; margin-bottom: 0;">Content Score</p>
-          <div id="analysisScore" class="analysis-score">--</div>
-          <div id="analysisDetails" class="analysis-detail"></div>
-          <button id="analyzeAgainBtn">Analyze Another Post</button>
-        </div>
-      </div>
-    </div>
-
-    <div style="margin-top: 4rem; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 2rem;">
-      <p style="font-size: 0.95rem; color: #6b7280; margin-bottom: 0.75rem;">
-        Love this tool? 💸 <strong>Join our Affiliate Program</strong> and earn 30%.
-      </p>
-      
-      <button id="affiliateBtn" style="background: none; color: #2563eb; border: none; padding: 0; font-size: 0.95rem; font-weight: 600; cursor: pointer; text-decoration: underline; width: auto;">
-        Join Program / Get My Link
-      </button>
-      <div id="affiliateLoading" class="hidden" style="color: #6b7280; font-size: 0.9rem; margin-top: 0.5rem; font-style: italic;">
-        Connecting to Stripe...
-      </div>
-
-      <div id="affiliateLinkContainer" style="margin-top: 1rem; display: none; background: #f9fafb; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; max-width: 400px; margin-left: auto; margin-right: auto;">
-        <label style="font-size: 0.85rem; color: #374151; margin-bottom: 0.5rem; display: block; text-align: left;">Your Referral Link:</label>
-        <div style="display: flex; gap: 0.5rem;">
-            <input id="affiliateLink" type="text" readonly style="width: 100%; padding: 0.5rem; font-size: 0.9rem; border: 1px solid #d1d5db; border-radius: 0.375rem; margin: 0; background: #fff;">
-            <button id="copyReferralBtn" style="width: auto; padding: 0.5rem 1rem; font-size: 0.9rem; background: #1f2937; color: white; border-radius: 0.375rem; cursor: pointer;">Copy</button>
-        </div>
-        <p style="font-size: 0.8rem; color: #16a34a; margin-top: 0.5rem; margin-bottom: 0;">
-          ✅ You are active! Share this link to earn.
-        </p>
-      </div>
-    </div>
-
-    <footer>
-      <a href="/terms.html">Terms</a>
-      <a href="/privacy.html">Privacy</a>
-      <span>© 2025 Caption AI</span>
-    </footer>
-  </div>
-
-  <script>
-const API_URL = 'https://caption-ai-ze13.onrender.com';
-const MAX_FREE_USES = 10;
-
-const urlParams = new URLSearchParams(window.location.search);
-const referralCode = urlParams.get("ref") || "";
-localStorage.setItem("referralCode", referralCode);
-
-document.addEventListener('DOMContentLoaded', () => {
-    let userEmail = localStorage.getItem('userEmail');
-    let isPro = false;
-    let isVip = false;
-    let hasVoice = false; 
-    let freeUses = parseInt(localStorage.getItem('freeUses') || '0', 10);
-    let currentTab = 'generateContent'; // Forced default
-
-    let debounceTimer;
-    let isGenerating = false;
-    let hasBoostedCurrentOutput = false;
-    let lastResultText = '';
-    let lastScore = null;
-    let lastIdea = '';
-    let lastPlatform = '';
-    let lastTone = '';
-    
-    let uploadedImageBase64 = null; 
-
-    async function hydrateProFromServer() {
-      try {
-        if (!userEmail) return;
-        const res = await fetch(`${API_URL}/check-subscription?email=${encodeURIComponent(userEmail)}`);
-        if (!res.ok) return;
-        const data = await res.json();
-        
-        isPro = !!data.isPro;
-        isVip = !!data.isVip;
-        hasVoice = !!data.hasVoice;
-
-        localStorage.setItem('isPro', isPro ? 'true' : 'false');
-        localStorage.setItem('isVip', isVip ? 'true' : 'false');
-
-        if (typeof data.freeUses === 'number') {
-            freeUses = data.freeUses;
-            localStorage.setItem('freeUses', String(freeUses));
-        }
-
-        refreshProUI();
-        updateGenerateButtonState();
-      } catch (e) {
-        console.error('hydrateProFromServer error', e);
-      }
-    }
-    
-    const modal        = document.getElementById('emailModal');
-    const mainApp      = document.getElementById('mainApp');
-    const emailInput   = document.getElementById('emailInput');
-    const emailSubmit  = document.getElementById('emailSubmit');
-
-    const ideaInput    = document.getElementById('idea');
-    const platformSel  = document.getElementById('platform');
-    const toneSel      = document.getElementById('tone');
-    const useVoiceCheckbox = document.getElementById('useVoice');
-
-    const generateBtn  = document.getElementById('generateBtn');
-    const resultBox    = document.getElementById('result');
-    const outputEl     = document.getElementById('output');
-    const loadingEl    = document.getElementById('loading');
-    const paywallEl    = document.getElementById('paywall');
-
-    const engagementBox   = document.getElementById('engagementBox');
-    const engagementValue = document.getElementById('engagementScoreValue');
-    const engagementSub   = document.getElementById('engagementSubtext');
-    const boostBtn        = document.getElementById('boostBtn');
-
-    const generateTabBtn = document.getElementById('generateTabBtn');
-    const analyzeTabBtn  = document.getElementById('analyzeTabBtn');
-    const voiceTabBtn    = document.getElementById('voiceTabBtn'); 
-    const generateContent = document.getElementById('generateContent');
-    const analyzeContent  = document.getElementById('analyzeContent');
-    const voiceContent    = document.getElementById('voiceContent'); 
-    const analysisPaywall = document.getElementById('analysisPaywall');
-    const voicePaywall    = document.getElementById('voicePaywall'); 
-    const voiceFormContainer = document.getElementById('voiceFormContainer'); 
-    const analyzeForm     = document.getElementById('analyzeForm');
-    const competitorUrlInput = document.getElementById('competitorUrl');
-    const analyzeAgainBtn = document.getElementById('analyzeAgainBtn');
-    const analysisResult  = document.getElementById('analysisResult');
-
-    const subscribeBtn         = document.getElementById('subscribeBtn');
-    const subscribeAnalyzeBtn  = document.getElementById('subscribeAnalyzeBtn');
-    const subscribeVoiceBtn    = document.getElementById('subscribeVoiceBtn'); 
-    const copyBtn              = document.getElementById('copyBtn');
-
-    const emojiPickerBtn = document.getElementById('emojiPickerBtn');
-    const picker         = document.getElementById('emojiPicker');
-    const emojiGrid      = document.getElementById('emojiGrid');
-    const closePicker    = document.getElementById('closePicker');
-
-    const templateContainer = document.getElementById('templateContainer');
-    const templateTeaser    = document.getElementById('templateTeaser');
-    const page1             = document.getElementById('templatePage1');
-    const page2             = document.getElementById('templatePage2');
-    const page1Btn          = document.getElementById('page1Btn');
-    const page2Btn          = document.getElementById('page2Btn');
-    const unlockTemplatesBtn = document.getElementById('unlockTemplatesBtn');
-
-    const tipElement = document.getElementById('dailyTipText');
-
-    const analyzeVoiceBtn = document.getElementById('analyzeVoiceBtn');
-    const deleteVoiceBtn  = document.getElementById('deleteVoiceBtn'); 
-    const voiceSample1    = document.getElementById('voiceSample1');
-    const voiceSample2    = document.getElementById('voiceSample2');
-    const voiceSample3    = document.getElementById('voiceSample3');
-    const voiceStatus     = document.getElementById('voiceStatus');
-    const voiceActiveState = document.getElementById('voiceActiveState'); 
-    const voiceOptionContainer = document.getElementById('voiceOptionContainer');
-
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
-    const imagePreview = document.getElementById('imagePreview');
-    const removeImageBtn = document.getElementById('removeImage');
-
-    const toastEl = document.getElementById('toast');
-    function showToast(message, type = 'info') {
-      if (!toastEl) return;
-      toastEl.textContent = message;
-      toastEl.classList.remove('toast-success', 'toast-error', 'toast-info', 'show');
-      toastEl.classList.add(`toast-${type}`);
-      void toastEl.offsetWidth;
-      toastEl.classList.add('show');
-      setTimeout(() => {
-        toastEl.classList.remove('show');
-      }, 3500);
-    }
-
-    const freeUsageBar = document.getElementById('freeUsageBar');
-    const freeUsageText = document.getElementById('freeUsageText');
-    const freeUsageFill = document.getElementById('freeUsageFill');
-
-    function updateFreeUsageBar() {
-      if (!freeUsageBar || !freeUsageFill || !freeUsageText) return;
-      if (isPro) {
-        freeUsageBar.classList.add('hidden');
-        return;
-      }
-      const used = Math.min(freeUses, MAX_FREE_USES);
-      const remaining = Math.max(MAX_FREE_USES - used, 0);
-      const pct = (used / MAX_FREE_USES) * 100;
-      freeUsageBar.classList.remove('hidden');
-      freeUsageFill.style.width = `${pct}%`;
-      freeUsageText.textContent = `${remaining} free generation${remaining === 1 ? '' : 's'} remaining.`;
-    }
-
-    const proBadge = document.getElementById('proBadge');
-
-    function refreshProUI() {
-      try {
-        if (proBadge) {
-          if (isPro) { proBadge.classList.remove('hidden'); proBadge.innerHTML = isVip ? "PRO <span style='color: gold; font-weight: 700;'>(VIP)</span>" : "PRO"; }
-          else proBadge.classList.add('hidden');
-        }
-
-        updateFreeUsageBar();
-
-        if (templateContainer && templateTeaser) {
-          if (isPro) {
-            templateContainer.classList.remove('hidden');
-            templateContainer.style.display = 'grid';
-            templateTeaser.style.display = 'none';
-          } else {
-            templateContainer.classList.add('hidden');
-            templateContainer.style.display = 'none';
-            templateTeaser.style.display = 'block';
-          }
-        }
-
-        if (isPro) {
-            if (analysisPaywall) analysisPaywall.classList.add('hidden');
-            if (analyzeForm) analyzeForm.classList.remove('hidden'); // FIX: Show form!
-            if (voicePaywall) voicePaywall.classList.add('hidden');
-            
-            // Logic for Voice UI State
-            if (hasVoice) {
-                if (voiceActiveState) voiceActiveState.classList.remove('hidden');
-                if (voiceFormContainer) voiceFormContainer.style.display = 'none';
-            } else {
-                if (voiceActiveState) voiceActiveState.classList.add('hidden');
-                if (voiceFormContainer) voiceFormContainer.style.display = 'block';
-            }
-
-        } else {
-            if (analysisPaywall) analysisPaywall.classList.remove('hidden');
-            if (analyzeForm) analyzeForm.classList.add('hidden'); // FIX: Hide form!
-            if (voicePaywall) voicePaywall.classList.remove('hidden');
-            if (voiceFormContainer) voiceFormContainer.style.display = 'none';
-            if (voiceActiveState) voiceActiveState.classList.add('hidden');
-        }
-
-        if (voiceOptionContainer) {
-            if (isPro && hasVoice) {
-                voiceOptionContainer.classList.remove('hidden');
-            } else {
-                voiceOptionContainer.classList.add('hidden');
-                if (useVoiceCheckbox) useVoiceCheckbox.checked = false;
-            }
-        }
-
-      } catch (e) {
-        console.error('refreshProUI error', e);
-      }
-    }
-
-    // SUPER MEGA EMOJI MAP
-    const emojiMap = {
-      'Smile': '😊', 'Laugh': '😂', 'Love': '😍', 'Cool': '😎', 'Thinking': '🤔',
-      'Mind Blown': '🤯', 'Melting': '🫠', 'Clown': '🤡', 'Star Eyes': '🤩', 'Wink': '😉',
-      'Cry': '😭', 'Sweat': '😅', 'Sick': '🤢', 'Zip': '🤐', 'Party': '🥳',
-      'Smirk': '😏', 'Rolling Eyes': '🙄', 'Sleepy': '😴', 'Mask': '😷', 'Hugging': '🤗',
-      'Sunglasses': '🕶️', 'Nerd': '🤓', 'Devil': '😈', 'Angel': '😇',
-      'Clap': '👏', 'Thumbs Up': '👍', 'Thumbs Down': '👎', 'Peace': '✌️', 'Pray': '🙏',
-      'Muscle': '💪', 'Wave': '👋', 'Point Down': '👇', 'Point Up': '👆', 'Point Right': '👉',
-      'Point Left': '👈', 'Fist': '👊', 'Handshake': '🤝', 'Writing': '✍️', 'Eyes': '👀',
-      'Raised Hands': '🙌', 'Fingers Crossed': '🤞', 'Call Me': '🤙', 'Ok': '👌',
-      'Red Heart': '❤️', 'Orange Heart': '🧡', 'Yellow Heart': '💛', 'Green Heart': '💚',
-      'Blue Heart': '💙', 'Purple Heart': '💜', 'Black Heart': '🖤', 'White Heart': '🤍',
-      'Brown Heart': '🤎', 'Broken Heart': '💔', 'Sparkles': '✨', 'Star': '⭐',
-      'Glowing Star': '🌟', 'Fire': '🔥', 'Collision': '💥', 'Dizzy': '💫', 'Diamond': '💎',
-      'Laptop': '💻', 'Briefcase': '💼', 'Chart Up': '📈', 'Chart Down': '📉', 'Bar Chart': '📊',
-      'Money Bag': '💰', 'Credit Card': '💳', 'Dollar': '💵', 'Memo': '📝', 'Pin': '📌',
-      'Paperclip': '📎', 'Calendar': '📅', 'Megaphone': '📣', 'Target': '🎯', 'Trophy': '🏆',
-      'Medal': '🥇', 'Rocket': '🚀', 'Bulb': '💡', 'Link': '🔗', 'Lock': '🔒',
-      'Key': '🔑', 'Toolbox': '🛠️', 'Balance Scale': '⚖️', 'Search': '🔍',
-      'Coffee': '☕', 'Beer': '🍺', 'Cheers': '🍻', 'Wine': '🍷', 'Pizza': '🍕',
-      'Burger': '🍔', 'Fries': '🍟', 'Taco': '🌮', 'Sushi': '🍣', 'Donut': '🍩',
-      'Cookie': '🍪', 'Cake': '🎂', 'Popcorn': '🍿', 'Apple': '🍎', 'Banana': '🍌',
-      'Avocado': '🥑', 'Salad': '🥗', 'Peach': '🍑', 'Eggplant': '🍆', 'Chili': '🌶️',
-      'Camera': '📸', 'Film': '🎬', 'Microphone': '🎤', 'Headphones': '🎧', 'Game': '🎮',
-      'Phone': '📱', 'Battery': '🔋', 'Plug': '🔌', 'Shopping Cart': '🛒', 'Shopping Bags': '🛍️',
-      'Gift': '🎁', 'Balloon': '🎈', 'Confetti': '🎊', 'Book': '📚', 'Grad Cap': '🎓',
-      'Car': '🚗', 'Plane': '✈️', 'Boat': '⛵', 'Train': '🚆', 'Beach': '🏖️',
-      'Mountain': '⛰️', 'World': '🌍', 'Moon': '🌙', 'Sun': '☀️', 'Rain': '🌧️',
-      'Umbrella': '☂️', 'Snow': '❄️', 'Flower': '🌸', 'Leaf': '🍃', 'Tree': '🌳',
-      'Dog': '🐶', 'Cat': '🐱', 'Mouse': '🐭', 'Hamster': '🐹', 'Rabbit': '🐰',
-      'Fox': '🦊', 'Bear': '🐻', 'Panda': '🐼', 'Lion': '🦁', 'Tiger': '🐯',
-      'Unicorn': '🦄', 'Butterfly': '🦋', 'Spider': '🕷️', 'Ghost': '👻', 'Alien': '👽',
-      'Robot': '🤖', 'Poop': '💩',
-      '100': '💯', 'Check': '✅', 'Cross': '❌', 'Warning': '⚠️', 'No Entry': '🚫',
-      'Question': '❓', 'Exclamation': '❗', 'Zzz': '💤', 'Music': '🎵', 'Recycle': '♻️',
-      'SOS': '🆘', 'New': '🆕', 'Free': '🆓', 'Red Circle': '🔴', 'Blue Circle': '🔵',
-      // NEW CATEGORIES
-      'Cactus': '🌵', 'Tulip': '🌷', 'Daisy': '🌼', 'Sunflower': '🌻', 'Waves': '🌊', 'Tornado': '🌪️', 'Rainbow': '🌈', 'Thunder': '⛈️', 'Snow Cloud': '🌨️', 'Bolt': '⚡',
-      'Soccer': '⚽', 'Basketball': '🏀', 'Football': '🏈', 'Baseball': '⚾', 'Tennis': '🎾', 'Volleyball': '🏐', '8 Ball': '🎱', 'Ping Pong': '🏓', 'Badminton': '🏸', 'Goal': '🥅', 'Boxing': '🥊', 'Martial Arts': '🥋',
-      'Plane Takeoff': '🛫', 'Plane Land': '🛬', 'Helicopter': '🚁', 'Canoe': '🛶', 'Speedboat': '🚤', 'Ship': '🛳️', 'Tokyo': '🗼', 'Statue Liberty': '🗽', 'Moai': '🗿', 'Castle': '🏰', 'Japanese Castle': '🏯',
-      'Floppy': '💾', 'CD': '💿', 'DVD': '📀', 'VHS': '📼', 'Pager': '📟', 'Fax': '📠', 'Satellite': '📡', 'Signal': '📶', 'Battery': '🔋',
-      'Ribbon': '🎀', 'Ballet': '🩰', 'Swan': '🦢', 'Candle': '🕯️', 'Teddy': '🧸', 'Basket': '🧺', 'Cupcake': '🧁', 'Mirror': '🪞', 'Bubbles': '🫧'
-    };
-
-    const dailyTips = [
-      "Viral hack: 'Negative Hooks' (e.g., 'Stop doing this...') often perform 3x better than positive ones.",
-      "The 'Save' is the new 'Like'. Write captions that educate so people save them for later.",
-      "TikTok & Reels SEO: The algorithm reads your caption keywords. Use terms people actually search for.",
-      "The 'Read More' trigger: Your first sentence must be so incomplete or shocking that they HAVE to click more.",
-      "Carousel Strategy: Tell people to 'Swipe left for the answer' to boost retention time.",
-      "Small accounts need community. End every caption with a specific question to trigger comments.",
-      "Use 'POV' (Point of View) in your hook to make the content instantly relatable.",
-      "Listicles work. '5 tools you need' is more clickable than 'My favorite tools'.",
-      "Don't just use hashtags; use keywords in your sentence. Instagram is now a search engine.",
-      "The 'B-Roll' Hack: Use a 7-second video of you working + a long, valuable caption. It loops while they read!",
-      "Polarizing content wins. Don't be afraid to share a controversial (but professional) opinion.",
-      "Pattern Interrupt: Use an emoji 🛑 or ⚠️ at the very start to catch the eye.",
-      "Social Proof: Mention 'My client...' or 'A student of mine...' to build instant authority.",
-      "The 80/20 Rule: Spend 80% of your time on the Hook and the Headline. The rest is filler.",
-      "Direct the traffic: 'Link in bio' is weak. Try 'Comment GUIDE and I'll DM you the link' (boosts engagement)."
-    ];
-
-    function getTodayTip() {
-      const today = new Date();
-      const start = new Date(today.getFullYear(), 0, 0);
-      const diff = today - start;
-      const oneDay = 1000 * 60 * 60 * 24;
-      const dayOfYear = Math.floor(diff / oneDay);
-      const tipIndex = dayOfYear % dailyTips.length;
-      return dailyTips[tipIndex];
-    }
-
-    function hashString(str) {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        const chr = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + chr;
-        hash |= 0;
-      }
-      return Math.abs(hash);
-    }
-
-    function updateEngagementUI(score, boosted = false) {
-      if (!engagementBox || !engagementValue) return;
-      engagementBox.style.display = 'block';
-      engagementValue.textContent = score;
-
-      if (boosted) {
-        engagementSub.textContent = "Boost applied. This version should perform better for saves, comments, and shares.";
-      } else {
-        engagementSub.textContent = "Higher scores usually mean more saves, comments, and shares.";
-      }
-    }
-
-    function updateGenerateButtonState() {
-      if (!generateBtn) return;
-      if (isPro) {
-        generateBtn.disabled = false;
-        if (paywallEl) paywallEl.classList.add('hidden');
-        updateFreeUsageBar();
-        return;
-      }
-      if (freeUses >= MAX_FREE_USES) {
-        generateBtn.disabled = true;
-        if (currentTab === 'generateContent' && paywallEl) {
-          paywallEl.classList.remove('hidden');
-        }
-      } else {
-        generateBtn.disabled = false;
-        if (paywallEl) paywallEl.classList.add('hidden');
-      }
-      updateFreeUsageBar();
-    }
-
-    function showTab(tabName) {
-      currentTab = tabName;
-      
-      if (analysisResult) analysisResult.classList.add('hidden');
-      if (loadingEl) loadingEl.classList.add('hidden');
-      if (resultBox) resultBox.classList.add('hidden');
-
-      generateContent.classList.add('hidden');
-      analyzeContent.classList.add('hidden');
-      voiceContent.classList.add('hidden');
-      
-      generateTabBtn.classList.remove('active');
-      analyzeTabBtn.classList.remove('active');
-      voiceTabBtn.classList.remove('active');
-
-      if (tabName === 'generateContent') {
-        generateContent.classList.remove('hidden');
-        generateTabBtn.classList.add('active');
-        if (analysisPaywall) analysisPaywall.classList.add('hidden');
-        updateGenerateButtonState();
-      } else if (tabName === 'analyzeContent') {
-        analyzeContent.classList.remove('hidden');
-        analyzeTabBtn.classList.add('active');
-        refreshProUI();
-      } else if (tabName === 'voiceContent') {
-        voiceContent.classList.remove('hidden');
-        voiceTabBtn.classList.add('active');
-        refreshProUI();
-      }
-    }
-
-    function showPage(pageNumber) {
-      if (!page1 || !page2 || !page1Btn || !page2Btn) return;
-      if (pageNumber === 1) {
-        page1.style.display = 'grid';
-        page2.style.display = 'none';
-        page1Btn.classList.add('active');
-        page2Btn.classList.remove('active');
-      } else {
-        page1.style.display = 'none';
-        page2.style.display = 'grid';
-        page1Btn.classList.remove('active');
-        page2Btn.classList.add('active');
-      }
-    }
-
-    function processTemplateText(text) {
-      const replacements = {
-        'Camera Film': emojiMap['Camera'] + ' ' + emojiMap['Film'],
-        'Coffee Mug Light Bulb': emojiMap['Coffee'] + ' ' + emojiMap['Bulb'],
-        'Question Mark Thinking Face': emojiMap['Question'] + ' ' + emojiMap['Thinking'],
-        'Bookmark Sparkles': emojiMap['Bookmark'] + ' ' + emojiMap['Sparkles'],
-        'Gift Rocket': emojiMap['Gift'] + ' ' + emojiMap['Rocket'],
-        'Hand Point Up Film': emojiMap['Point Up'] + ' ' + emojiMap['Film'],
-        'Star Speech Bubble': emojiMap['Star'] + ' ' + '💬',
-        'Money Bag Chart Increasing': emojiMap['Money Bag'] + ' ' + emojiMap['Chart Up'],
-        'Crying Face Check Mark': emojiMap['Cry'] + ' ' + emojiMap['Check'],
-        'Thinking Face Light Bulb': emojiMap['Thinking'] + ' ' + emojiMap['Bulb'],
-        'Toolbox Target': emojiMap['Toolbox'] + ' ' + emojiMap['Target'],
-        'Speech Bubble Cross Mark': '💬' + ' ' + emojiMap['Cross'],
-        'Link Bookmark': emojiMap['Link'] + ' ' + emojiMap['Bookmark'],
-        'Smiling Face 100 Score': emojiMap['Smile'] + ' ' + emojiMap['100'],
-        'User Rocket': emojiMap['Rocket'], 
-        'Alarm Clock Flexed Biceps': '⏰' + ' ' + emojiMap['Muscle'],
-        'Balance Scale Magnifying Glass': emojiMap['Balance Scale'] + ' ' + emojiMap['Search'],
-        'Heart': emojiMap['Red Heart'],
-        'Sparkles': emojiMap['Sparkles'],
-        'Hand Point Down': emojiMap['Point Down'],
-        'Shopping Bag': emojiMap['Shopping Bags'],
-        'Fire': emojiMap['Fire'],
-        'Light Bulb': emojiMap['Bulb'],
-        'Film': emojiMap['Film'],
-        'Camera': emojiMap['Camera']
-      };
-      for (const key in replacements) {
-        text = text.replace(new RegExp(key, 'g'), replacements[key]);
-      }
-      return text;
-    }
-
-    function detectPlatform(url) {
-      const lower = url.toLowerCase();
-      if (lower.includes('instagram.com')) return 'Instagram';
-      if (lower.includes('twitter.com') || lower.includes('x.com')) return 'Twitter';
-      if (lower.includes('linkedin.com')) return 'LinkedIn';
-      if (lower.includes('tiktok.com')) return 'TikTok';
-      return 'Instagram';
-    }
-
-    function generateDeterministicScore(url) {
-      const seed = hashString((url || '').toLowerCase().trim());
-      const score = (seed % 35) + 65; 
-      const quality = score > 90 ? 'High' : score > 80 ? 'Medium' : 'Low';
-
-      let hook, readability, hashtags, cta;
-      if (quality === 'High') {
-        hook = 'High urgency, clear value proposition. 🔥';
-        readability = 'Excellent use of line breaks. ✅';
-        hashtags = 'Highly relevant, 90% niche-specific. 🎯';
-        cta = 'Clear call-to-action to save and comment. 💬';
-      } else if (quality === 'Medium') {
-        hook = 'Decent hook, could be more specific and engaging. 👍';
-        readability = 'Good structure, but a few dense blocks. ⚠️';
-        hashtags = 'Mix of niche and broad tags (50/50). 💡';
-        cta = 'General CTA, needs more direction. ❓';
-      } else {
-        hook = 'Vague hook, lacks clear value proposition. 👎';
-        readability = 'Dense wall of text, poor line breaks. ❌';
-        hashtags = 'Too generic, mostly broad tags. 💡';
-        cta = 'No clear CTA, relying on passive engagement. ❓';
-      }
-      return { score, hook, readability, hashtags, cta };
-    }
-
-    // --- RESIZING LOGIC INTEGRATED ---
-    if (uploadArea && fileInput) {
-        uploadArea.addEventListener('click', (e) => {
-            if (e.target !== removeImageBtn) fileInput.click();
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                if (file.size > 10 * 1024 * 1024) {
-                    alert("File too large. Please upload images under 10MB.");
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const img = new Image();
-                    img.onload = function() {
-                        // Resize Logic
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        const MAX_WIDTH = 1024;
-                        const MAX_HEIGHT = 1024;
-                        let width = img.width;
-                        let height = img.height;
-
-                        if (width > height) {
-                            if (width > MAX_WIDTH) {
-                                height *= MAX_WIDTH / width;
-                                width = MAX_WIDTH;
-                            }
-                        } else {
-                            if (height > MAX_HEIGHT) {
-                                width *= MAX_HEIGHT / height;
-                                height = MAX_HEIGHT;
-                            }
-                        }
-
-                        canvas.width = width;
-                        canvas.height = height;
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        // Output compressed base64
-                        uploadedImageBase64 = canvas.toDataURL('image/jpeg', 0.8); // 80% quality JPEG
-                        
-                        imagePreview.src = uploadedImageBase64;
-                        imagePreview.style.display = 'block';
-                        removeImageBtn.style.display = 'block';
-                        uploadArea.style.background = '#f0fdf4';
-                        uploadArea.style.borderColor = '#22c55e';
-                    };
-                    img.src = event.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        removeImageBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            fileInput.value = '';
-            uploadedImageBase64 = null;
-            imagePreview.style.display = 'none';
-            removeImageBtn.style.display = 'none';
-            uploadArea.style.background = '#fff';
-            uploadArea.style.borderColor = '#e5e7eb';
-        });
-    }
-
-    // --- MAIN GENERATE FUNCTION ---
-    async function tryGenerate(forceFull = false) {
-      if (isGenerating || !userEmail || !platformSel || !toneSel) return;
-
-      const idea = ideaInput.value.trim();
-      const platform = platformSel.value;
-      const tone = toneSel.value;
-      const useVoice = useVoiceCheckbox ? useVoiceCheckbox.checked : false;
-
-      if ((!idea && !uploadedImageBase64) || !platform || !tone) {
-        if (resultBox) resultBox.classList.add('hidden');
-        if (paywallEl) paywallEl.classList.add('hidden');
-        return;
-      }
-
-      if (!isPro && freeUses >= MAX_FREE_USES) {
-        if (paywallEl) paywallEl.classList.remove('hidden');
-        if (resultBox) resultBox.classList.add('hidden');
-        return;
-      }
-
-      isGenerating = true;
-      hasBoostedCurrentOutput = false;
-      lastResultText = '';
-      lastScore = null;
-      lastIdea = idea || "Image Description";
-      lastPlatform = platform;
-      lastTone = tone;
-
-      if (engagementBox) engagementBox.style.display = 'none';
-      if (boostBtn) {
-        boostBtn.disabled = false;
-        boostBtn.classList.remove('used');
-        boostBtn.textContent = 'Boost My Score';
-      }
-
-      if (loadingEl) loadingEl.classList.remove('hidden');
-      if (resultBox) resultBox.classList.add('hidden');
-      if (paywallEl) paywallEl.classList.add('hidden');
-      if (generateBtn) {
-        generateBtn.disabled = true;
-        generateBtn.textContent = 'Generating...';
-      }
-
-      try {
-        const res = await fetch(`${API_URL}/generate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-              idea: idea, 
-              platform: platform, 
-              tone: tone, 
-              email: userEmail, 
-              useVoice: useVoice,
-              image: uploadedImageBase64 // Send resized image data
-          })
-        });
-
-        const data = await res.json();
-
-        if (res.status === 402) {
-          if (paywallEl) paywallEl.classList.remove('hidden');
-          if (resultBox) resultBox.classList.add('hidden');
-        } else if (res.ok && data.result) {
-          lastResultText = data.result;
-          if (outputEl) outputEl.textContent = data.result;
-          if (resultBox) resultBox.classList.remove('hidden');
-          if (paywallEl) paywallEl.classList.add('hidden');
-
-          if (copyBtn) {
-            copyBtn.classList.remove('copied');
-            copyBtn.textContent = 'Copy All';
-          }
-
-          const score = data.score || 0;
-          lastScore = score;
-          updateEngagementUI(score, false);
-
-          if (!isPro) {
-            freeUses++;
-            localStorage.setItem('freeUses', String(freeUses));
-            updateFreeUsageBar();
-          }
-        }
-      } catch (err) {
-        console.error('Generate error:', err);
-        if (forceFull) {
-          alert("Connection failed. Please check your internet.");
-        }
-      } finally {
-        if (loadingEl) loadingEl.classList.add('hidden');
-        if (generateBtn) {
-          generateBtn.disabled = false;
-          generateBtn.textContent = 'Generate Captions';
-        }
-        isGenerating = false;
-        updateGenerateButtonState();
-      }
-    }
-
-    async function tryBoost() {
-        if (hasBoostedCurrentOutput) return;
-        if (!lastResultText || !lastIdea || !lastPlatform || !lastTone) return;
-    
-        if (!isPro && freeUses >= MAX_FREE_USES) {
-            if (paywallEl) paywallEl.classList.remove("hidden");
-            return;
-        }
-    
-        boostBtn.disabled = true;
-        boostBtn.textContent = "Boosting...";
-    
-        try {
-            const res = await fetch(`${API_URL}/optimize`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    idea: lastIdea,
-                    platform: lastPlatform,
-                    tone: lastTone,
-                    email: userEmail,
-                    captions: lastResultText,
-                    previousScore: lastScore
-                })
-            });
-    
-            const data = await res.json();
-    
-            if (res.status === 402) {
-                if (paywallEl) paywallEl.classList.remove("hidden");
-                boostBtn.disabled = false;
-                boostBtn.textContent = "Boost My Score";
-                return;
-            }
-    
-            if (res.ok && data.result) {
-                lastResultText = data.result;
-                outputEl.textContent = data.result;
-    
-                let boostedScore = data.score || (lastScore || 0) + 10;
-                lastScore = boostedScore;
-                updateEngagementUI(boostedScore, true);
-            }
-    
-            if (!isPro) {
-                freeUses++;
-                localStorage.setItem("freeUses", String(freeUses));
-                updateFreeUsageBar();
-            }
-        } catch (err) {
-            console.error("Boost error:", err);
-        } finally {
-            hasBoostedCurrentOutput = true;
-            boostBtn.disabled = true;
-            boostBtn.classList.add("used");
-            boostBtn.textContent = "Boost Applied";
-            updateGenerateButtonState();
-        }
-    }
-
-    if (analyzeVoiceBtn) {
-        analyzeVoiceBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            
-            const s1 = document.getElementById('voiceSample1').value.trim();
-            const s2 = document.getElementById('voiceSample2').value.trim();
-            const s3 = document.getElementById('voiceSample3').value.trim();
-            
-            if (!s1 && !s2 && !s3) {
-                alert("Please paste at least one post example.");
-                return;
-            }
-
-            const samples = [s1, s2, s3].filter(Boolean).join("\n\n");
-
-            analyzeVoiceBtn.textContent = "Analyzing...";
-            analyzeVoiceBtn.disabled = true;
-
-            try {
-                const res = await fetch(`${API_URL}/save-voice`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email: userEmail, samples })
-                });
-                const data = await res.json();
-
-                if (res.ok) {
-                    voiceStatus.style.display = 'block';
-                    hasVoice = true;
-                    refreshProUI();
-                } else {
-                    alert(data.error || "Analysis failed.");
-                }
-            } catch (err) {
-                alert("Failed to connect.");
-            } finally {
-                analyzeVoiceBtn.textContent = "Analyze & Save Voice";
-                analyzeVoiceBtn.disabled = false;
-            }
-        });
-    }
-
-    if (deleteVoiceBtn) {
-        deleteVoiceBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            if (!confirm("Are you sure? This will delete your custom Brand Voice.")) return;
-
-            deleteVoiceBtn.textContent = "Deleting...";
-            deleteVoiceBtn.disabled = true;
-
-            try {
-                const res = await fetch(`${API_URL}/delete-voice`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email: userEmail })
-                });
-                
-                if (res.ok) {
-                    hasVoice = false;
-                    refreshProUI();
-                    document.getElementById('voiceSample1').value = "";
-                    document.getElementById('voiceSample2').value = "";
-                    document.getElementById('voiceSample3').value = "";
-                } else {
-                    alert("Failed to delete voice.");
-                }
-            } catch (err) {
-                alert("Connection failed.");
-            } finally {
-                deleteVoiceBtn.textContent = "Delete & Start Over";
-                deleteVoiceBtn.disabled = false;
-            }
-        });
-    }
-
-    if (analyzeForm && competitorUrlInput) {
-      analyzeForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (!isPro) return;
-
-        if (loadingEl) loadingEl.classList.remove('hidden');
-        if (analysisResult) analysisResult.classList.add('hidden');
-
-        const url = competitorUrlInput.value.trim();
-        const platform = detectPlatform(url);
-
-        setTimeout(() => {
-          if (loadingEl) loadingEl.classList.add('hidden');
-
-          const analysisData = generateDeterministicScore(url);
-          const scoreEl = document.getElementById('analysisScore');
-          const detailEl = document.getElementById('analysisDetails');
-          if (scoreEl && detailEl) {
-            scoreEl.textContent = analysisData.score;
-            detailEl.innerHTML = `
-              <p><strong>Platform Detected:</strong> ${platform}</p>
-              <p><strong>Hook Score:</strong> ${analysisData.hook}</p>
-              <p><strong>Readability:</strong> ${analysisData.readability}</p>
-              <p><strong>Hashtags:</strong> ${analysisData.hashtags}</p>
-              <p><strong>Core CTA:</strong> ${analysisData.cta}</p>
-            `;
-          }
-          if (analysisResult) analysisResult.classList.remove('hidden');
-        }, 1500);
-      });
-    }
-
-    if (analyzeAgainBtn && competitorUrlInput && analysisResult) {
-      analyzeAgainBtn.addEventListener('click', () => {
-        competitorUrlInput.value = '';
-        analysisResult.classList.add('hidden');
-        competitorUrlInput.focus();
-        const analysisDetails = document.getElementById('analysisDetails');
-        if (analysisDetails) analysisDetails.innerHTML = '';
-      });
-    }
-
-    if (copyBtn && outputEl) {
-      copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(outputEl.textContent || '').then(() => {
-          copyBtn.textContent = 'Copied!';
-          copyBtn.classList.add('copied');
-          setTimeout(() => {
-            copyBtn.textContent = 'Copy All';
-            copyBtn.classList.remove('copied');
-          }, 2000);
-        });
-      });
-    }
-
-    if (emojiGrid && ideaInput) {
-      const commonEmojis = Object.keys(emojiMap);
-      emojiGrid.innerHTML = '';
-      commonEmojis.forEach(name => {
-        const btn = document.createElement('button');
-        btn.textContent = emojiMap[name];
-        btn.title = name;
-        btn.addEventListener('click', () => {
-          ideaInput.value += ' ' + emojiMap[name];
-          ideaInput.focus();
-        });
-        emojiGrid.appendChild(btn);
-      });
-    }
-
-    if (emojiPickerBtn && picker) {
-      emojiPickerBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
-      });
-    }
-    if (closePicker && picker) {
-      closePicker.addEventListener('click', () => picker.style.display = 'none');
-    }
-    document.addEventListener('click', (e) => {
-      if (picker && emojiPickerBtn && !picker.contains(e.target) && e.target !== emojiPickerBtn) {
-        picker.style.display = 'none';
-      }
-    });
-
-    const inputs = ['idea', 'platform', 'tone'];
-    inputs.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.addEventListener('input', () => {
-          // Auto-generate removed by user request
-        });
-      }
-    });
-
-    const captionForm = document.getElementById('captionForm');
-    if (captionForm) {
-      captionForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        clearTimeout(debounceTimer);
-        tryGenerate(true);
-      });
-    }
-
-    if (generateTabBtn) generateTabBtn.addEventListener('click', () => showTab('generateContent'));
-    if (analyzeTabBtn) analyzeTabBtn.addEventListener('click', () => showTab('analyzeContent'));
-    if (voiceTabBtn) voiceTabBtn.addEventListener('click', () => showTab('voiceContent'));
-
-    if (boostBtn) {
-      boostBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        tryBoost();
-      });
-    }
-
-    if (isPro) {
-      if (templateContainer) {
-        templateContainer.classList.remove('hidden');
-        templateContainer.style.display = 'grid';
-      }
-      if (templateTeaser) templateTeaser.style.display = 'none';
-      showPage(1);
-    } else {
-      if (templateContainer) {
-        templateContainer.classList.add('hidden');
-        templateContainer.style.display = 'none';
-      }
-      if (templateTeaser) templateTeaser.style.display = 'block';
-    }
-
-    if (page1Btn) page1Btn.addEventListener('click', () => showPage(1));
-    if (page2Btn) page2Btn.addEventListener('click', () => showPage(2));
-
-    document.querySelectorAll('.templateBtn').forEach(btn => {
-      const raw = btn.getAttribute('data-text') || '';
-      const renderedText = processTemplateText(raw);
-      btn.addEventListener('click', () => {
-        if (ideaInput) ideaInput.value = renderedText;
-        if (ideaInput) ideaInput.focus();
-        showTab('generateContent');
-      });
-    });
-
-    if (unlockTemplatesBtn && paywallEl) {
-      unlockTemplatesBtn.addEventListener('click', () => {
-        paywallEl.classList.remove('hidden');
-        paywallEl.scrollIntoView({ behavior: 'smooth' });
-      });
-    }
-
-    if (subscribeAnalyzeBtn && subscribeBtn) {
-      subscribeAnalyzeBtn.addEventListener('click', () => {
-        subscribeBtn.click();
-      });
-    }
-    if (subscribeVoiceBtn && subscribeBtn) {
-        subscribeVoiceBtn.addEventListener('click', () => {
-            subscribeBtn.click();
-        });
-    }
-
-    if (subscribeBtn) {
-      subscribeBtn.addEventListener('click', async () => {
-        try {
-          const res = await fetch(`${API_URL}/create-checkout-session`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: userEmail, referralCode: localStorage.getItem('referralCode') || '' })
-          });
-          const data = await res.json();
-          if (data && data.url) {
-            window.location.href = data.url;
-          } else {
-            alert('Checkout failed. Please try again.');
-          }
-        } catch (err) {
-          alert('Checkout failed. Please try again.');
-        }
-      });
-    }
-
-    if (tipElement) tipElement.textContent = getTodayTip();
-
-    const urlParamsLocal = new URLSearchParams(window.location.search);
-    if (urlParamsLocal.get('success') === 'true') {
-      localStorage.setItem('isPro', 'true');
-      isPro = true;
-      window.history.replaceState({}, document.title, window.location.pathname);
-      alert('Welcome to Pro! Unlimited generations, Boost, Templates, and Analyzer unlocked.');
-    
-      try {
-        if (typeof templateContainer !== 'undefined' && templateContainer) {
-          templateContainer.classList.remove('hidden');
-          templateContainer.style.display = 'grid';
-        }
-        if (typeof templateTeaser !== 'undefined' && templateTeaser) {
-          templateTeaser.style.display = 'none';
-        }
-        if (typeof showPage !== 'undefined') showPage(1);
-      } catch(e) { console.error(e); }
-    }
-
-    if (!userEmail) {
-      emailSubmit.addEventListener('click', () => {
-        const email = (emailInput.value || '').trim();
-        if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          localStorage.setItem('userEmail', email);
-          localStorage.setItem('freeUses', '0');
-          modal.style.display = 'none';
-          mainApp.style.display = 'block';
-          userEmail = email;
-          hydrateProFromServer();
-          updateGenerateButtonState();
-          showTab(currentTab);
-        } else {
-          emailInput.style.borderColor = '#ef4444';
-          emailInput.focus();
-        }
-      });
-    } else {
-      modal.style.display = 'none';
-      mainApp.style.display = 'block';
-      hydrateProFromServer();
-    }
-
-    refreshProUI();
-    updateGenerateButtonState();
-    showTab(currentTab);
-  });
-
-async function handleAffiliateClick() {
-    const email = localStorage.getItem('userEmail');
-    if (!email) {
-        alert("Please generate at least one caption first so we know your email!");
-        document.getElementById("emailModal").style.display = "flex"; 
-        return;
-    }
-
-    const btn = document.getElementById("affiliateBtn");
-    const loading = document.getElementById("affiliateLoading");
-    const container = document.getElementById("affiliateLinkContainer");
-    
-    btn.style.display = 'none';
-    loading.classList.remove('hidden');
-
-    let affiliateId = localStorage.getItem("connectAccountId");
-
-    if (affiliateId) {
-        showReferralLink(affiliateId);
-        return;
-    }
-
-    try {
-        const res = await fetch(`${API_URL}/create-connect-account`, {
-            method: "POST",
-            headers: {"Content-Type":"application/json"},
-            body: JSON.stringify({ email })
-        });
-        const data = await res.json();
-        
-        if (data.error) {
-            alert("Error: " + data.error);
-            resetAffiliateUI();
-            return;
-        }
-
-        localStorage.setItem("connectAccountId", data.connectAccountId);
-        
-        if (confirm("We need to set up your payouts via Stripe. Click OK to continue.")) {
-             window.location.href = data.onboardingUrl;
-        } else {
-             resetAffiliateUI();
-        }
-
-    } catch (e) {
-        console.error(e);
-        alert("Connection failed. Please check your internet or try again.");
-        resetAffiliateUI();
-    }
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const { Groq } = require('groq-sdk');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const mongoose = require('mongoose');
+const User = require('./models/User');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const FREE_TIER_LIMIT = 10;
+
+// === 1. DATABASE CONNECTION ===
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('✅ MongoDB Connected'))
+  .catch(err => console.error('❌ MongoDB Connection Error:', err));
+
+// === 2. CONFIG & UTILS ===
+let vipEmails = [];
+try {
+  vipEmails = require('./free-pro-users.json').emails.map(e => e.toLowerCase().trim());
+} catch (e) {
+  console.log("No VIP list found or empty.");
 }
 
-async function showReferralLink(affiliateId) {
-    try {
-        const res = await fetch(`${API_URL}/referral-link?referralCode=${affiliateId}`);
-        const data = await res.json();
-        
-        if (data.referralUrl) {
-            document.getElementById("affiliateLink").value = data.referralUrl;
-            document.getElementById("affiliateLinkContainer").style.display = "block";
-            document.getElementById("affiliateLoading").classList.add('hidden');
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Could not fetch link.");
-        resetAffiliateUI();
-    }
+function isVipEmail(email) {
+  if (!email) return false;
+  return vipEmails.includes(email.toLowerCase().trim());
 }
 
-function resetAffiliateUI() {
-    document.getElementById("affiliateBtn").style.display = 'inline-block';
-    document.getElementById("affiliateLoading").classList.add('hidden');
-}
-
-document.addEventListener('DOMContentLoaded', ()=>{
-    const btn = document.getElementById("affiliateBtn");
-    if(btn) btn.addEventListener("click", handleAffiliateClick);
+function computeEngagementScore(text, idea, platform, tone) {
+    if (!text) return 30;
+    const platformKey = (platform || "").toLowerCase();
+    const totalWords = text.split(/\s+/).filter(Boolean).length;
+    const allHashtags = text.match(/#[\p{L}\p{N}_]+/gu) || [];
     
-    const copyBtn = document.getElementById("copyReferralBtn");
-    if(copyBtn) copyBtn.addEventListener("click", ()=> {
-        const inp = document.getElementById("affiliateLink");
-        inp.select();
-        document.execCommand("copy");
-        copyBtn.textContent = "Copied!";
-        setTimeout(() => copyBtn.textContent = "Copy", 2000);
-    });
+    let score = 45; 
+    if (totalWords > 10 && totalWords < 150) score += 10;
+    if (allHashtags.length >= 5 && allHashtags.length <= 30) score += 10;
+    if (platformKey.includes('instagram') && allHashtags.length > 10) score += 5;
+    if (platformKey.includes('linkedin') && tone.toLowerCase().includes('professional')) score += 5;
+    if (text.includes('👇') || text.includes('🔗') || text.includes('?')) score += 5; 
+    score += Math.floor(Math.random() * 5);
+    return Math.min(Math.max(score, 10), 95); 
+}
+
+// === MIDDLEWARE ===
+app.use(cors());
+// GLOBAL BODY PARSER WITH INCREASED LIMIT (Crucial for Images)
+app.use(express.json({ limit: '50mb' })); 
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.static('.'));
+
+// === ROUTES ===
+
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/caption.html');
 });
-  
-</script>
 
-</body>
-</html>
+app.get('/check-subscription', async (req, res) => {
+    const email = req.query.email;
+    if (!email) return res.status(400).json({ error: 'Email required' });
+
+    try {
+        let user = await User.findOne({ email });
+        if (!user) user = await User.create({ email });
+
+        const isVip = isVipEmail(email);
+        const isPro = isVip || user.isPro;
+
+        res.json({ 
+            isPro: isPro, 
+            isVip: isVip,
+            freeUses: user.freeGenerations,
+            hasVoice: !!user.brandVoice
+        });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.post('/save-voice', async (req, res) => {
+    const { email, samples } = req.body;
+    if (!email || !samples) return res.status(400).json({ error: 'Missing data' });
+
+    try {
+        let user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        const isVip = isVipEmail(email);
+        const isPro = user.isPro || isVip;
+
+        if (!isPro) return res.status(402).json({ error: 'Upgrade to Pro to use Style Thief.' });
+
+        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+        const analysisPrompt = `
+        Analyze these social media posts and extract a "Voice Profile" instructions list.
+        Identify: Sentence length, emoji usage frequency, slang, tone, and structure.
+        
+        POST SAMPLES:
+        "${samples}"
+
+        Output ONLY the instructions to give to an AI to replicate this style. Start with "Write in a style that is..."
+        `;
+
+        const completion = await groq.chat.completions.create({
+            messages: [{ role: 'user', content: analysisPrompt }],
+            model: 'llama-3.3-70b-versatile',
+        });
+
+        const voiceProfile = completion.choices[0]?.message?.content || "";
+        
+        user.brandVoice = voiceProfile;
+        await user.save();
+
+        res.json({ success: true, voiceProfile });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Voice analysis failed' });
+    }
+});
+
+app.post('/delete-voice', async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required' });
+
+    try {
+        await User.findOneAndUpdate({ email }, { brandVoice: "" });
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Failed to delete voice' });
+    }
+});
+
+app.post('/generate', async (req, res) => {
+  const { idea, platform, tone, email, useVoice, image } = req.body;
+  
+  if ((!idea && !image) || !email) return res.status(400).json({ error: 'Missing fields' });
+
+  try {
+    let user = await User.findOne({ email });
+    if (!user) user = await User.create({ email });
+
+    const isVip = isVipEmail(email);
+    const isPro = user.isPro || isVip;
+
+    if (!isPro && user.freeGenerations >= FREE_TIER_LIMIT) {
+      return res.status(402).json({ error: 'Limit reached. Please upgrade.' });
+    }
+
+    let styleInstruction = "";
+    if (useVoice && user.brandVoice) {
+        styleInstruction = `⚠️ IMPORTANT: Ignore standard tone. ${user.brandVoice}`;
+    } else {
+        if (platform.toLowerCase().includes('linkedin') || tone.toLowerCase().includes('professional')) {
+            styleInstruction = "Use minimal, professional emojis. Focus on clean structure.";
+        } else if (platform.toLowerCase().includes('instagram') || tone.toLowerCase().includes('fun')) {
+            styleInstruction = "Use vibrant emojis often. Make it pop!";
+        }
+    }
+
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    let messages = [];
+    
+    // Use Llama 3.2 90b Vision (Stable replacement for 11b)
+    let model = 'llama-3.3-70b-versatile'; 
+
+    if (image) {
+        model = 'llama-3.2-90b-vision-preview'; 
+        
+        const userPrompt = `
+        Platform: ${platform}
+        Tone: ${tone}
+        Context: ${idea || "Describe this image"}
+        
+        TASK: Write 5 viral social media captions based on this image.
+        ${styleInstruction}
+        Include 20 trending hashtags.
+        Format exactly: ## Captions (numbered list) ## Hashtags.
+        `;
+
+        messages = [
+            {
+                role: 'user',
+                content: [
+                    { type: 'text', text: userPrompt },
+                    { type: 'image_url', image_url: { url: image } } 
+                ]
+            }
+        ];
+        console.log("📸 Processing Vision Request...");
+    } else {
+        const prompt = `
+        Platform: ${platform}
+        Tone: ${tone}
+        Post Idea: "${idea}"
+
+        Write:
+        - 5 short, punchy captions (under 280 characters each).
+        - **Style Instruction:** ${styleInstruction}
+        - 20 relevant, trending hashtags.
+
+        Format exactly:
+        ## Captions
+        1. "..."
+        ...
+        ## Hashtags
+        #tag1 ...
+        `.trim();
+        
+        messages = [{ role: 'user', content: prompt }];
+    }
+    
+    const completion = await groq.chat.completions.create({
+      messages: messages,
+      model: model,
+      temperature: 0.7,
+      max_tokens: 1024,
+    });
+    
+    const result = completion.choices[0]?.message?.content || "No result";
+    const score = computeEngagementScore(result, idea || "image", platform, tone);
+
+    if (!isPro) {
+      user.freeGenerations += 1;
+      await user.save();
+    }
+
+    res.json({ result, score });
+
+  } catch (err) {
+    console.error("❌ Generation Error:", err.message); 
+    if (err.message && err.message.includes("model_decommissioned")) {
+        res.status(500).json({ error: "System Upgrade: The AI model is being updated. Please try again in 5 minutes." });
+    } else {
+        res.status(500).json({ error: 'Generation failed: ' + err.message });
+    }
+  }
+});
+
+app.post('/optimize', async (req, res) => {
+  const { idea, platform, tone, email, captions, previousScore } = req.body;
+  if (!captions || !email) return res.status(400).json({ error: 'Missing fields' });
+
+  try {
+    let user = await User.findOne({ email });
+    if (!user) user = await User.create({ email });
+
+    const isVip = isVipEmail(email);
+    const isPro = user.isPro || isVip;
+
+    if (!isPro && user.freeGenerations >= FREE_TIER_LIMIT) {
+      return res.status(402).json({ error: 'Limit reached. Please upgrade.' });
+    }
+
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const prompt = `
+Rewrite these captions to be 10x more viral.
+Original Idea: ${idea}
+Platform: ${platform}
+Tone: ${tone}
+Current Captions:
+${captions}
+
+Make them punchier, use better hooks, and add 5 more niche hashtags.
+Ensure emojis match the tone (${tone}).
+    `.trim();
+
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: 'llama-3.3-70b-versatile',
+      temperature: 0.9,
+    });
+
+    const result = completion.choices[0]?.message?.content || captions;
+    let newScore = (previousScore || 50) + Math.floor(Math.random() * 15) + 10;
+    if (newScore > 98) newScore = 98;
+
+    if (!isPro) {
+      user.freeGenerations += 1;
+      await user.save();
+    }
+
+    res.json({ result, score: newScore });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Optimization failed' });
+  }
+});
+
+app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+  try {
+      if (event.type === 'checkout.session.completed' || event.type === 'invoice.payment_succeeded') {
+         const session = event.data.object;
+         const email = session.customer_email || (session.metadata && session.metadata.user_email);
+         if (email) await User.findOneAndUpdate({ email }, { isPro: true, stripeCustomerId: session.customer });
+      } else if (event.type === 'customer.subscription.deleted' || event.type === 'invoice.payment_failed') {
+         const session = event.data.object;
+         const email = session.customer_email || (session.metadata && session.metadata.user_email);
+         if (email && !isVipEmail(email)) await User.findOneAndUpdate({ email }, { isPro: false });
+      }
+  } catch (err) { console.error(err); }
+  res.json({ received: true });
+});
+
+app.post('/create-checkout-session', async (req, res) => {
+  const { email, referralCode } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
+      mode: 'subscription',
+      customer_email: email,
+      success_url: `${req.headers.origin}/?success=true`,
+      cancel_url: `${req.headers.origin}/?canceled=true`,
+      metadata: { user_email: email, referral_code: referralCode || '' },
+      subscription_data: { metadata: { user_email: email, referral_code: referralCode || '' } }
+    });
+    res.json({ url: session.url });
+  } catch (err) { res.status(500).json({ error: 'Checkout failed' }); }
+});
+
+app.post('/create-connect-account', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required.' });
+    const account = await stripe.accounts.create({
+      type: 'express',
+      email,
+      capabilities: { transfers: { requested: true }, card_payments: { requested: true } },
+      metadata: { user_email: email },
+    });
+    const origin = req.headers.origin || 'https://caption-ai-ze13.onrender.com';
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: `${origin}?connect_refresh=1`,
+      return_url: `${origin}?connect_return=1`,
+      type: 'account_onboarding',
+    });
+    res.json({ connectAccountId: account.id, onboardingUrl: accountLink.url });
+  } catch (err) { res.status(500).json({ error: 'Failed to create Connect account: ' + err.message }); }
+});
+
+app.get('/referral-link', (req, res) => {
+  const { referralCode } = req.query;
+  if (!referralCode) return res.status(400).json({ error: 'referralCode required' });
+  const origin = req.headers.origin || 'https://caption-ai-ze13.onrender.com';
+  res.json({ referralUrl: `${origin}?ref=${encodeURIComponent(referralCode)}` });
+});
+
+app.get('/health', (req, res) => { res.json({ status: 'ok', time: new Date().toISOString() }); });
+
+app.listen(PORT, () => { console.log(`Server running on port ${PORT}`); });
