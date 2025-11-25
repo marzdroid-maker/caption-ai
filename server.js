@@ -9,6 +9,7 @@ const User = require('./models/User');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const FREE_TIER_LIMIT = 10;
+const AFFILIATE_COMMISSION_PERCENT = 0.30; // 30% Commission
 
 // === 1. DATABASE CONNECTION ===
 mongoose.connect(process.env.MONGODB_URI)
@@ -306,11 +307,39 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
   } catch (err) {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
+  
   try {
+      // 1. HANDLE SUCCESSFUL PAYMENT (Subscription or Invoice)
       if (event.type === 'checkout.session.completed' || event.type === 'invoice.payment_succeeded') {
          const session = event.data.object;
+         
+         // A. Upgrade User
          const email = session.customer_email || (session.metadata && session.metadata.user_email);
-         if (email) await User.findOneAndUpdate({ email }, { isPro: true, stripeCustomerId: session.customer });
+         if (email) {
+             await User.findOneAndUpdate({ email }, { isPro: true, stripeCustomerId: session.customer });
+             console.log(`✅ Upgraded user: ${email}`);
+         }
+
+         // B. PAY THE AFFILIATE (Added This Block)
+         const referralCode = session.metadata && session.metadata.referral_code;
+         
+         if (referralCode && session.amount_total > 0) {
+             const commissionAmount = Math.floor(session.amount_total * AFFILIATE_COMMISSION_PERCENT);
+             
+             try {
+                 // Transfer funds instantly to the affiliate's Stripe account
+                 await stripe.transfers.create({
+                     amount: commissionAmount,
+                     currency: 'usd',
+                     destination: referralCode, // The code IS their account ID
+                     description: `Commission for ${email}`,
+                 });
+                 console.log(`💰 Paid $${commissionAmount/100} commission to ${referralCode}`);
+             } catch (err) {
+                 console.error(`❌ Commission Transfer Failed: ${err.message}`);
+             }
+         }
+
       } else if (event.type === 'customer.subscription.deleted' || event.type === 'invoice.payment_failed') {
          const session = event.data.object;
          const email = session.customer_email || (session.metadata && session.metadata.user_email);
